@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-// Home page sections
 import HeroSection from "@/components/home/HeroSection";
 import AboutSection from "@/components/home/AboutSection";
 import TeamPreviewSection from "@/components/home/TeamPreview";
@@ -7,7 +6,6 @@ import ImageCarousel from "@/components/home/ImageCarousel";
 import events from "@/data/event";
 import GroupPicture from "@/assets/group_pic.webp";
 
-// Enhanced metadata for homepage
 export const metadata: Metadata = {
   title: "Deviators Club - Code. Create. Deviate.",
   description:
@@ -15,7 +13,7 @@ export const metadata: Metadata = {
   keywords:
     "Deviators Club, Code Create Deviate, tech community, hackathons, coding workshops, collaborative tech projects, programming club, innovation hub, developer community, tech empowerment",
   alternates: {
-    canonical: "https://www.deviatorsclub.tech",
+    canonical: "https://www.deviators.club",
   },
   openGraph: {
     title: "Deviators Club - Code. Create. Deviate.",
@@ -29,9 +27,7 @@ export const metadata: Metadata = {
   },
 };
 
-// Main homepage component
 export default function Home() {
-  // Collect images for carousel: group picture + event images
   const images = [
     GroupPicture,
     ...events.map((event) => event.images[event.index]),

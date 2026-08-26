@@ -8,19 +8,19 @@ export const metaDataBase: Metadata = {
   description:
     "Deviators Club empowers coders and innovators to learn, build, and lead with workshops, hackathons, and collaborative tech projects. Join our community of passionate developers, entrepreneurs, and tech enthusiasts to explore cutting-edge technologies and transform groundbreaking ideas into reality.",
   keywords:
-    "Deviators Club, Code Create Deviate, tech community, innovation hub, developer community, programming club, tech events, hackathons, coding workshops, collaborative tech projects, entrepreneurship, startup incubator, technology education, software development, web development training, mobile app development, cybersecurity workshops, data structures algorithms, coding bootcamp, tech meetups, innovation lab, developer empowerment, tech leadership",
+    "Deviators Club, Code Create Deviate, tech community, innovation hub, developer community, programming club, tech events, hackathons, coding workshops, DCE, Dronacharya College of Engineering, Dronacharya, deviators dronacharya, dce coding club, collaborative tech projects, entrepreneurship, technology education, software development, web development training",
   authors: [{ name: "Deviators Club" }],
   creator: "Deviators Club",
   publisher: "Deviators Club",
-  metadataBase: new URL("https://www.deviatorsclub.tech"),
+  metadataBase: new URL("https://www.deviators.club"),
   alternates: {
-    canonical: "https://www.deviatorsclub.tech",
+    canonical: "https://www.deviators.club",
   },
   openGraph: {
     title: "Deviators Club - Code. Create. Deviate.",
     description:
       "Deviators Club empowers coders and innovators to learn, build, and lead. Join our community for workshops, hackathons, and collaborative tech projects. Transform ideas into reality!",
-    url: "https://www.deviatorsclub.tech",
+    url: "https://www.deviators.club",
     siteName: "Deviators Club",
     images: [
       {

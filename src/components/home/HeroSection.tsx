@@ -62,7 +62,7 @@ export default function HeroSection() {
             className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4"
           >
             <Link
-              href="https://linktree.deviatorsclub.tech/"
+              href="https://linktree.deviators.club/"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary text-sm sm:text-base"

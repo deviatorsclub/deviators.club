@@ -11,7 +11,7 @@ import { FaXTwitter } from "react-icons/fa6";
 const socials = [
   {
     name: "Linktree",
-    url: "https://linktree.deviatorsclub.tech",
+    url: "https://linktree.deviators.club",
     icon: Link01Icon,
     isHugeIcon: true,
   },
@@ -35,7 +35,7 @@ const socials = [
   },
   {
     name: "LinkedIn",
-    url: "https://www.linkedin.com/company/deviators-club",
+    url: "https://www.linkedin.com/company/deviatorsclub/",
     icon: Linkedin01Icon,
     isHugeIcon: true,
   },

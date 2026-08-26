@@ -13,7 +13,6 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import DeviatorsStickers from "@/components/common/DeviatorsStickers";
 
-// Zalando Sans - body text & paragraphs (variable, 200-900)
 const zalandoSans = localFont({
   src: [
     {
@@ -33,7 +32,6 @@ const zalandoSans = localFont({
   variable: "--font-sans",
 });
 
-// Zalando Sans Expanded - headings (variable, 200-900)
 const zalandoSansExpanded = localFont({
   src: [
     {
@@ -53,7 +51,6 @@ const zalandoSansExpanded = localFont({
   variable: "--font-heading",
 });
 
-// Next.js metadata configuration
 export const metadata: Metadata = {
   ...metaDataBase,
 };
@@ -66,7 +63,6 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-// Root layout for the entire app
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -77,14 +73,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* Basic meta tags and icons */}
         <meta charSet="utf-8" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="shortcut icon" href="/icon.svg" />
         <link rel="apple-touch-icon" href="/icon.svg" />
         <link rel="manifest" href="/manifest.json" />
 
-        {/* Structured Data for SEO */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -99,14 +93,11 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen antialiased">
-        {/* Animated background and navigation */}
         <AnimatedBackground />
         <Navbar />
-        {/* Main content */}
         {children}
         <Footer />
         <DeviatorsStickers />
-        {/* Vercel analytics & speed counter (only in production) */}
         {process.env.NODE_ENV === "production" && <Analytics />}
         {process.env.NODE_ENV === "production" && <SpeedInsights />}
       </body>

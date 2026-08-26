@@ -14,6 +14,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/_next/"],
       },
     ],
-    sitemap: "https://www.deviatorsclub.tech/sitemap.xml",
+    sitemap: "https://www.deviators.club/sitemap.xml",
   };
 }

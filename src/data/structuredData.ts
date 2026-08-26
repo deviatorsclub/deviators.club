@@ -5,12 +5,12 @@ export const organizationStructuredData = {
   alternateName: "Code. Create. Deviate.",
   description:
     "Deviators Club empowers coders and innovators to learn, build, and lead with workshops, hackathons, and collaborative tech projects.",
-  url: "https://www.deviatorsclub.tech",
-  logo: "https://www.deviatorsclub.tech/assets/logo/sm.svg",
-  image: "https://www.deviatorsclub.tech/banner.webp",
+  url: "https://www.deviators.club",
+  logo: "https://www.deviators.club/assets/logo/sm.svg",
+  image: "https://www.deviators.club/banner.webp",
   sameAs: [
     "https://instagram.com/deviatorsclub",
-    "https://linkedin.com/company/deviatorsclub",
+    "https://www.linkedin.com/company/deviatorsclub/",
     "https://github.com/deviatorsclub",
   ],
   knowsAbout: [
@@ -44,15 +44,15 @@ export const organizationStructuredData = {
       organizer: {
         "@type": "Organization",
         name: "Deviators Club",
-        url: "https://www.deviatorsclub.tech",
+        url: "https://www.deviators.club",
       },
-      image: "https://www.deviatorsclub.tech/banner.webp",
+      image: "https://www.deviators.club/banner.webp",
       offers: {
         "@type": "Offer",
         price: "0",
         priceCurrency: "INR",
         availability: "https://schema.org/InStock",
-        url: "https://www.deviatorsclub.tech/learn/web",
+        url: "https://www.deviators.club/learn/web",
       },
     },
     {
@@ -74,15 +74,15 @@ export const organizationStructuredData = {
       organizer: {
         "@type": "Organization",
         name: "Deviators Club",
-        url: "https://www.deviatorsclub.tech",
+        url: "https://www.deviators.club",
       },
-      image: "https://www.deviatorsclub.tech/banner.webp",
+      image: "https://www.deviators.club/banner.webp",
       offers: {
         "@type": "Offer",
         price: "0",
         priceCurrency: "INR",
         availability: "https://schema.org/InStock",
-        url: "https://www.deviatorsclub.tech/learn/cyber",
+        url: "https://www.deviators.club/learn/cyber",
       },
     },
     {
@@ -104,15 +104,15 @@ export const organizationStructuredData = {
       organizer: {
         "@type": "Organization",
         name: "Deviators Club",
-        url: "https://www.deviatorsclub.tech",
+        url: "https://www.deviators.club",
       },
-      image: "https://www.deviatorsclub.tech/banner.webp",
+      image: "https://www.deviators.club/banner.webp",
       offers: {
         "@type": "Offer",
         price: "0",
         priceCurrency: "INR",
         availability: "https://schema.org/InStock",
-        url: "https://www.deviatorsclub.tech/learn/ios",
+        url: "https://www.deviators.club/learn/ios",
       },
     },
     {
@@ -134,15 +134,15 @@ export const organizationStructuredData = {
       organizer: {
         "@type": "Organization",
         name: "Deviators Club",
-        url: "https://www.deviatorsclub.tech",
+        url: "https://www.deviators.club",
       },
-      image: "https://www.deviatorsclub.tech/banner.webp",
+      image: "https://www.deviators.club/banner.webp",
       offers: {
         "@type": "Offer",
         price: "0",
         priceCurrency: "INR",
         availability: "https://schema.org/InStock",
-        url: "https://www.deviatorsclub.tech/learn/dsa",
+        url: "https://www.deviators.club/learn/dsa",
       },
     },
   ],
@@ -153,7 +153,7 @@ export const websiteStructuredData = {
   "@type": "WebSite",
   name: "Deviators Club",
   alternateName: "Code. Create. Deviate.",
-  url: "https://www.deviatorsclub.tech",
+  url: "https://www.deviators.club",
   description:
     "Official website of Deviators Club - Empowering coders and innovators through workshops, hackathons, and collaborative tech projects",
   publisher: {
@@ -164,8 +164,7 @@ export const websiteStructuredData = {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate:
-        "https://www.deviatorsclub.tech/search?q={search_term_string}",
+      urlTemplate: "https://www.deviators.club/search?q={search_term_string}",
     },
     "query-input": "required name=search_term_string",
   },
