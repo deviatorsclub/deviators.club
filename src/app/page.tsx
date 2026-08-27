@@ -7,7 +7,7 @@ import events from "@/data/event";
 import GroupPicture from "@/assets/group_pic.webp";
 
 export const metadata: Metadata = {
-  title: "Deviators Club - Code. Create. Deviate.",
+  title: "Deviators Club | Code. Create. Deviate.",
   description:
     "Deviators Club empowers coders and innovators to learn, build, and lead with workshops, hackathons, and collaborative tech projects. Join our passionate community of developers and tech enthusiasts to transform ideas into reality!",
   keywords:
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     canonical: "https://www.deviators.club",
   },
   openGraph: {
-    title: "Deviators Club - Code. Create. Deviate.",
+    title: "Deviators Club | Code. Create. Deviate.",
     description:
       "Deviators Club empowers coders and innovators to learn, build, and lead. Join our community for workshops, hackathons, and collaborative tech projects.",
     images: ["/og-image.png"],
