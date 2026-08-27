@@ -19,11 +19,11 @@ export const metadata: Metadata = {
     title: "Deviators Club - Code. Create. Deviate.",
     description:
       "Deviators Club empowers coders and innovators to learn, build, and lead. Join our community for workshops, hackathons, and collaborative tech projects.",
-    images: ["/banner.webp"],
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/banner.webp"],
+    images: ["/og-image.png"],
   },
 };
 

@@ -1,6 +1,6 @@
 # Deviators Club Website
 
-![Deviators Club](/public/banner.webp)
+![Deviators Club](/public/og-image.png)
 
 Welcome to the official repository for the **Deviators Club** website! 🚀
 

@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 export const metaDataBase: Metadata = {
   title: {
-    default: "Deviators Club - Code. Create. Deviate.",
+    default: "Deviators Club | Code. Create. Deviate.",
     template: "%s | Deviators Club",
   },
   description:
@@ -17,17 +17,17 @@ export const metaDataBase: Metadata = {
     canonical: "https://www.deviators.club",
   },
   openGraph: {
-    title: "Deviators Club - Code. Create. Deviate.",
+    title: "Deviators Club | Code. Create. Deviate.",
     description:
       "Deviators Club empowers coders and innovators to learn, build, and lead. Join our community for workshops, hackathons, and collaborative tech projects. Transform ideas into reality!",
     url: "https://www.deviators.club",
     siteName: "Deviators Club",
     images: [
       {
-        url: "/banner.webp",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Deviators Club - Code. Create. Deviate. Premier Tech Community",
+        alt: "Deviators Club | Code. Create. Deviate.",
       },
     ],
     locale: "en_US",
@@ -36,10 +36,10 @@ export const metaDataBase: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Deviators Club - Code. Create. Deviate.",
+    title: "Deviators Club | Code. Create. Deviate.",
     description:
       "Deviators Club empowers coders and innovators with workshops, hackathons & collaborative tech projects. Join our community and transform ideas into reality!",
-    images: ["/banner.webp"],
+    images: ["/og-image.png"],
     creator: "@deviatorsclub",
     site: "@deviatorsclub",
   },

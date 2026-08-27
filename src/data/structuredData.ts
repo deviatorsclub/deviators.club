@@ -7,7 +7,7 @@ export const organizationStructuredData = {
     "Deviators Club empowers coders and innovators to learn, build, and lead with workshops, hackathons, and collaborative tech projects.",
   url: "https://www.deviators.club",
   logo: "https://www.deviators.club/assets/logo/sm.svg",
-  image: "https://www.deviators.club/banner.webp",
+  image: "https://www.deviators.club/og-image.png",
   sameAs: [
     "https://instagram.com/deviatorsclub",
     "https://www.linkedin.com/company/deviatorsclub/",
@@ -46,7 +46,7 @@ export const organizationStructuredData = {
         name: "Deviators Club",
         url: "https://www.deviators.club",
       },
-      image: "https://www.deviators.club/banner.webp",
+      image: "https://www.deviators.club/og-image.png",
       offers: {
         "@type": "Offer",
         price: "0",
@@ -76,7 +76,7 @@ export const organizationStructuredData = {
         name: "Deviators Club",
         url: "https://www.deviators.club",
       },
-      image: "https://www.deviators.club/banner.webp",
+      image: "https://www.deviators.club/og-image.png",
       offers: {
         "@type": "Offer",
         price: "0",
@@ -106,7 +106,7 @@ export const organizationStructuredData = {
         name: "Deviators Club",
         url: "https://www.deviators.club",
       },
-      image: "https://www.deviators.club/banner.webp",
+      image: "https://www.deviators.club/og-image.png",
       offers: {
         "@type": "Offer",
         price: "0",
@@ -136,7 +136,7 @@ export const organizationStructuredData = {
         name: "Deviators Club",
         url: "https://www.deviators.club",
       },
-      image: "https://www.deviators.club/banner.webp",
+      image: "https://www.deviators.club/og-image.png",
       offers: {
         "@type": "Offer",
         price: "0",
