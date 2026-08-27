@@ -9,7 +9,7 @@ import GroupPicture from "@/assets/group_pic.webp";
 export const metadata: Metadata = {
   title: "Deviators Club | Code. Create. Deviate.",
   description:
-    "Deviators Club empowers coders and innovators to learn, build, and lead with workshops, hackathons, and collaborative tech projects. Join our passionate community of developers and tech enthusiasts to transform ideas into reality!",
+    "Deviators Club empowers coders to learn, build, and lead. Join our passionate community for workshops, hackathons, and collaborative tech projects.",
   keywords:
     "Deviators Club, Code Create Deviate, tech community, hackathons, coding workshops, collaborative tech projects, programming club, innovation hub, developer community, tech empowerment",
   alternates: {
@@ -18,8 +18,17 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Deviators Club | Code. Create. Deviate.",
     description:
-      "Deviators Club empowers coders and innovators to learn, build, and lead. Join our community for workshops, hackathons, and collaborative tech projects.",
-    images: ["/og-image.png"],
+      "Deviators Club empowers coders to learn, build, and lead. Join our passionate community for workshops, hackathons, and collaborative tech projects.",
+    url: "https://www.deviators.club",
+    siteName: "Deviators Club",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Deviators Club | Code. Create. Deviate.",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

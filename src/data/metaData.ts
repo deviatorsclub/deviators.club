@@ -6,7 +6,7 @@ export const metaDataBase: Metadata = {
     template: "%s | Deviators Club",
   },
   description:
-    "Deviators Club empowers coders and innovators to learn, build, and lead with workshops, hackathons, and collaborative tech projects. Join our community of passionate developers, entrepreneurs, and tech enthusiasts to explore cutting-edge technologies and transform groundbreaking ideas into reality.",
+    "Deviators Club empowers coders to learn, build, and lead. Join our passionate community for workshops, hackathons, and collaborative tech projects.",
   keywords:
     "Deviators Club, Code Create Deviate, tech community, innovation hub, developer community, programming club, tech events, hackathons, coding workshops, DCE, Dronacharya College of Engineering, Dronacharya, deviators dronacharya, dce coding club, collaborative tech projects, entrepreneurship, technology education, software development, web development training",
   authors: [{ name: "Deviators Club" }],
@@ -19,7 +19,7 @@ export const metaDataBase: Metadata = {
   openGraph: {
     title: "Deviators Club | Code. Create. Deviate.",
     description:
-      "Deviators Club empowers coders and innovators to learn, build, and lead. Join our community for workshops, hackathons, and collaborative tech projects. Transform ideas into reality!",
+      "Deviators Club empowers coders to learn, build, and lead. Join our passionate community for workshops, hackathons, and collaborative tech projects.",
     url: "https://www.deviators.club",
     siteName: "Deviators Club",
     images: [
@@ -38,7 +38,7 @@ export const metaDataBase: Metadata = {
     card: "summary_large_image",
     title: "Deviators Club | Code. Create. Deviate.",
     description:
-      "Deviators Club empowers coders and innovators with workshops, hackathons & collaborative tech projects. Join our community and transform ideas into reality!",
+      "Deviators Club empowers coders to learn, build, and lead. Join our passionate community for workshops, hackathons, and collaborative tech projects.",
     images: ["/og-image.png"],
     creator: "@deviatorsclub",
     site: "@deviatorsclub",

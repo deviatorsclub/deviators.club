@@ -3,15 +3,26 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Our Team - Deviators Club",
   description:
-    "Meet the passionate team behind Deviators Club. Our diverse group of developers, designers, and tech enthusiasts driving innovation and fostering community growth through collaborative tech projects.",
+    "Meet the passionate team behind Deviators Club. A diverse group of developers, designers, and tech enthusiasts driving innovation through tech projects.",
   keywords:
     "Deviators Club team, tech community leadership, developer team, programming community, innovation team, tech enthusiasts",
+  alternates: {
+    canonical: "https://www.deviators.club/team",
+  },
   openGraph: {
     title: "Our Team - Deviators Club",
     description:
       "Meet the passionate team behind Deviators Club. Diverse group of developers, designers, and tech enthusiasts driving innovation.",
-    images: ["/og-image.png"],
     url: "https://www.deviators.club/team",
+    siteName: "Deviators Club",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Our Team - Deviators Club",
+      },
+    ],
   },
 };
 
