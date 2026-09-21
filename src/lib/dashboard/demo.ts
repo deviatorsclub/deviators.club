@@ -62,7 +62,13 @@ export const PRONOUN_OPTIONS = [
   "prefer not to say",
 ];
 
-export const YEAR_OPTIONS = ["Fresher", "2nd Year", "3rd Year", "4th Year"];
+export const YEAR_OPTIONS = [
+  "Fresher",
+  "2nd Year",
+  "3rd Year",
+  "4th Year",
+  "Passout",
+];
 
 export const BRANCH_OPTIONS = ["CSE", "AIML", "ECE", "IoT", "ECS", "ME/RA"];
 

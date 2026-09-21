@@ -12,7 +12,7 @@ create table if not exists public.profiles (
   pronouns text not null default '' check (char_length(pronouns) <= 30),
   location text not null default '',
   branch text not null default '' check (branch in ('', 'CSE', 'AIML', 'ECE', 'IoT', 'ECS', 'ME/RA')),
-  year text not null default '' check (year in ('', 'Fresher', '2nd Year', '3rd Year', '4th Year')),
+  year text not null default '' check (year in ('', 'Fresher', '2nd Year', '3rd Year', '4th Year', 'Passout')),
   avatar_url text not null default '',
   provider text not null default 'email',
   github_url text not null default '',

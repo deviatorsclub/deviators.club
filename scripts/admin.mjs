@@ -222,6 +222,25 @@ switch (cmd) {
     console.log(`Renamed '${oldTag}' → '${newTag}' (grants moved over).`);
     break;
   }
+  case "set-year": {
+    const [email, ...yearParts] = args;
+    const year = yearParts.join(" ");
+    if (!email || !year) {
+      console.error('Usage: node scripts/admin.mjs set-year <email> <"2nd Year"|Passout|…>');
+      process.exit(1);
+    }
+    const id = await userIdByEmail(email);
+    if (!id) {
+      console.error(`No signup found for ${email}. They must log in first.`);
+      process.exit(1);
+    }
+    await api(`/profiles?id=eq.${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ year }),
+    });
+    console.log(`Set year '${year}' for ${email}.`);
+    break;
+  }
   case "list-roles": {
     const rows = await api("/roles?select=tag,label&order=tag");
     console.table(rows);
@@ -229,7 +248,7 @@ switch (cmd) {
   }
   default:
     console.error(
-      "Usage: node scripts/admin.mjs <list-events|delete-event|grant-role|grant-role-email|revoke-role|list-roles>",
+      "Usage: node scripts/admin.mjs <list-events|delete-event|grant-role|grant-role-email|revoke-role|rename-role|set-year|list-roles>",
     );
     process.exit(1);
 }
