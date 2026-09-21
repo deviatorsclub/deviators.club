@@ -9,14 +9,20 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Menu01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import deviatorsLogoMin from "@/assets/logo/sm.svg";
 import navItems from "@/data/navItems";
+import { createClient } from "@/lib/supabase/client";
 
 const Navigation = memo(() => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  const visibleItems = navItems.filter(
+    (item) => !("auth" in item && item.auth === "logged-out") || !loggedIn,
+  );
 
   const handleMenuToggle = useCallback(() => {
     setIsMenuOpen((prev) => !prev);
@@ -61,6 +67,15 @@ const Navigation = memo(() => {
   useEffect(() => {
     setMounted(true);
 
+    try {
+      createClient()
+        .auth.getUser()
+        .then(({ data }) => setLoggedIn(!!data.user))
+        .catch(() => {});
+    } catch {
+      // Supabase not configured — show all public links.
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
@@ -104,7 +119,7 @@ const Navigation = memo(() => {
               className="relative flex items-center gap-1"
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              {navItems.map((item, index) => (
+              {visibleItems.map((item, index) => (
                 <Link
                   key={item.name}
                   href={item.link}
@@ -176,7 +191,7 @@ const Navigation = memo(() => {
               className="overflow-hidden md:hidden"
             >
               <div className="border-t border-white/[0.06] px-4 pt-2 pb-4">
-                {navItems.map((item, index) => (
+                {visibleItems.map((item, index) => (
                   <motion.div
                     key={item.name}
                     initial={{ opacity: 0, x: -12 }}
