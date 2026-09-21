@@ -15,6 +15,7 @@ export type DemoProfile = {
   linkedinUrl: string;
   website: string;
   onboarded: boolean;
+  memberSince: string;
 };
 
 export type DemoEvent = {
@@ -72,13 +73,39 @@ export const YEAR_OPTIONS = [
 
 export const BRANCH_OPTIONS = ["CSE", "AIML", "ECE", "IoT", "ECS", "ME/RA"];
 
-const RESERVED_USERNAMES = ["admin", "deviators", "support", "root", "club"];
+const RESERVED_USERNAMES = [
+  "admin",
+  "deviators",
+  "support",
+  "root",
+  "club",
+  "dashboard",
+  "login",
+  "logout",
+  "onboarding",
+  "settings",
+  "flex",
+  "api",
+  "auth",
+  "events",
+  "about",
+  "team",
+  "learn",
+  "gallery",
+];
 
 export function normalizeUsername(v: string) {
   return v
     .toLowerCase()
     .replace(/[^a-z0-9_-]/g, "")
     .slice(0, 30);
+}
+
+export function formatMemberSince(iso: string) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-IN", { month: "short", year: "numeric" });
 }
 
 /** Local fallback for the DB unique constraint on profiles.username. */
@@ -107,5 +134,6 @@ export function defaultDemoProfile(
     linkedinUrl: "",
     website: "",
     onboarded: false,
+    memberSince: "",
   };
 }

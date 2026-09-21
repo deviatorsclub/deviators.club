@@ -10,12 +10,18 @@ import {
   UserEdit01Icon,
   CheckmarkBadge01Icon,
   GraduationScrollIcon,
+  Calendar03Icon,
+  Ticket01Icon,
 } from "@hugeicons/core-free-icons";
 import { GithubIcon } from "@hugeicons/core-free-icons";
 import { Linkedin02Icon } from "@hugeicons/core-free-icons";
 import { GlobeIcon } from "@hugeicons/core-free-icons";
 import { Medal01Icon } from "@hugeicons/core-free-icons";
-import type { DemoProfile, ProfileTag } from "@/lib/dashboard/demo";
+import {
+  formatMemberSince,
+  type DemoProfile,
+  type ProfileTag,
+} from "@/lib/dashboard/demo";
 
 function initials(name: string) {
   return name
@@ -34,6 +40,7 @@ export default function ProfileSidebar({
   tags: ProfileTag[];
 }) {
   const [imgOk, setImgOk] = useState(true);
+  const memberSince = formatMemberSince(profile.memberSince);
 
   useEffect(() => {
     setImgOk(true);
@@ -95,6 +102,15 @@ export default function ProfileSidebar({
         Edit profile
       </Link>
 
+      {/* Flex your card — full page */}
+      <Link
+        href="/dashboard/flex"
+        className="btn-secondary mt-2.5 w-full rounded-xl py-2 text-sm"
+      >
+        <HugeiconsIcon icon={Ticket01Icon} size={16} />
+        Flex Your Card
+      </Link>
+
       {/* Tags — assigned by admins, read from the database */}
       {tags.length > 0 && (
         <div className="mt-5 border-t border-white/[0.07] pt-4">
@@ -137,6 +153,16 @@ export default function ProfileSidebar({
           />
           {profile.branch} · {profile.year}
         </li>
+        {memberSince && (
+          <li className="flex items-center gap-2.5">
+            <HugeiconsIcon
+              icon={Calendar03Icon}
+              size={15}
+              className="shrink-0 text-white/35"
+            />
+            Member since {memberSince}
+          </li>
+        )}
         <li className="flex items-center gap-2.5">
           <HugeiconsIcon
             icon={Mail01Icon}

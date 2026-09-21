@@ -11,7 +11,11 @@ export async function middleware(request: NextRequest) {
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
 
-  if (isGuarded && !user) {
+  // Public badge pages: /dashboard/@username needs no login.
+  const isPublicCard =
+    pathname.startsWith("/dashboard/@") && pathname !== "/dashboard/@";
+
+  if (isGuarded && !isPublicCard && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);

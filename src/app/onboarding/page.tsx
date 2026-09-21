@@ -8,6 +8,7 @@ import { Alert01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { defaultDemoProfile, type DemoProfile } from "@/lib/dashboard/demo";
 import { createClient } from "@/lib/supabase/client";
 import {
+  claimMemberTag,
   fetchProfile,
   isUsernameTakenDb,
   upsertProfile,
@@ -127,6 +128,7 @@ export default function OnboardingPage() {
       setSubmitError(error);
       return;
     }
+    await claimMemberTag(userId);
     router.push("/dashboard");
   };
 

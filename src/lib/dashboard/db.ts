@@ -24,6 +24,7 @@ type ProfileRow = {
   linkedin_url: string;
   website: string;
   onboarded: boolean;
+  created_at: string;
 };
 
 type EventRow = {
@@ -57,6 +58,7 @@ function toProfile(email: string, row: ProfileRow): DemoProfile {
     linkedinUrl: row.linkedin_url,
     website: row.website,
     onboarded: row.onboarded,
+    memberSince: row.created_at ?? "",
   };
 }
 
@@ -111,6 +113,13 @@ export async function fetchProfileTags(userId: string): Promise<ProfileTag[]> {
   });
 }
 
+/** Every member gets the 'member' tag on signup (allowed by RLS policy). */
+export async function claimMemberTag(userId: string) {
+  const supabase = createClient();
+  await supabase
+    .from("profile_roles")
+    .insert({ profile_id: userId, tag: "member" });
+}
 type DbErrorShape = {
   code?: string;
   message?: string;
