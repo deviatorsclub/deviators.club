@@ -139,15 +139,26 @@ drop policy if exists "published events readable" on public.events;
 create policy "published events readable"
   on public.events for select using (is_published = true);
 
+-- Helper functions with SECURITY DEFINER to break mutual RLS recursion between teams and team_members
+create or replace function public.is_team_member(check_team_id uuid, check_user_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.team_members
+    where team_id = check_team_id and profile_id = check_user_id
+  );
+$$;
+
 -- teams: readable by members of the team + leader; leader creates
 drop policy if exists "team visible to members" on public.teams;
 create policy "team visible to members"
   on public.teams for select using (
     auth.uid() = leader_id
-    or exists (
-      select 1 from public.team_members tm
-      where tm.team_id = teams.id and tm.profile_id = auth.uid()
-    )
+    or public.is_team_member(id, auth.uid())
   );
 
 drop policy if exists "leader creates team" on public.teams;
@@ -161,12 +172,9 @@ create policy "members visible to team"
     auth.uid() = profile_id
     or exists (
       select 1 from public.teams t
-      where t.id = team_members.team_id
-        and (t.leader_id = auth.uid() or exists (
-          select 1 from public.team_members tm2
-          where tm2.team_id = t.id and tm2.profile_id = auth.uid()
-        ))
+      where t.id = team_members.team_id and t.leader_id = auth.uid()
     )
+    or public.is_team_member(team_members.team_id, auth.uid())
   );
 
 drop policy if exists "invitee updates own status" on public.team_members;
