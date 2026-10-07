@@ -68,10 +68,9 @@ export default function TeamPreview() {
               let zIndex = 10;
 
               if (!isMobile) {
-                const tiltMap = [-6, -3.5, -1, 1, 3.5, 6];
-                tilt = tiltMap[index] ?? 0;
-                const zMap = [10, 12, 14, 14, 12, 10];
-                zIndex = zMap[index] ?? 10;
+                const offset = index - middleIndex;
+                tilt = (offset / (middleIndex || 1)) * 6;
+                zIndex = 20 - Math.round(Math.abs(offset) * 2);
               } else {
                 const tiltMap = [-4, 0, 4];
                 tilt = tiltMap[index] ?? 0;
@@ -99,7 +98,7 @@ export default function TeamPreview() {
               return (
                 <motion.div
                   key={member.name}
-                  className="absolute cursor-pointer"
+                  className={`absolute ${member.hasNoProfile ? "cursor-default" : "cursor-pointer"}`}
                   style={{
                     width: `${cardWidth}px`,
                     height: `${cardHeight}px`,
@@ -120,47 +119,90 @@ export default function TeamPreview() {
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
                 >
-                  <Link
-                    href={`/dashboard/@${member.username}`}
-                    title={`View @${member.username}'s Profile`}
-                    className="block h-full w-full"
-                  >
-                    {/* Premium Specular Glass Polaroid Frame */}
+                  {member.hasNoProfile ? (
                     <div
-                      className={`group flex h-full w-full flex-col justify-between overflow-hidden rounded-xl border p-2 transition-all duration-300 sm:p-2.5 ${
-                        isHovered
-                          ? "border-blue-400/50 bg-[#141824] shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.25)]"
-                          : "border-white/15 bg-[#0e111a] shadow-[0_12px_32px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)] hover:border-white/35"
-                      }`}
+                      title={`${member.name} · ${member.roles[0]}`}
+                      className="block h-full w-full"
                     >
-                      {/* Photo frame */}
-                      <div className="relative w-full flex-1 overflow-hidden rounded-lg bg-black/40">
-                        <Image
-                          src={member.image}
-                          alt={member.name}
-                          fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                          sizes={isMobile ? "120px" : "210px"}
-                          priority={index === Math.floor(middleIndex)}
-                          unoptimized
-                        />
-                      </div>
+                      {/* Premium Specular Glass Polaroid Frame */}
+                      <div
+                        className={`group flex h-full w-full flex-col justify-between overflow-hidden rounded-xl border p-2 transition-all duration-300 sm:p-2.5 ${
+                          isHovered
+                            ? "border-amber-400/50 bg-[#141824] shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.25)]"
+                            : "border-white/15 bg-[#0e111a] shadow-[0_12px_32px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)] hover:border-white/35"
+                        }`}
+                      >
+                        {/* Photo frame */}
+                        <div className="relative w-full flex-1 overflow-hidden rounded-lg bg-black/40">
+                          <Image
+                            src={member.image}
+                            alt={member.name}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            sizes={isMobile ? "120px" : "210px"}
+                            priority={index === Math.floor(middleIndex)}
+                            unoptimized
+                          />
+                        </div>
 
-                      {/* Polaroid Bottom Caption (Chin) - Name & Role */}
-                      <div className="px-1 pt-2 pb-0.5 text-center sm:pt-2.5 sm:pb-1">
-                        <p
-                          className={`truncate text-xs font-bold transition-colors duration-200 sm:text-sm ${
-                            isHovered ? "text-white" : "text-white/90"
-                          }`}
-                        >
-                          {member.name}
-                        </p>
-                        <p className="mt-0.5 truncate font-mono text-[10px] text-cyan-300/80">
-                          {member.roles[0] || `@${member.username}`}
-                        </p>
+                        {/* Polaroid Bottom Caption (Chin) - Name & Role */}
+                        <div className="px-1 pt-2 pb-0.5 text-center sm:pt-2.5 sm:pb-1">
+                          <p
+                            className={`truncate text-xs font-bold transition-colors duration-200 sm:text-sm ${
+                              isHovered ? "text-white" : "text-white/90"
+                            }`}
+                          >
+                            {member.name}
+                          </p>
+                          <p className="mt-0.5 truncate font-mono text-[10px] text-amber-300">
+                            {member.roles[0]}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </Link>
+                  ) : (
+                    <Link
+                      href={`/dashboard/@${member.username}`}
+                      title={`View @${member.username}'s Profile`}
+                      className="block h-full w-full"
+                    >
+                      {/* Premium Specular Glass Polaroid Frame */}
+                      <div
+                        className={`group flex h-full w-full flex-col justify-between overflow-hidden rounded-xl border p-2 transition-all duration-300 sm:p-2.5 ${
+                          isHovered
+                            ? "border-blue-400/50 bg-[#141824] shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.25)]"
+                            : "border-white/15 bg-[#0e111a] shadow-[0_12px_32px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)] hover:border-white/35"
+                        }`}
+                      >
+                        {/* Photo frame */}
+                        <div className="relative w-full flex-1 overflow-hidden rounded-lg bg-black/40">
+                          <Image
+                            src={member.image}
+                            alt={member.name}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            sizes={isMobile ? "120px" : "210px"}
+                            priority={index === Math.floor(middleIndex)}
+                            unoptimized
+                          />
+                        </div>
+
+                        {/* Polaroid Bottom Caption (Chin) - Name & Role */}
+                        <div className="px-1 pt-2 pb-0.5 text-center sm:pt-2.5 sm:pb-1">
+                          <p
+                            className={`truncate text-xs font-bold transition-colors duration-200 sm:text-sm ${
+                              isHovered ? "text-white" : "text-white/90"
+                            }`}
+                          >
+                            {member.name}
+                          </p>
+                          <p className="mt-0.5 truncate font-mono text-[10px] text-cyan-300/80">
+                            {member.roles[0] || `@${member.username}`}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  )}
                 </motion.div>
               );
             })}

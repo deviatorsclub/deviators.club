@@ -1,3 +1,4 @@
+import RenuImg from "@/assets/team03/renumaam_chiefcoordinator.png";
 import AkshitImg from "@/assets/team03/akshit_president1.png";
 import AarushiImg from "@/assets/team03/aarushi_president2.jpeg";
 import DhruviImg from "@/assets/team03/Dhruvi_weblead.jpeg";
@@ -23,9 +24,26 @@ export type TeamMemberData = {
   branch?: string;
   year?: string;
   tagTone?: string;
+  hasNoProfile?: boolean;
 };
 
 const team03: TeamMemberData[] = [
+  {
+    name: "Prof. Renu Narwal",
+    roles: ["Chief Coordinator"],
+    intro:
+      "Guiding club initiatives, fostering student leadership, and providing faculty mentorship across all technological domains.",
+    urls: {
+      linkedin: "https://www.linkedin.com/in/renu-narwal-42b2352a5/",
+    },
+    image: RenuImg,
+    keywords: ["Chief Coordinator", "Faculty", "Leadership", "Mentor"],
+    username: "renunarwal",
+    branch: "CSE",
+    year: "Faculty",
+    tagTone: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+    hasNoProfile: true,
+  },
   {
     name: "Akshit Bhandari",
     roles: ["President"],

@@ -153,6 +153,7 @@ export default function TeamSection() {
           prof?.year ||
           m.year ||
           (activeSession === "03" ? "3rd Year" : "Alumni"),
+        hasNoProfile: Boolean(m.hasNoProfile),
       };
     });
   }, [rawTeam, activeSession, dynamicProfiles]);
@@ -295,13 +296,18 @@ export default function TeamSection() {
                   transition={{ duration: 0.3, delay: index * 0.04 }}
                   whileHover={{ y: -3 }}
                   onClick={() => {
+                    if (member.hasNoProfile) return;
                     if (member.username) {
                       router.push(`/dashboard/@${member.username}`);
                     } else {
                       setFlexMember(member);
                     }
                   }}
-                  className="group relative cursor-pointer overflow-hidden rounded-3xl border border-white/10 bg-[#0a0e19]/90 p-5 shadow-xl transition-all duration-300 hover:border-blue-500/40 hover:bg-[#0c1222] sm:p-6"
+                  className={`group relative overflow-hidden rounded-3xl border border-white/10 bg-[#0a0e19]/90 p-5 shadow-xl transition-all duration-300 sm:p-6 ${
+                    member.hasNoProfile
+                      ? "cursor-default"
+                      : "cursor-pointer hover:border-blue-500/40 hover:bg-[#0c1222]"
+                  }`}
                 >
                   {/* Subtle top card glow */}
                   <div className="pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full bg-blue-500/10 blur-2xl transition-all duration-500 group-hover:bg-blue-500/20" />
@@ -334,30 +340,38 @@ export default function TeamSection() {
                             <h3 className="font-heading truncate text-lg font-bold text-white transition-colors group-hover:text-blue-300 sm:text-xl">
                               {member.name}
                             </h3>
-                            <p className="truncate font-mono text-xs text-white/45">
-                              @{member.username}
-                            </p>
+                            {member.hasNoProfile ? (
+                              <p className="truncate font-mono text-xs text-amber-300/80">
+                                Chief Coordinator · Faculty
+                              </p>
+                            ) : (
+                              <p className="truncate font-mono text-xs text-white/45">
+                                @{member.username}
+                              </p>
+                            )}
                           </div>
 
                           {/* Profile Badge Link Icon */}
-                          <Link
-                            href={
-                              member.username
-                                ? `/dashboard/@${member.username}`
-                                : "#"
-                            }
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (!member.username) {
-                                e.preventDefault();
-                                setFlexMember(member);
+                          {!member.hasNoProfile && (
+                            <Link
+                              href={
+                                member.username
+                                  ? `/dashboard/@${member.username}`
+                                  : "#"
                               }
-                            }}
-                            title={`Open @${member.username}'s profile badge`}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/50 transition-all duration-200 hover:border-blue-400/50 hover:bg-blue-500/20 hover:text-blue-300 active:scale-95"
-                          >
-                            <LuArrowUpRight className="h-4 w-4" />
-                          </Link>
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!member.username) {
+                                  e.preventDefault();
+                                  setFlexMember(member);
+                                }
+                              }}
+                              title={`Open @${member.username}'s profile badge`}
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/50 transition-all duration-200 hover:border-blue-400/50 hover:bg-blue-500/20 hover:text-blue-300 active:scale-95"
+                            >
+                              <LuArrowUpRight className="h-4 w-4" />
+                            </Link>
+                          )}
                         </div>
 
                         {/* Role Badges */}

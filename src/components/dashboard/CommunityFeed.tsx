@@ -15,6 +15,7 @@ import {
   AiBrain01Icon,
   Megaphone01Icon,
   ArrowRight01Icon,
+  Linkedin01Icon,
 } from "@hugeicons/core-free-icons";
 import type { CommunityMember } from "@/lib/dashboard/db";
 
@@ -51,16 +52,53 @@ export default function CommunityFeed({
 
   // Group members into discord-style divisions in exact requested order
   const { groups, totalCount, tabCounts } = useMemo(() => {
+    // Include Chief Coordinator profile if not already present in Supabase DB
+    const chiefFound = members.some(
+      (m) =>
+        m.username.toLowerCase() === "renunarwal" ||
+        m.tags.some(
+          (t) =>
+            t.tag.toLowerCase().includes("chief") ||
+            t.tag.toLowerCase().includes("coordinator"),
+        ),
+    );
+
+    const fullMemberList: CommunityMember[] = chiefFound
+      ? members
+      : [
+          {
+            id: "chief-coordinator-renu",
+            username: "renunarwal",
+            displayName: "Prof. Renu Narwal",
+            avatarUrl: "/team03/renumaam_chiefcoordinator.png",
+            branch: "CSE",
+            year: "Faculty",
+            bio: "Chief Coordinator, Deviators Club",
+            tags: [
+              {
+                tag: "chief-coordinator",
+                label: "Chief Coordinator",
+                tone: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+              },
+            ],
+          },
+          ...members,
+        ];
+
     const q = search.trim().toLowerCase();
     const filtered = q
-      ? members.filter(
+      ? fullMemberList.filter(
           (m) =>
             m.displayName.toLowerCase().includes(q) ||
             m.username.toLowerCase().includes(q) ||
             m.branch.toLowerCase().includes(q) ||
-            m.tags.some((t) => t.label.toLowerCase().includes(q)),
+            m.tags.some(
+              (t) =>
+                t.label.toLowerCase().includes(q) ||
+                t.tag.toLowerCase().includes(q),
+            ),
         )
-      : members;
+      : fullMemberList;
 
     // Track assigned IDs so each user is displayed in their highest role
     const assignedIds = new Set<string>();
@@ -407,54 +445,115 @@ export default function CommunityFeed({
 
               {/* Members in this Division */}
               <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-                {group.members.map((member) => (
-                  <Link
-                    key={member.id}
-                    href={`/dashboard/@${member.username}`}
-                    className="group relative flex items-center justify-between gap-3 rounded-2xl border border-white/[0.05] bg-[#0c111e]/70 p-3 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] hover:shadow-xl active:scale-[0.99]"
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      {/* Avatar with Discord status dot */}
-                      <div className="relative h-10 w-10 shrink-0">
-                        {member.avatarUrl ? (
-                          <Image
-                            src={member.avatarUrl}
-                            alt={member.displayName}
-                            width={40}
-                            height={40}
-                            className="h-10 w-10 rounded-full border border-white/10 object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.08] text-xs font-bold text-white">
-                            {initials(member.displayName)}
+                {group.members.map((member) => {
+                  const isChief =
+                    group.id === "chief" ||
+                    member.id === "chief-coordinator-renu" ||
+                    member.username.toLowerCase() === "renunarwal";
+
+                  if (isChief) {
+                    return (
+                      <div
+                        key={member.id}
+                        className="group relative flex items-center justify-between gap-3 rounded-2xl border border-white/[0.05] bg-[#0c111e]/70 p-3 transition-all duration-200"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          {/* Avatar with Discord status dot */}
+                          <div className="relative h-10 w-10 shrink-0">
+                            {member.avatarUrl ? (
+                              <Image
+                                src={member.avatarUrl}
+                                alt={member.displayName}
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 rounded-full border border-white/10 object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.08] text-xs font-bold text-white">
+                                {initials(member.displayName)}
+                              </div>
+                            )}
+                            <span className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-[#0c111e] bg-amber-400" />
                           </div>
-                        )}
-                        {/* Discord-style Online status dot */}
-                        <span className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-[#0c111e] bg-emerald-400" />
-                      </div>
 
-                      {/* Name & Role details */}
-                      <div className="min-w-0 flex-1">
-                        <p
-                          className={`truncate text-xs font-bold tracking-tight sm:text-sm ${group.textColor} transition-colors group-hover:text-white`}
+                          {/* Name & Role details */}
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={`truncate text-xs font-bold tracking-tight sm:text-sm ${group.textColor}`}
+                            >
+                              {member.displayName}
+                            </p>
+
+                            <p className="mt-0.5 truncate font-mono text-[11px] text-white/45">
+                              Chief Coordinator · Faculty
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* LinkedIn Profile action link */}
+                        <a
+                          href="https://www.linkedin.com/in/renu-narwal-42b2352a5/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="View LinkedIn Profile"
+                          className="shrink-0 rounded-xl border border-white/10 bg-white/[0.04] p-2 text-white/40 transition-all hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-blue-300"
                         >
-                          {member.displayName}
-                        </p>
-
-                        <p className="mt-0.5 truncate font-mono text-[11px] text-white/45">
-                          @{member.username}
-                          {member.branch ? ` · ${member.branch}` : ""}
-                        </p>
+                          <HugeiconsIcon icon={Linkedin01Icon} size={15} />
+                        </a>
                       </div>
-                    </div>
+                    );
+                  }
 
-                    {/* Arrow mapping indicator */}
-                    <div className="shrink-0 text-white/20 transition-all group-hover:translate-x-0.5 group-hover:text-cyan-300">
-                      <HugeiconsIcon icon={ArrowRight01Icon} size={15} />
-                    </div>
-                  </Link>
-                ))}
+                  return (
+                    <Link
+                      key={member.id}
+                      href={`/dashboard/@${member.username}`}
+                      className="group relative flex items-center justify-between gap-3 rounded-2xl border border-white/[0.05] bg-[#0c111e]/70 p-3 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] hover:shadow-xl active:scale-[0.99]"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        {/* Avatar with Discord status dot */}
+                        <div className="relative h-10 w-10 shrink-0">
+                          {member.avatarUrl ? (
+                            <Image
+                              src={member.avatarUrl}
+                              alt={member.displayName}
+                              width={40}
+                              height={40}
+                              className="h-10 w-10 rounded-full border border-white/10 object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.08] text-xs font-bold text-white">
+                              {initials(member.displayName)}
+                            </div>
+                          )}
+                          {/* Discord-style Online status dot */}
+                          <span className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-[#0c111e] bg-emerald-400" />
+                        </div>
+
+                        {/* Name & Role details */}
+                        <div className="min-w-0 flex-1">
+                          <p
+                            className={`truncate text-xs font-bold tracking-tight sm:text-sm ${group.textColor} transition-colors group-hover:text-white`}
+                          >
+                            {member.displayName}
+                          </p>
+
+                          <p className="mt-0.5 truncate font-mono text-[11px] text-white/45">
+                            @{member.username}
+                            {member.branch ? ` · ${member.branch}` : ""}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Arrow mapping indicator */}
+                      <div className="shrink-0 text-white/20 transition-all group-hover:translate-x-0.5 group-hover:text-cyan-300">
+                        <HugeiconsIcon icon={ArrowRight01Icon} size={15} />
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}
