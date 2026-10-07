@@ -436,20 +436,11 @@ export default function CommunityFeed({
 
                       {/* Name & Role details */}
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 truncate">
-                          <p
-                            className={`truncate text-xs font-bold tracking-tight sm:text-sm ${group.textColor} transition-colors group-hover:text-white`}
-                          >
-                            {member.displayName}
-                          </p>
-                          {member.username === "deviatorsclub" ||
-                          group.id === "official" ? (
-                            <span className="inline-flex items-center gap-1 rounded border border-emerald-400/30 bg-emerald-500/15 px-1.5 py-0.5 font-mono text-[9px] font-extrabold tracking-wider text-emerald-300 uppercase">
-                              <HugeiconsIcon icon={Shield01Icon} size={10} />
-                              CLUB PROFILE
-                            </span>
-                          ) : null}
-                        </div>
+                        <p
+                          className={`truncate text-xs font-bold tracking-tight sm:text-sm ${group.textColor} transition-colors group-hover:text-white`}
+                        >
+                          {member.displayName}
+                        </p>
 
                         <p className="mt-0.5 truncate font-mono text-[11px] text-white/45">
                           @{member.username}
