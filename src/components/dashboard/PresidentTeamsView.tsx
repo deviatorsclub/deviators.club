@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CrownIcon,
@@ -70,17 +71,23 @@ export default function PresidentTeamsView() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/teams");
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: Record<string, string> = {};
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+
+      const res = await fetch("/api/admin/teams", { headers });
+      const data = await res.json();
       if (!res.ok) {
-        if (res.status === 403) {
-          setError("Access restricted. Only Presidents can view the registration roster.");
-        } else {
-          setError("Failed to load registration data.");
-        }
+        setError(data.error || "Failed to load registration data.");
         setLoading(false);
         return;
       }
-      const data = await res.json();
       setTeams(data.teams || []);
       setStats(data.stats || { totalTeams: 0, totalConfirmed: 0, totalPending: 0 });
     } catch (err: any) {

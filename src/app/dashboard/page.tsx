@@ -223,9 +223,14 @@ export default function DashboardPage() {
               myEvents: regs.length,
               community: community.length,
             }}
-            isPresident={tags.some(
-              (t) => t.tag === "president" || t.tag === "club-official",
-            )}
+            isPresident={
+              tags.some(
+                (t) => t.tag === "president" || t.tag === "club-official",
+              ) ||
+              profile?.username === "akshitbhandaricodes" ||
+              profile?.username === "aarushi" ||
+              profile?.username === "deviatorsclub"
+            }
           />
 
           <AnimatePresence mode="wait" initial={false}>
