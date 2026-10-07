@@ -37,6 +37,8 @@ type DivisionGroup = {
   members: CommunityMember[];
 };
 
+type CommunityFilterTab = "all" | "leads" | "members" | "ex-deviators";
+
 export default function CommunityFeed({
   members = [],
   loading = false,
@@ -45,9 +47,10 @@ export default function CommunityFeed({
   loading?: boolean;
 }) {
   const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState<CommunityFilterTab>("all");
 
   // Group members into discord-style divisions in exact requested order
-  const { groups, totalCount } = useMemo(() => {
+  const { groups, totalCount, tabCounts } = useMemo(() => {
     const q = search.trim().toLowerCase();
     const filtered = q
       ? members.filter(
@@ -105,16 +108,14 @@ export default function CommunityFeed({
         m.username.toLowerCase().startsWith("dhruvi"),
     );
 
-    // 6. AI/ML Team
+    // 6. AI/ML Team (Matched ONLY by team role, NEVER by college branch)
     const aiml = getMatchingMembers(
       (m) =>
         m.tags.some(
           (t) =>
-            t.tag.toLowerCase().includes("aiml") ||
-            t.tag.toLowerCase().includes("ai"),
-        ) ||
-        m.username.toLowerCase().includes("manas") ||
-        m.branch.toLowerCase().includes("aiml"),
+            t.tag.toLowerCase() === "aiml-lead" ||
+            t.tag.toLowerCase() === "aiml",
+        ) || m.username.toLowerCase() === "manas_negi",
     );
 
     // 7. Social & Events Team
@@ -127,7 +128,14 @@ export default function CommunityFeed({
         ) || m.username.toLowerCase() === "aam_papad",
     );
 
-    // 8. General Community Members
+    // 8. Ex-Deviators (Alumni)
+    const exDeviators = getMatchingMembers(
+      (m) =>
+        m.tags.some((t) => t.tag.toLowerCase().includes("ex-deviator")) ||
+        m.year.toLowerCase().includes("alumni"),
+    );
+
+    // 9. General Community Members
     const general = filtered.filter((m) => !assignedIds.has(m.id));
 
     const divisionList: DivisionGroup[] = [
@@ -195,6 +203,15 @@ export default function CommunityFeed({
         members: social,
       },
       {
+        id: "ex-deviators",
+        name: "Ex-Deviators",
+        icon: SparklesIcon,
+        color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
+        textColor: "text-amber-300",
+        badgeBg: "bg-amber-500/15 text-amber-300 border-amber-400/30",
+        members: exDeviators,
+      },
+      {
         id: "members",
         name: "Community Members",
         icon: UserGroupIcon,
@@ -205,42 +222,75 @@ export default function CommunityFeed({
       },
     ];
 
-    // Filter out empty groups unless they have members
-    const activeGroups = divisionList.filter((g) => g.members.length > 0);
+    // Filter by active tab if selected
+    let displayedGroups = divisionList.filter((g) => g.members.length > 0);
+    if (activeTab === "leads") {
+      displayedGroups = displayedGroups.filter((g) =>
+        [
+          "official",
+          "chief",
+          "presidents",
+          "dsa",
+          "web",
+          "aiml",
+          "social",
+        ].includes(g.id),
+      );
+    } else if (activeTab === "members") {
+      displayedGroups = displayedGroups.filter((g) => g.id === "members");
+    } else if (activeTab === "ex-deviators") {
+      displayedGroups = displayedGroups.filter((g) => g.id === "ex-deviators");
+    }
+
+    const leadsTotal =
+      official.length +
+      chief.length +
+      presidents.length +
+      dsa.length +
+      web.length +
+      aiml.length +
+      social.length;
 
     return {
-      groups: activeGroups,
+      groups: displayedGroups,
       totalCount: members.length,
+      tabCounts: {
+        all: members.length,
+        leads: leadsTotal,
+        members: general.length,
+        exDeviators: exDeviators.length,
+      },
     };
-  }, [members, search]);
+  }, [members, search, activeTab]);
 
   return (
     <section className="glass-card relative overflow-hidden rounded-3xl border border-white/10 bg-[#070b14]/90 p-5 sm:p-7">
       {/* Discord Server Style Top Header */}
-      <div className="flex flex-col gap-4 border-b border-white/[0.08] pb-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
+      <div className="flex flex-col gap-4 border-b border-white/[0.08] pb-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
             </span>
-            <h2 className="font-heading text-xl font-black tracking-tight text-white sm:text-2xl">
+            <h2 className="font-heading text-xl font-black tracking-tight text-white sm:text-2xl whitespace-nowrap">
               Deviators Community
             </h2>
-            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-300">
-              Live Directory
-            </span>
           </div>
-
-          <p className="mt-1 font-mono text-xs text-white/50">
-            Total Community —{" "}
-            <span className="font-bold text-white">{totalCount} Members</span>{" "}
-            registered
+          <span className="inline-flex shrink-0 items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-emerald-300 whitespace-nowrap">
+            Live Directory
+          </span>
+          <span className="hidden font-mono text-xs text-white/30 sm:inline">
+            ·
+          </span>
+          <p className="font-mono text-xs text-white/50 whitespace-nowrap">
+            Total{" "}
+            <span className="font-bold text-white">{totalCount} Members</span>
           </p>
         </div>
 
         {/* Live Search Input */}
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-80">
           <HugeiconsIcon
             icon={Search01Icon}
             size={16}
@@ -251,9 +301,73 @@ export default function CommunityFeed({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search members by name, @handle..."
-            className="w-full rounded-xl border border-white/10 bg-black/50 py-2 pr-3.5 pl-9 text-xs text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60"
+            className="w-full rounded-xl border border-white/10 bg-black/50 py-2.5 pr-3.5 pl-9 text-xs text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition-colors"
           />
         </div>
+      </div>
+
+      {/* Community Filter Tabs */}
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-b border-white/[0.06] pb-3">
+        <button
+          type="button"
+          onClick={() => setActiveTab("all")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+            activeTab === "all"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+              : "text-white/50 hover:bg-white/[0.05] hover:text-white"
+          }`}
+        >
+          <span>All</span>
+          <span className="rounded-md bg-black/30 px-1.5 py-0.2 font-mono text-[10px] opacity-80">
+            {tabCounts.all}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("leads")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+            activeTab === "leads"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+              : "text-white/50 hover:bg-white/[0.05] hover:text-white"
+          }`}
+        >
+          <span>Team Leads</span>
+          <span className="rounded-md bg-black/30 px-1.5 py-0.2 font-mono text-[10px] opacity-80">
+            {tabCounts.leads}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("members")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+            activeTab === "members"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+              : "text-white/50 hover:bg-white/[0.05] hover:text-white"
+          }`}
+        >
+          <span>Members</span>
+          <span className="rounded-md bg-black/30 px-1.5 py-0.2 font-mono text-[10px] opacity-80">
+            {tabCounts.members}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("ex-deviators")}
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+            activeTab === "ex-deviators"
+              ? "bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-md shadow-amber-500/10"
+              : "text-amber-300/60 hover:bg-amber-500/10 hover:text-amber-300"
+          }`}
+        >
+          <HugeiconsIcon icon={SparklesIcon} size={13} className="text-amber-400" />
+          <span>Ex-Deviators</span>
+          <span className="rounded-md bg-amber-400/20 px-1.5 py-0.2 font-mono text-[10px] font-bold text-amber-200">
+            {tabCounts.exDeviators}
+          </span>
+        </button>
       </div>
 
       {loading ? (
@@ -262,7 +376,7 @@ export default function CommunityFeed({
         </div>
       ) : groups.length === 0 ? (
         <div className="py-12 text-center font-mono text-xs text-white/40">
-          No community members match &ldquo;{search}&rdquo;.
+          No members found in this section{search ? ` matching "${search}"` : ""}.
         </div>
       ) : (
         /* Discord Member List View */
@@ -270,7 +384,7 @@ export default function CommunityFeed({
           {groups.map((group) => (
             <div key={group.id} className="space-y-2">
               {/* Category Divider Header (e.g. Leads — 1) */}
-              <div className="flex items-center gap-2 px-2">
+              <div className="flex items-center gap-2 px-1">
                 <span className="font-mono text-xs font-bold tracking-wider text-white/50 uppercase">
                   {group.name}
                 </span>
@@ -281,12 +395,12 @@ export default function CommunityFeed({
               </div>
 
               {/* Members in this Division */}
-              <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
                 {group.members.map((member) => (
                   <Link
                     key={member.id}
                     href={`/dashboard/@${member.username}`}
-                    className="group relative flex items-center justify-between gap-3 rounded-2xl border border-white/[0.04] bg-[#0c111e]/60 p-2.5 transition-all duration-200 hover:border-white/15 hover:bg-white/[0.06] hover:shadow-lg"
+                    className="group relative flex items-center justify-between gap-3 rounded-2xl border border-white/[0.05] bg-[#0c111e]/70 p-3 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] hover:shadow-xl active:scale-[0.99]"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       {/* Avatar with Discord status dot */}
@@ -313,27 +427,28 @@ export default function CommunityFeed({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 truncate">
                           <p
-                            className={`truncate text-xs font-bold tracking-tight ${group.textColor} transition-colors group-hover:text-white`}
+                            className={`truncate text-xs sm:text-sm font-bold tracking-tight ${group.textColor} transition-colors group-hover:text-white`}
                           >
                             {member.displayName}
                           </p>
                           {member.username === "deviators" ? (
-                            <span className="py-0.2 rounded bg-emerald-500/20 px-1 font-mono text-[9px] font-bold text-emerald-300">
-                              BOT
+                            <span className="inline-flex items-center gap-1 rounded border border-emerald-400/30 bg-emerald-500/15 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-emerald-300">
+                              <HugeiconsIcon icon={Shield01Icon} size={10} />
+                              OFFICIAL
                             </span>
                           ) : null}
                         </div>
 
-                        <p className="truncate font-mono text-[11px] text-white/40">
-                          @{member.username}{" "}
-                          {member.branch ? `· ${member.branch}` : ""}
+                        <p className="truncate font-mono text-[11px] text-white/45 mt-0.5">
+                          @{member.username}
+                          {member.branch ? ` · ${member.branch}` : ""}
                         </p>
                       </div>
                     </div>
 
                     {/* Arrow mapping indicator */}
                     <div className="shrink-0 text-white/20 transition-all group-hover:translate-x-0.5 group-hover:text-cyan-300">
-                      <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
+                      <HugeiconsIcon icon={ArrowRight01Icon} size={15} />
                     </div>
                   </Link>
                 ))}
