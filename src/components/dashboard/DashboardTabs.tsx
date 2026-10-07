@@ -17,7 +17,7 @@ export default function DashboardTabs({
 }: {
   active: DashboardTabId;
   onChange: (tab: DashboardTabId) => void;
-  counts: { events: number; myEvents: number };
+  counts: { events: number; myEvents: number; community?: number };
 }) {
   const tabs: {
     id: DashboardTabId;
@@ -38,7 +38,13 @@ export default function DashboardTabs({
       icon: CheckmarkCircle01Icon,
       pill: String(counts.myEvents),
     },
-    { id: "community", label: "Community", icon: Megaphone01Icon, soon: true },
+    {
+      id: "community",
+      label: "Community",
+      icon: Megaphone01Icon,
+      pill:
+        counts.community !== undefined ? String(counts.community) : undefined,
+    },
   ];
 
   return (

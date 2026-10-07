@@ -225,12 +225,29 @@ export async function searchMembersDb(
 ): Promise<DemoMember[]> {
   const query = q.trim();
   if (!query) return [];
+  try {
+    const res = await fetch(
+      `/api/members/search?q=${encodeURIComponent(query)}&selfId=${selfId}`,
+    );
+    if (res.ok) {
+      const data = await res.json();
+      if (data.results && data.results.length > 0) {
+        return data.results.map((r: any) => ({
+          username: r.username,
+          displayName: r.displayName || r.username,
+          year: r.year || "",
+        }));
+      }
+    }
+  } catch {}
+
   const supabase = createClient();
+  const clean = query.replace(/^@/, "");
   const { data } = await supabase
     .from("profiles")
     .select("username,display_name,year")
     .eq("onboarded", true)
-    .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+    .or(`username.ilike.%${clean}%,display_name.ilike.%${clean}%`)
     .neq("id", selfId)
     .limit(5);
   return (data ?? []).map((r) => ({
@@ -407,4 +424,67 @@ export async function withdrawRegistrationDb(eventId: string, userId: string) {
     .delete()
     .eq("event_id", eventId)
     .eq("profile_id", userId);
+}
+
+export type CommunityMember = {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string;
+  branch: string;
+  year: string;
+  bio?: string;
+  tags: {
+    tag: string;
+    label: string;
+    tone: string;
+  }[];
+};
+
+export async function fetchCommunityMembersDb(): Promise<CommunityMember[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select(
+      `
+      id,
+      username,
+      display_name,
+      avatar_url,
+      branch,
+      year,
+      bio,
+      profile_roles(
+        tag,
+        roles(
+          label,
+          tone
+        )
+      )
+    `,
+    )
+    .eq("onboarded", true)
+    .order("created_at", { ascending: true });
+
+  if (!data) return [];
+
+  return data.map((p) => {
+    const rolesList = (p.profile_roles as any[]) || [];
+    const tags = rolesList.map((pr) => ({
+      tag: pr.tag as string,
+      label: pr.roles?.label || pr.tag,
+      tone: pr.roles?.tone || "bg-white/[0.06] text-white/70 border-white/10",
+    }));
+
+    return {
+      id: p.id,
+      username: p.username,
+      displayName: p.display_name || p.username,
+      avatarUrl: p.avatar_url || "",
+      branch: p.branch || "",
+      year: p.year || "",
+      bio: p.bio || "",
+      tags,
+    };
+  });
 }

@@ -15,6 +15,20 @@ const nextConfig = {
   images: {
     formats: ["image/webp", "image/avif"],
     minimumCacheTTL: 86400,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+    ],
   },
 
   // Compression for smaller bundle sizes
@@ -63,6 +77,19 @@ const nextConfig = {
             value: "public, max-age=3600, s-maxage=3600",
           },
         ],
+      },
+    ];
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: "/:slug(debug-decrypt-3\\.0|debug-decrypt-3)/team/:teamName",
+        destination: "/events/:slug/team/:teamName",
+      },
+      {
+        source: "/:slug(debug-decrypt-3\\.0|debug-decrypt-3)",
+        destination: "/events/:slug",
       },
     ];
   },

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
 import {
   Calendar03Icon,
   Pin02Icon,
@@ -10,8 +11,10 @@ import {
   PlusSignIcon,
   CheckmarkCircle01Icon,
   InformationCircleIcon,
+  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import MiniCountdown from "./MiniCountdown";
+import MatrixRainCanvas from "./MatrixRainCanvas";
 import type { DemoEvent, DemoRegistration } from "@/lib/dashboard/demo";
 
 export default function EventCard({
@@ -33,8 +36,10 @@ export default function EventCard({
 
   return (
     <article className="glass-card overflow-hidden rounded-3xl">
-      {/* Cover — pure CSS, zero image weight */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-800 via-[#0a1a3a] to-black px-6 py-6">
+      {/* Cover with Matrix Rain Animated Code Overlay */}
+      <div className="relative overflow-hidden border-b border-emerald-500/20 bg-gradient-to-br from-[#021408] via-[#04101e] to-black px-6 py-6">
+        <MatrixRainCanvas className="opacity-45 mix-blend-screen" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
         <div
           aria-hidden
           className="pointer-events-none absolute -top-10 -right-10 h-44 w-44 rounded-full bg-blue-500/20 blur-3xl"
@@ -91,22 +96,6 @@ export default function EventCard({
             />
             {event.venue}
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <HugeiconsIcon
-              icon={UserGroupIcon}
-              size={15}
-              className="text-white/35"
-            />
-            {event.seatsTaken}/{event.seats} seats
-          </span>
-        </div>
-
-        {/* Seats bar */}
-        <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-sky-300"
-            style={{ width: `${pct}%` }}
-          />
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -117,14 +106,21 @@ export default function EventCard({
               {registered.teamName ? ` · ${registered.teamName}` : ""}
             </span>
           ) : (
-            <button
-              onClick={() => onRegister(event)}
-              className="btn-primary rounded-xl px-5 py-2.5 text-sm"
+            <Link
+              href={`/events/${event.slug}?register=true`}
+              className="btn-primary inline-flex items-center gap-1.5 rounded-xl px-5 py-2.5 text-sm"
             >
               <HugeiconsIcon icon={PlusSignIcon} size={16} />
               Register now
-            </button>
+            </Link>
           )}
+          <Link
+            href={`/events/${event.slug}`}
+            className="flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-2.5 text-sm font-semibold text-blue-300 transition-colors hover:bg-blue-500/20"
+          >
+            <span>Event Dashboard</span>
+            <HugeiconsIcon icon={ArrowRight01Icon} size={15} />
+          </Link>
           <button
             onClick={() => setExpanded((v) => !v)}
             className="btn-secondary rounded-xl px-4 py-2.5 text-sm"

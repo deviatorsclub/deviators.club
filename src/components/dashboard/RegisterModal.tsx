@@ -101,6 +101,12 @@ export default function RegisterModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError("");
+    if (mode === "team" && members.length < 1) {
+      setSubmitError(
+        "A team must have at least 2 members (1 leader + at least 1 teammate). Please invite a teammate.",
+      );
+      return;
+    }
     setSubmitting(true);
     const err = await onSubmit({
       phone: phone.trim(),

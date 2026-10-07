@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
@@ -47,8 +47,11 @@ function prefillFromOAuth(
   };
 }
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl = searchParams.get("next") || "/dashboard";
+
   const [profile, setProfile] = useState<DemoProfile | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [remoteTaken, setRemoteTaken] = useState<boolean | null>(null);
@@ -63,13 +66,13 @@ export default function OnboardingPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user?.email) {
-        router.replace("/login");
+        router.replace(`/login?next=${encodeURIComponent(nextUrl)}`);
         return;
       }
       setUserId(user.id);
       const existing = await fetchProfile(user.id, user.email);
       if (existing?.onboarded) {
-        router.replace("/dashboard");
+        router.replace(nextUrl);
         return;
       }
       if (existing) {
@@ -79,24 +82,24 @@ export default function OnboardingPage() {
       }
       const fresh = prefillFromOAuth(
         defaultDemoProfile(),
-        (user.user_metadata ?? {}) as Record<string, unknown>,
+        (user.user_metadata as Record<string, unknown>) ?? {},
         user.email,
         user.app_metadata?.provider ?? "email",
       );
-      initialUsername.current = fresh.username;
       setProfile(fresh);
     })();
-  }, [router]);
+  }, [router, nextUrl]);
 
   useEffect(() => {
-    if (!profile || profile.username.trim().length < 3) {
-      setRemoteTaken(null);
+    if (!profile?.username || !userId) return;
+    const raw = profile.username.trim();
+    if (raw.length < 3) {
+      setRemoteTaken(false);
       return;
     }
     const id = setTimeout(async () => {
-      setRemoteTaken(
-        await isUsernameTakenDb(profile.username, userId ?? undefined),
-      );
+      const taken = await isUsernameTakenDb(raw, userId);
+      setRemoteTaken(taken);
     }, 400);
     return () => clearTimeout(id);
   }, [profile?.username, userId]);
@@ -129,7 +132,7 @@ export default function OnboardingPage() {
       return;
     }
     await claimMemberTag(userId);
-    router.push("/dashboard");
+    router.push(nextUrl);
   };
 
   return (
@@ -143,46 +146,39 @@ export default function OnboardingPage() {
         <p className="text-brand-light text-[11px] font-semibold tracking-[0.2em] uppercase">
           Setup your account
         </p>
-        <h1 className="font-heading mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-          Make it yours
+        <h1 className="font-heading mt-1 text-2xl font-extrabold text-white sm:text-3xl">
+          Build your Deviators profile
         </h1>
-        <p className="mt-1.5 text-[13px] text-white/50">
-          Signed in as <span className="text-white">{profile.email}</span>
+        <p className="mt-2 text-xs leading-relaxed text-white/50 sm:text-sm">
+          Claim your handle and tell everyone what you build. Your profile is
+          required to join teams and register for hackathons.
         </p>
-
-        <div className="mt-5 flex gap-1.5" aria-hidden>
-          <span className="h-1.5 flex-1 rounded-full bg-blue-500" />
-          <span className="h-1.5 flex-1 rounded-full bg-blue-500" />
-          <span className="h-1.5 flex-1 rounded-full bg-white/10" />
-        </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={labelCls}>Display name *</label>
+              <label className={labelCls}>Full name</label>
               <input
-                required
                 value={profile.displayName}
                 onChange={(e) => set("displayName", e.target.value)}
-                placeholder="Your name"
+                placeholder="Ada Lovelace"
+                required
                 className={inputCls}
               />
             </div>
             <UsernameField
               value={profile.username}
               onChange={(v) => set("username", v)}
-              exclude={initialUsername.current}
               taken={remoteTaken}
-              required
             />
           </div>
 
           <div>
-            <label className={labelCls}>Bio</label>
+            <label className={labelCls}>Bio (120 characters max)</label>
             <input
               value={profile.bio}
-              onChange={(e) => set("bio", e.target.value)}
-              placeholder="One line about you"
+              onChange={(e) => set("bio", e.target.value.slice(0, 120))}
+              placeholder="Full-stack hacker · loves distributed systems"
               maxLength={120}
               className={inputCls}
             />
@@ -246,11 +242,25 @@ export default function OnboardingPage() {
             disabled={nameTaken || saving}
             className="btn-primary w-full py-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {saving ? "Saving…" : "Continue to dashboard"}
+            {saving ? "Saving…" : "Save Profile & Continue"}
             <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
           </button>
         </form>
       </motion.div>
     </main>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto flex min-h-screen w-full max-w-3xl items-center justify-center px-4 pt-24">
+          <p className="text-sm text-white/40">Loading…</p>
+        </main>
+      }
+    >
+      <OnboardingContent />
+    </Suspense>
   );
 }

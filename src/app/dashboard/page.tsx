@@ -30,12 +30,14 @@ import type {
 import { createClient } from "@/lib/supabase/client";
 import {
   createRegistrationDb,
+  fetchCommunityMembersDb,
   fetchEventsDb,
   fetchProfile,
   fetchProfileTags,
   fetchRegistrationsDb,
   searchMembersDb,
   withdrawRegistrationDb,
+  type CommunityMember,
 } from "@/lib/dashboard/db";
 
 export default function DashboardPage() {
@@ -45,6 +47,7 @@ export default function DashboardPage() {
   const [tags, setTags] = useState<ProfileTag[]>([]);
   const [events, setEvents] = useState<DemoEvent[]>([]);
   const [regs, setRegs] = useState<DemoRegistration[]>([]);
+  const [community, setCommunity] = useState<CommunityMember[]>([]);
   const [activeEvent, setActiveEvent] = useState<DemoEvent | null>(null);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<DashboardTabId>("events");
@@ -66,14 +69,16 @@ export default function DashboardPage() {
         return;
       }
       setProfile(p);
-      const [dbTags, dbEvents, dbRegs] = await Promise.all([
+      const [dbTags, dbEvents, dbRegs, dbCommunity] = await Promise.all([
         fetchProfileTags(user.id),
         fetchEventsDb(),
         fetchRegistrationsDb(user.id),
+        fetchCommunityMembersDb(),
       ]);
       setTags(dbTags);
       setEvents(dbEvents);
       setRegs(dbRegs);
+      setCommunity(dbCommunity);
       setReady(true);
     })();
   }, [router]);
@@ -212,7 +217,11 @@ export default function DashboardPage() {
           <DashboardTabs
             active={tab}
             onChange={setTab}
-            counts={{ events: filtered.length, myEvents: regs.length }}
+            counts={{
+              events: filtered.length,
+              myEvents: regs.length,
+              community: community.length,
+            }}
           />
 
           <AnimatePresence mode="wait" initial={false}>
@@ -252,7 +261,7 @@ export default function DashboardPage() {
                 />
               )}
 
-              {tab === "community" && <CommunityFeed />}
+              {tab === "community" && <CommunityFeed members={community} />}
             </motion.div>
           </AnimatePresence>
         </motion.div>
