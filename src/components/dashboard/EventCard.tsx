@@ -62,6 +62,15 @@ export default function EventCard({
           )}
         </div>
 
+        <div>
+          <h3 className="font-heading text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+            {event.title}
+          </h3>
+          <p className="mt-1 text-xs text-white/60 sm:text-sm">
+            {event.tagline}
+          </p>
+        </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <MiniCountdown target={event.regClosesAt} label="Reg closes in" />
           <MiniCountdown
