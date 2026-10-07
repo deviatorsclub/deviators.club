@@ -70,9 +70,8 @@ export const debugDecrypt3Data: EventDetailsData = {
   subtitle: "The Ultimate Algorithm Challenge",
   mainTagline: "THE ULTIMATE ALGORITHM CHALLENGE",
   subTagline: "Think. Debug. Optimize. Conquer.",
-  bannerUrl:
-    "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1600&auto=format&fit=crop&q=80",
-  logoUrl: "/debug_logo.png",
+  bannerUrl: "/debug_decrypt_banner_1.png",
+  logoUrl: "/red_logo.png",
   location: "Dronacharya College of Engineering, Farukh Nagar, Gurugram",
   venueDetails:
     "Main Auditorium & Computing Centers, Dronacharya College of Engineering, Farukh Nagar, Gurugram",

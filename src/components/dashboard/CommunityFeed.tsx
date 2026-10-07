@@ -73,11 +73,17 @@ export default function CommunityFeed({
       return match;
     };
 
-    // 1. Club Official Profile
+    // 1. Club Profile (Official Deviators Club Profile)
     const official = getMatchingMembers(
       (m) =>
+        m.username.toLowerCase() === "deviatorsclub" ||
         m.username.toLowerCase() === "deviators" ||
-        m.tags.some((t) => t.tag.toLowerCase().includes("official")),
+        m.tags.some(
+          (t) =>
+            t.tag.toLowerCase().includes("official") ||
+            t.tag.toLowerCase().includes("club-official") ||
+            t.label.toLowerCase().includes("club profile"),
+        ),
     );
 
     // 2. Chief Coordinator
@@ -141,7 +147,7 @@ export default function CommunityFeed({
     const divisionList: DivisionGroup[] = [
       {
         id: "official",
-        name: "Club Official",
+        name: "Club Profile",
         icon: Shield01Icon,
         color: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
         textColor: "text-emerald-300",
@@ -431,10 +437,10 @@ export default function CommunityFeed({
                           >
                             {member.displayName}
                           </p>
-                          {member.username === "deviators" ? (
+                          {member.username === "deviatorsclub" || group.id === "official" ? (
                             <span className="inline-flex items-center gap-1 rounded border border-emerald-400/30 bg-emerald-500/15 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-emerald-300">
                               <HugeiconsIcon icon={Shield01Icon} size={10} />
-                              OFFICIAL
+                              CLUB PROFILE
                             </span>
                           ) : null}
                         </div>

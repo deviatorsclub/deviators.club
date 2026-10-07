@@ -142,7 +142,7 @@ export default function TeamPreview() {
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
                           sizes={isMobile ? "120px" : "210px"}
                           priority={index === Math.floor(middleIndex)}
-                          unoptimized={typeof member.image === "string"}
+                          unoptimized
                         />
                       </div>
 

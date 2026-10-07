@@ -316,7 +316,7 @@ export default function TeamSection() {
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                         sizes="(max-width: 640px) 112px, 128px"
                         priority={index < 4}
-                        unoptimized={typeof member.image === "string"}
+                        unoptimized
                       />
                       {isLead && (
                         <div className="absolute top-2 right-2 rounded-full border border-amber-400/30 bg-black/60 p-1 text-amber-300 shadow-sm backdrop-blur-md">

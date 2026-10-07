@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import Image from "next/image";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import {
@@ -14,7 +15,6 @@ import {
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import MiniCountdown from "./MiniCountdown";
-import MatrixRainCanvas from "./MatrixRainCanvas";
 import type { DemoEvent, DemoRegistration } from "@/lib/dashboard/demo";
 
 export default function EventCard({
@@ -36,40 +36,32 @@ export default function EventCard({
 
   return (
     <article className="glass-card overflow-hidden rounded-3xl">
-      {/* Cover with Matrix Rain Animated Code Overlay */}
-      <div className="relative overflow-hidden border-b border-emerald-500/20 bg-gradient-to-br from-[#021408] via-[#04101e] to-black px-6 py-6">
-        <MatrixRainCanvas className="opacity-45 mix-blend-screen" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-10 -right-10 h-44 w-44 rounded-full bg-blue-500/20 blur-3xl"
+      {/* Cover with Poster */}
+      <div className="relative aspect-[2391/658] w-full overflow-hidden border-b border-white/10 bg-[#090d16]">
+        <Image
+          src="/debug_decrypt_banner_2.png"
+          alt={event.title}
+          fill
+          className="object-cover"
+          unoptimized
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-12 -left-8 h-40 w-40 rounded-full bg-amber-500/10 blur-3xl"
-        />
-        <div className="relative flex flex-wrap items-center gap-2">
+      </div>
+
+      <div className="space-y-4 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
             Registrations open
           </span>
-          <span className="rounded-full border border-white/10 bg-black/40 px-2.5 py-1 text-[11px] font-medium text-white/60">
+          <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/60">
             {event.mode}
           </span>
           {event.isTeamEvent && (
-            <span className="rounded-full border border-white/10 bg-black/40 px-2.5 py-1 text-[11px] font-medium text-white/60">
+            <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/60">
               Team · up to {event.maxTeamSize}
             </span>
           )}
         </div>
-        <h3 className="font-heading relative mt-3 text-xl font-extrabold tracking-tight text-white sm:text-2xl">
-          {event.title}
-        </h3>
-        <p className="relative mt-1.5 max-w-xl text-[13px] leading-relaxed text-white/60">
-          {event.tagline}
-        </p>
-      </div>
 
-      <div className="space-y-4 p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
           <MiniCountdown target={event.regClosesAt} label="Reg closes in" />
           <MiniCountdown

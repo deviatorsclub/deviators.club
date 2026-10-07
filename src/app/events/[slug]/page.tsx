@@ -258,7 +258,7 @@ export default function EventDashboardPage({
         </div>
 
         {/* Top Event Banner Poster */}
-        <div className="relative aspect-[21/9] max-h-[340px] w-full overflow-hidden rounded-3xl border border-white/15 bg-[#090d16] shadow-2xl">
+        <div className="relative aspect-[2345/670] w-full overflow-hidden rounded-3xl border border-white/15 bg-[#090d16] shadow-2xl">
           <Image
             src={event.bannerUrl}
             alt={event.title}
@@ -267,46 +267,6 @@ export default function EventDashboardPage({
             priority
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#06080d] via-black/50 to-black/30" />
-
-          {/* Banner Overlays */}
-          <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2.5 sm:top-6 sm:left-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-[#070b14]/85 px-3.5 py-1.5 text-xs font-semibold text-emerald-300 shadow-lg shadow-black/50 backdrop-blur-xl">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-              </span>
-              <span>Deviators Club · Flagship Event</span>
-            </div>
-
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-[#0b101d]/85 px-3.5 py-1.5 text-xs font-medium text-slate-200 shadow-lg shadow-black/50 backdrop-blur-xl transition-colors hover:border-cyan-400/30">
-              <HugeiconsIcon
-                icon={Pin02Icon}
-                size={13}
-                className="text-cyan-400"
-              />
-              <span>Dronacharya College of Engineering</span>
-            </div>
-          </div>
-
-          <div className="absolute right-4 bottom-4 left-4 flex items-end justify-between sm:bottom-6 sm:left-6">
-            <div>
-              <p className="font-heading text-2xl font-black tracking-tight text-white uppercase drop-shadow-md sm:text-4xl">
-                {event.title}
-              </p>
-              <p className="font-mono text-xs font-semibold tracking-wider text-cyan-300 uppercase drop-shadow sm:text-sm">
-                {event.mainTagline}
-              </p>
-              <p className="mt-1 text-xs font-medium text-white/70 sm:text-sm">
-                {event.subTagline}
-              </p>
-            </div>
-            <div className="hidden sm:block">
-              <div className="rounded-2xl border border-cyan-400/30 bg-[#0a1122]/90 px-4 py-2 font-mono text-xs font-extrabold text-cyan-200 shadow-xl shadow-cyan-500/10 backdrop-blur-xl">
-                15 OCT 2026
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Main Grid: Left Content vs Right Sticky Sidebar */}
@@ -381,12 +341,12 @@ export default function EventDashboardPage({
                 </div>
 
                 {/* Event Emblem */}
-                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-[#090d16] p-2 shadow-xl sm:h-24 sm:w-24">
+                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-[#090d16] shadow-xl sm:h-24 sm:w-24">
                   <Image
                     src={event.logoUrl}
                     alt="Event Badge"
                     fill
-                    className="object-contain p-2"
+                    className="object-cover"
                     unoptimized
                   />
                 </div>
