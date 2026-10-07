@@ -6,18 +6,25 @@ import {
   Calendar03Icon,
   CheckmarkCircle01Icon,
   Megaphone01Icon,
+  CrownIcon,
 } from "@hugeicons/core-free-icons";
 
-export type DashboardTabId = "events" | "my-events" | "community";
+export type DashboardTabId =
+  | "events"
+  | "my-events"
+  | "community"
+  | "admin-teams";
 
 export default function DashboardTabs({
   active,
   onChange,
   counts,
+  isPresident = false,
 }: {
   active: DashboardTabId;
   onChange: (tab: DashboardTabId) => void;
   counts: { events: number; myEvents: number; community?: number };
+  isPresident?: boolean;
 }) {
   const tabs: {
     id: DashboardTabId;
@@ -25,6 +32,7 @@ export default function DashboardTabs({
     icon: typeof Calendar03Icon;
     pill?: string;
     soon?: boolean;
+    isSpecial?: boolean;
   }[] = [
     {
       id: "events",
@@ -45,6 +53,17 @@ export default function DashboardTabs({
       pill:
         counts.community !== undefined ? String(counts.community) : undefined,
     },
+    ...(isPresident
+      ? [
+          {
+            id: "admin-teams" as DashboardTabId,
+            label: "Teams Roster",
+            icon: CrownIcon,
+            pill: "President",
+            isSpecial: true,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -76,9 +95,11 @@ export default function DashboardTabs({
             {t.pill !== undefined && (
               <span
                 className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${
-                  isActive
-                    ? "bg-white/[0.12] text-white"
-                    : "bg-white/[0.06] text-white/50"
+                  t.isSpecial
+                    ? "border border-amber-400/40 bg-amber-400/20 text-amber-300"
+                    : isActive
+                      ? "bg-white/[0.12] text-white"
+                      : "bg-white/[0.06] text-white/50"
                 }`}
               >
                 {t.pill}

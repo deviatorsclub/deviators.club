@@ -279,17 +279,17 @@ export default function CommunityFeed({
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
             </span>
-            <h2 className="font-heading text-xl font-black tracking-tight text-white sm:text-2xl whitespace-nowrap">
+            <h2 className="font-heading text-xl font-black tracking-tight whitespace-nowrap text-white sm:text-2xl">
               Deviators Community
             </h2>
           </div>
-          <span className="inline-flex shrink-0 items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-emerald-300 whitespace-nowrap">
+          <span className="inline-flex shrink-0 items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-semibold whitespace-nowrap text-emerald-300">
             Live Directory
           </span>
           <span className="hidden font-mono text-xs text-white/30 sm:inline">
             ·
           </span>
-          <p className="font-mono text-xs text-white/50 whitespace-nowrap">
+          <p className="font-mono text-xs whitespace-nowrap text-white/50">
             Total{" "}
             <span className="font-bold text-white">{totalCount} Members</span>
           </p>
@@ -307,7 +307,7 @@ export default function CommunityFeed({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search members by name, @handle..."
-            className="w-full rounded-xl border border-white/10 bg-black/50 py-2.5 pr-3.5 pl-9 text-xs text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition-colors"
+            className="w-full rounded-xl border border-white/10 bg-black/50 py-2.5 pr-3.5 pl-9 text-xs text-white transition-colors outline-none placeholder:text-white/35 focus:border-cyan-400/60"
           />
         </div>
       </div>
@@ -324,7 +324,7 @@ export default function CommunityFeed({
           }`}
         >
           <span>All</span>
-          <span className="rounded-md bg-black/30 px-1.5 py-0.2 font-mono text-[10px] opacity-80">
+          <span className="py-0.2 rounded-md bg-black/30 px-1.5 font-mono text-[10px] opacity-80">
             {tabCounts.all}
           </span>
         </button>
@@ -339,7 +339,7 @@ export default function CommunityFeed({
           }`}
         >
           <span>Team Leads</span>
-          <span className="rounded-md bg-black/30 px-1.5 py-0.2 font-mono text-[10px] opacity-80">
+          <span className="py-0.2 rounded-md bg-black/30 px-1.5 font-mono text-[10px] opacity-80">
             {tabCounts.leads}
           </span>
         </button>
@@ -354,7 +354,7 @@ export default function CommunityFeed({
           }`}
         >
           <span>Members</span>
-          <span className="rounded-md bg-black/30 px-1.5 py-0.2 font-mono text-[10px] opacity-80">
+          <span className="py-0.2 rounded-md bg-black/30 px-1.5 font-mono text-[10px] opacity-80">
             {tabCounts.members}
           </span>
         </button>
@@ -364,13 +364,17 @@ export default function CommunityFeed({
           onClick={() => setActiveTab("ex-deviators")}
           className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
             activeTab === "ex-deviators"
-              ? "bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-md shadow-amber-500/10"
+              ? "border border-amber-400/40 bg-amber-500/20 text-amber-300 shadow-md shadow-amber-500/10"
               : "text-amber-300/60 hover:bg-amber-500/10 hover:text-amber-300"
           }`}
         >
-          <HugeiconsIcon icon={SparklesIcon} size={13} className="text-amber-400" />
+          <HugeiconsIcon
+            icon={SparklesIcon}
+            size={13}
+            className="text-amber-400"
+          />
           <span>Ex-Deviators</span>
-          <span className="rounded-md bg-amber-400/20 px-1.5 py-0.2 font-mono text-[10px] font-bold text-amber-200">
+          <span className="py-0.2 rounded-md bg-amber-400/20 px-1.5 font-mono text-[10px] font-bold text-amber-200">
             {tabCounts.exDeviators}
           </span>
         </button>
@@ -382,7 +386,8 @@ export default function CommunityFeed({
         </div>
       ) : groups.length === 0 ? (
         <div className="py-12 text-center font-mono text-xs text-white/40">
-          No members found in this section{search ? ` matching "${search}"` : ""}.
+          No members found in this section
+          {search ? ` matching "${search}"` : ""}.
         </div>
       ) : (
         /* Discord Member List View */
@@ -433,19 +438,20 @@ export default function CommunityFeed({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 truncate">
                           <p
-                            className={`truncate text-xs sm:text-sm font-bold tracking-tight ${group.textColor} transition-colors group-hover:text-white`}
+                            className={`truncate text-xs font-bold tracking-tight sm:text-sm ${group.textColor} transition-colors group-hover:text-white`}
                           >
                             {member.displayName}
                           </p>
-                          {member.username === "deviatorsclub" || group.id === "official" ? (
-                            <span className="inline-flex items-center gap-1 rounded border border-emerald-400/30 bg-emerald-500/15 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-emerald-300">
+                          {member.username === "deviatorsclub" ||
+                          group.id === "official" ? (
+                            <span className="inline-flex items-center gap-1 rounded border border-emerald-400/30 bg-emerald-500/15 px-1.5 py-0.5 font-mono text-[9px] font-extrabold tracking-wider text-emerald-300 uppercase">
                               <HugeiconsIcon icon={Shield01Icon} size={10} />
                               CLUB PROFILE
                             </span>
                           ) : null}
                         </div>
 
-                        <p className="truncate font-mono text-[11px] text-white/45 mt-0.5">
+                        <p className="mt-0.5 truncate font-mono text-[11px] text-white/45">
                           @{member.username}
                           {member.branch ? ` · ${member.branch}` : ""}
                         </p>

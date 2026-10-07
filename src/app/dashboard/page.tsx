@@ -20,6 +20,7 @@ import RegisterModal, {
 } from "@/components/dashboard/RegisterModal";
 import MyEvents from "@/components/dashboard/MyEvents";
 import CommunityFeed from "@/components/dashboard/CommunityFeed";
+import PresidentTeamsView from "@/components/dashboard/PresidentTeamsView";
 import type {
   DemoEvent,
   DemoMember,
@@ -222,6 +223,9 @@ export default function DashboardPage() {
               myEvents: regs.length,
               community: community.length,
             }}
+            isPresident={tags.some(
+              (t) => t.tag === "president" || t.tag === "club-official",
+            )}
           />
 
           <AnimatePresence mode="wait" initial={false}>
@@ -262,6 +266,8 @@ export default function DashboardPage() {
               )}
 
               {tab === "community" && <CommunityFeed members={community} />}
+
+              {tab === "admin-teams" && <PresidentTeamsView />}
             </motion.div>
           </AnimatePresence>
         </motion.div>
