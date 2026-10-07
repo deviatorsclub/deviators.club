@@ -176,7 +176,8 @@ export default function CommunityFeed({
     const exDeviators = getMatchingMembers(
       (m) =>
         m.tags.some((t) => t.tag.toLowerCase().includes("ex-deviator")) ||
-        m.year.toLowerCase().includes("alumni"),
+        m.year.toLowerCase().includes("alumni") ||
+        m.username.toLowerCase() === "dumbhavya",
     );
 
     // 9. General Community Members
