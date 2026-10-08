@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
@@ -22,7 +22,9 @@ import {
   WhatsappIcon,
   InstagramIcon,
   Cancel01Icon,
+  Search01Icon,
 } from "@hugeicons/core-free-icons";
+import type { SearchMemberResult } from "@/app/api/members/search/route";
 
 export type EventTeamInfo = {
   id: string;
@@ -38,6 +40,9 @@ export type EventTeamInfo = {
     year: string;
     role: "Leader" | "Member";
     status: string; // 'accepted' | 'pending'
+    phone?: string;
+    collegeId?: string;
+    section?: string;
   }[];
   maxMembers: number;
   canAddMore: boolean;
@@ -77,7 +82,20 @@ export default function EventTeamManager({
   } | null;
   onRefresh: () => void;
 }) {
-  const [newMemberHandle, setNewMemberHandle] = useState("");
+  // Member invite search & teammate details state
+  const [memberSearch, setMemberSearch] = useState("");
+  const [searchingMember, setSearchingMember] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchMemberResult[]>([]);
+  const [selectedCandidate, setSelectedCandidate] =
+    useState<SearchMemberResult | null>(null);
+
+  // Teammate details to collect just like registration form
+  const [candidatePhone, setCandidatePhone] = useState("");
+  const [candidateCollegeId, setCandidateCollegeId] = useState("");
+  const [candidateBranch, setCandidateBranch] = useState("CSE");
+  const [candidateSection, setCandidateSection] = useState("");
+  const [candidateYear, setCandidateYear] = useState("3rd Year");
+
   const [adding, setAdding] = useState(false);
   const [actionError, setActionError] = useState("");
   const [actionSuccess, setActionSuccess] = useState("");
@@ -208,11 +226,112 @@ export default function EventTeamManager({
     }
   };
 
-  const handleAddMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!team || !newMemberHandle.trim()) return;
+  // Debounced search for teammates
+  useEffect(() => {
+    if (!memberSearch.trim() || selectedCandidate) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSearchingMember(true);
+      try {
+        const res = await fetch(
+          `/api/members/search?q=${encodeURIComponent(memberSearch.trim())}&selfId=${currentUser?.id || ""}`,
+        );
+        if (!res.ok) {
+          setSearchResults([]);
+          return;
+        }
+        const data = await res.json();
+        const existingMemberIds = new Set(
+          team?.members.map((m) => m.profileId) || [],
+        );
+        if (currentUser?.id) existingMemberIds.add(currentUser.id);
+
+        const filtered = (data.results || []).filter(
+          (u: SearchMemberResult) => !existingMemberIds.has(u.id),
+        );
+        setSearchResults(filtered);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchingMember(false);
+      }
+    }, 280);
+
+    return () => clearTimeout(timer);
+  }, [memberSearch, selectedCandidate, currentUser?.id, team?.members]);
+
+  const handleSelectCandidate = (u: SearchMemberResult) => {
+    setSelectedCandidate(u);
+    setMemberSearch("");
+    setSearchResults([]);
+    setCandidateBranch(u.branch || "CSE");
+    setCandidateYear(u.year || "3rd Year");
     setActionError("");
     setActionSuccess("");
+  };
+
+  const handleClearSelectedCandidate = () => {
+    setSelectedCandidate(null);
+    setMemberSearch("");
+    setSearchResults([]);
+    setCandidatePhone("");
+    setCandidateCollegeId("");
+    setCandidateSection("");
+    setCandidateBranch("CSE");
+    setCandidateYear("3rd Year");
+    setActionError("");
+  };
+
+  const handleSendInvitation = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!team || !selectedCandidate) return;
+    setActionError("");
+    setActionSuccess("");
+
+    if (
+      !candidatePhone.trim() ||
+      !candidateCollegeId.trim() ||
+      !candidateBranch.trim() ||
+      !candidateSection.trim()
+    ) {
+      setActionError(
+        "Please fill out all teammate details (Phone, Roll No., Branch, Section).",
+      );
+      return;
+    }
+
+    const cleanCandidatePhone = candidatePhone.trim().replace(/\D/g, "");
+    if (cleanCandidatePhone.length < 10) {
+      setActionError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    // Check against leader phone
+    const cleanLeaderPhone = (currentUser?.phone || "")
+      .trim()
+      .replace(/\D/g, "");
+    if (cleanLeaderPhone && cleanLeaderPhone === cleanCandidatePhone) {
+      setActionError(
+        "Leader and Teammate cannot have the same phone number. Duplicate phone numbers are not allowed.",
+      );
+      return;
+    }
+
+    // Check against existing teammates
+    for (const m of team.members) {
+      if (
+        m.phone &&
+        m.phone.trim().replace(/\D/g, "") === cleanCandidatePhone
+      ) {
+        setActionError(
+          `Teammate @${m.username} already uses this phone number. Duplicate phone numbers are not allowed.`,
+        );
+        return;
+      }
+    }
+
     setAdding(true);
 
     try {
@@ -221,17 +340,24 @@ export default function EventTeamManager({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           teamId: team.id,
-          usernameOrEmail: newMemberHandle.trim(),
+          usernameOrEmail: selectedCandidate.username,
+          phone: candidatePhone.trim(),
+          collegeId: candidateCollegeId.trim(),
+          branch: candidateBranch.trim(),
+          section: candidateSection.trim(),
+          year: candidateYear.trim(),
         }),
       });
+
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Could not invite teammate.");
       }
+
       setActionSuccess(
-        data.message || `Invitation sent to @${data.added.username}!`,
+        data.message || `Invitation sent to @${selectedCandidate.username}!`,
       );
-      setNewMemberHandle("");
+      handleClearSelectedCandidate();
       onRefresh();
     } catch (err: any) {
       setActionError(err.message || "Failed to invite teammate.");
@@ -679,33 +805,298 @@ export default function EventTeamManager({
             ))}
           </div>
 
-          {/* Add 3rd Member Input (Leader only) */}
-          {team.canAddMore && (
-            <form
-              onSubmit={handleAddMember}
-              className="mt-4 border-t border-white/[0.08] pt-4"
-            >
-              <label className="mb-1.5 block text-xs font-semibold tracking-wider text-white/60 uppercase">
-                Invite 3rd Member (By @handle or Email)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newMemberHandle}
-                  onChange={(e) => setNewMemberHandle(e.target.value)}
-                  placeholder="Enter @username or college email..."
-                  className="flex-1 rounded-xl border border-white/10 bg-black/50 px-3.5 py-2 text-xs text-white outline-none placeholder:text-white/30 focus:border-blue-500 sm:text-sm"
-                />
-                <button
-                  type="submit"
-                  disabled={adding || !newMemberHandle.trim()}
-                  className="btn-primary flex items-center gap-1 rounded-xl px-4 py-2 text-xs font-semibold disabled:opacity-40"
-                >
-                  <HugeiconsIcon icon={PlusSignIcon} size={14} />
-                  {adding ? "Sending..." : "Invite"}
-                </button>
+          {/* Add Teammate Section (Leader only) */}
+          {team.canAddMore && team.isLeader && (
+            <div className="mt-4 border-t border-white/[0.08] pt-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold tracking-wider text-white uppercase">
+                    Invite {team.members.length === 1 ? "2nd" : "3rd"} Member
+                  </h4>
+                  <p className="text-[11px] text-white/50">
+                    Search by username, name or email &amp; enter their details
+                    to send an invitation.
+                  </p>
+                </div>
+                <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 font-mono text-[10px] text-cyan-300">
+                  {team.members.length} / {team.maxMembers} Members
+                </span>
               </div>
-            </form>
+
+              {!selectedCandidate ? (
+                /* 1. Search Box with Live Suggestions */
+                <div className="relative">
+                  <div className="relative">
+                    <HugeiconsIcon
+                      icon={Search01Icon}
+                      size={16}
+                      className="absolute top-1/2 left-3.5 -translate-y-1/2 text-white/40"
+                    />
+                    <input
+                      type="text"
+                      value={memberSearch}
+                      onChange={(e) => setMemberSearch(e.target.value)}
+                      placeholder="Type username (e.g. @dhruviii78) or name..."
+                      className="w-full rounded-xl border border-white/10 bg-black/50 py-2.5 pr-24 pl-10 text-xs text-white placeholder-white/30 transition-colors outline-none focus:border-cyan-400 sm:text-sm"
+                    />
+                    {searchingMember && (
+                      <span className="absolute top-1/2 right-3 -translate-y-1/2 font-mono text-[10px] text-cyan-300">
+                        Searching...
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Dropdown Results */}
+                  {(searchResults.length > 0 ||
+                    memberSearch.trim().length >= 2) && (
+                    <div className="mt-2 divide-y divide-white/5 overflow-hidden rounded-xl border border-white/15 bg-[#0e1424] shadow-2xl">
+                      {searchResults.map((u) => (
+                        <button
+                          type="button"
+                          key={u.id}
+                          onClick={() => handleSelectCandidate(u)}
+                          className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-white/[0.05]"
+                        >
+                          <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/5">
+                            {u.avatarUrl ? (
+                              <Image
+                                src={u.avatarUrl}
+                                alt={u.displayName}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white/50">
+                                {u.displayName.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-bold text-white">
+                              {u.displayName}
+                            </p>
+                            <p className="truncate font-mono text-[10px] text-white/40">
+                              @{u.username} · {u.branch || "CSE"} ·{" "}
+                              {u.year || "3rd Year"}
+                            </p>
+                          </div>
+                          <span className="rounded-lg bg-cyan-500/20 px-2.5 py-1 font-mono text-[10px] font-bold text-cyan-300 hover:bg-cyan-500/30">
+                            Select
+                          </span>
+                        </button>
+                      ))}
+
+                      {/* Option to invite custom handle directly */}
+                      {memberSearch.trim().length >= 2 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const clean = memberSearch.trim().replace(/^@/, "");
+                            handleSelectCandidate({
+                              id: "",
+                              username: clean,
+                              displayName: clean,
+                              email: memberSearch.includes("@")
+                                ? memberSearch.trim()
+                                : "",
+                              avatarUrl: "",
+                              branch: "CSE",
+                              year: "3rd Year",
+                            });
+                          }}
+                          className="flex w-full items-center justify-between bg-white/[0.02] p-2.5 text-left transition-colors hover:bg-cyan-500/10"
+                        >
+                          <span className="truncate font-mono text-[11px] text-cyan-300">
+                            Invite &quot;@
+                            {memberSearch.trim().replace(/^@/, "")}&quot;
+                            directly
+                          </span>
+                          <span className="rounded-md border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] text-cyan-200">
+                            Fill Details →
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* 2. Selected Candidate & Details Form (just like registration form) */
+                <form onSubmit={handleSendInvitation} className="space-y-3">
+                  {/* Selected Teammate Header Card */}
+                  <div className="flex items-center justify-between rounded-xl border border-cyan-400/30 bg-cyan-500/10 p-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/5">
+                        {selectedCandidate.avatarUrl ? (
+                          <Image
+                            src={selectedCandidate.avatarUrl}
+                            alt={selectedCandidate.displayName}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white/60">
+                            {selectedCandidate.displayName
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-bold text-white">
+                          {selectedCandidate.displayName}
+                        </p>
+                        <p className="truncate font-mono text-[10px] text-cyan-300">
+                          @{selectedCandidate.username}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleClearSelectedCandidate}
+                      className="flex items-center gap-1 rounded-lg border border-red-400/20 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-300 hover:bg-red-500/20"
+                    >
+                      <HugeiconsIcon icon={Cancel01Icon} size={12} />
+                      <span>Change</span>
+                    </button>
+                  </div>
+
+                  {/* Form Details Grid */}
+                  <div className="rounded-xl border border-white/10 bg-black/40 p-4">
+                    <p className="mb-3 font-mono text-[11px] font-bold tracking-wider text-cyan-300 uppercase">
+                      Teammate Details (Will show in request &amp; portal):
+                    </p>
+
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      <div>
+                        <label className="mb-1 block font-mono text-[10px] text-white/60 uppercase">
+                          Phone Number *
+                        </label>
+                        <input
+                          type="tel"
+                          value={candidatePhone}
+                          onChange={(e) => setCandidatePhone(e.target.value)}
+                          placeholder="10-digit mobile"
+                          required
+                          className="w-full rounded-xl border border-white/10 bg-black/50 px-3 py-2 font-mono text-xs text-white placeholder-white/30 outline-none focus:border-cyan-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block font-mono text-[10px] text-white/60 uppercase">
+                          College Roll No. / ID *
+                        </label>
+                        <input
+                          type="text"
+                          value={candidateCollegeId}
+                          onChange={(e) =>
+                            setCandidateCollegeId(e.target.value)
+                          }
+                          placeholder="e.g. 26042"
+                          required
+                          className="w-full rounded-xl border border-white/10 bg-black/50 px-3 py-2 font-mono text-xs text-white placeholder-white/30 outline-none focus:border-cyan-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block font-mono text-[10px] text-white/60 uppercase">
+                          Branch *
+                        </label>
+                        <select
+                          value={candidateBranch}
+                          onChange={(e) => setCandidateBranch(e.target.value)}
+                          required
+                          className="w-full rounded-xl border border-white/10 bg-[#0e1424] px-3 py-2 text-xs text-white outline-none focus:border-cyan-400"
+                        >
+                          <option value="CSE">
+                            Computer Science &amp; Engineering (CSE)
+                          </option>
+                          <option value="IT">
+                            Information Technology (IT)
+                          </option>
+                          <option value="ECE">
+                            Electronics &amp; Comm. (ECE)
+                          </option>
+                          <option value="CSIT">
+                            Computer Science &amp; IT (CSIT)
+                          </option>
+                          <option value="AIML">
+                            AI &amp; Machine Learning (AIML)
+                          </option>
+                          <option value="Robotics">
+                            Robotics &amp; Automation
+                          </option>
+                          <option value="Other">Other Branch</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block font-mono text-[10px] text-white/60 uppercase">
+                          Section *
+                        </label>
+                        <input
+                          type="text"
+                          value={candidateSection}
+                          onChange={(e) => setCandidateSection(e.target.value)}
+                          placeholder="e.g. A, B, C"
+                          required
+                          className="w-full rounded-xl border border-white/10 bg-black/50 px-3 py-2 font-mono text-xs text-white placeholder-white/30 outline-none focus:border-cyan-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.08] pt-3">
+                      <div className="w-full sm:w-48">
+                        <label className="mb-1 block font-mono text-[10px] text-white/60 uppercase">
+                          Year of Study *
+                        </label>
+                        <select
+                          value={candidateYear}
+                          onChange={(e) => setCandidateYear(e.target.value)}
+                          required
+                          className="w-full rounded-xl border border-white/10 bg-[#0e1424] px-3 py-2 text-xs text-white outline-none focus:border-cyan-400"
+                        >
+                          <option value="1st Year">1st Year (Freshers)</option>
+                          <option value="2nd Year">2nd Year</option>
+                          <option value="3rd Year">3rd Year</option>
+                          <option value="4th Year">4th Year</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleClearSelectedCandidate}
+                          className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-medium text-white/70 hover:bg-white/10"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={
+                            adding ||
+                            !candidatePhone.trim() ||
+                            !candidateCollegeId.trim() ||
+                            !candidateBranch.trim() ||
+                            !candidateSection.trim()
+                          }
+                          className="btn-primary flex items-center gap-1.5 rounded-xl px-5 py-2.5 text-xs font-bold disabled:opacity-40"
+                        >
+                          <HugeiconsIcon icon={PlusSignIcon} size={15} />
+                          <span>
+                            {adding
+                              ? "Sending Invitation..."
+                              : `Send Team Invitation to @${selectedCandidate.username}`}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              )}
+            </div>
           )}
 
           {/* Social Sharing bar for team */}

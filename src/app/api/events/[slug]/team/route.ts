@@ -89,23 +89,45 @@ export async function GET(
       .eq("team_id", t.id);
 
     const memberProfileIds = (members || []).map((m) => m.profile_id);
-    const { data: memberProfiles } = await supabase
-      .from("profiles")
-      .select("id, username, display_name, avatar_url, branch, year")
-      .in("id", memberProfileIds);
+    const [{ data: memberProfiles }, { data: memberRegs }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, username, display_name, avatar_url, branch, year")
+        .in("id", memberProfileIds),
+      supabase
+        .from("registrations")
+        .select("profile_id, phone, college_id, year, expectations")
+        .eq("event_id", event.id)
+        .in("profile_id", memberProfileIds),
+    ]);
 
     const profileMap = new Map((memberProfiles || []).map((p) => [p.id, p]));
+    const regMap = new Map((memberRegs || []).map((r) => [r.profile_id, r]));
 
     const enrichedMembers = (members || []).map((m) => {
       const p = profileMap.get(m.profile_id);
+      const r = regMap.get(m.profile_id);
       const isLeader = m.profile_id === t.leader_id;
+
+      let memberBranch = p?.branch || "CSE";
+      let memberSection = "";
+      if (r?.expectations) {
+        const bMatch = r.expectations.match(/Branch:\s*([^|]+)/i);
+        const sMatch = r.expectations.match(/Section:\s*(.+)/i);
+        if (bMatch) memberBranch = bMatch[1].trim();
+        if (sMatch) memberSection = sMatch[1].trim();
+      }
+
       return {
         profileId: m.profile_id,
         username: p?.username || "deviator",
         displayName: p?.display_name || p?.username || "Deviator Member",
         avatarUrl: p?.avatar_url || "",
-        branch: p?.branch || "CSE",
-        year: p?.year || "3rd Year",
+        phone: r?.phone || "",
+        collegeId: r?.college_id || "",
+        branch: memberBranch,
+        section: memberSection,
+        year: r?.year || p?.year || "3rd Year",
         role: isLeader ? "Leader" : "Member",
         status: m.status || "accepted", // 'accepted' or 'pending'
       };
@@ -648,7 +670,7 @@ export async function PATCH(
 
   const { data: byUser } = await supabase
     .from("profiles")
-    .select("id, username, display_name")
+    .select("id, username, display_name, avatar_url")
     .ilike("username", clean)
     .maybeSingle();
 
@@ -662,7 +684,7 @@ export async function PATCH(
     if (foundAuth) {
       const { data: byId } = await supabase
         .from("profiles")
-        .select("id, username, display_name")
+        .select("id, username, display_name, avatar_url")
         .eq("id", foundAuth.id)
         .maybeSingle();
       candidateProfile = byId;
@@ -673,6 +695,48 @@ export async function PATCH(
     return NextResponse.json(
       { error: "No member found with that handle or email." },
       { status: 404 },
+    );
+  }
+
+  // Prevent inviting self
+  if (candidateProfile.id === user.id) {
+    return NextResponse.json(
+      { error: "You cannot invite yourself." },
+      { status: 400 },
+    );
+  }
+
+  // Check if candidate is already in this team
+  const { data: alreadyInThisTeam } = await supabase
+    .from("team_members")
+    .select("status")
+    .eq("team_id", teamId)
+    .eq("profile_id", candidateProfile.id)
+    .maybeSingle();
+
+  if (alreadyInThisTeam) {
+    return NextResponse.json(
+      {
+        error: `@${candidateProfile.username} already has a ${alreadyInThisTeam.status === "accepted" ? "confirmed spot" : "pending invitation"} in this team.`,
+      },
+      { status: 400 },
+    );
+  }
+
+  // Check if candidate is leading a team for this event
+  const { data: candidateLedTeam } = await supabase
+    .from("teams")
+    .select("id")
+    .eq("event_id", team.event_id)
+    .eq("leader_id", candidateProfile.id)
+    .maybeSingle();
+
+  if (candidateLedTeam) {
+    return NextResponse.json(
+      {
+        error: `@${candidateProfile.username} is already leading a team for this event. Each person can only join one team.`,
+      },
+      { status: 400 },
     );
   }
 
@@ -693,6 +757,67 @@ export async function PATCH(
     );
   }
 
+  // Validate duplicate phone numbers
+  const cleanPhone = (p: string) => (p || "").trim().replace(/\D/g, "");
+  const cleanCandidatePhone = cleanPhone(phone);
+
+  if (cleanCandidatePhone) {
+    if (cleanCandidatePhone.length < 10) {
+      return NextResponse.json(
+        {
+          error:
+            "Please enter a valid 10-digit mobile number for your teammate.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Check against current squad members
+    const { data: squadRegs } = await supabase
+      .from("registrations")
+      .select("profile_id, phone")
+      .eq("event_id", team.event_id)
+      .eq("team_id", teamId);
+
+    if (squadRegs) {
+      for (const sr of squadRegs) {
+        if (
+          sr.profile_id !== candidateProfile.id &&
+          cleanPhone(sr.phone) === cleanCandidatePhone
+        ) {
+          return NextResponse.json(
+            {
+              error: `Duplicate phone number (${cleanCandidatePhone}) detected in squad. Each member must provide their own distinct phone number.`,
+            },
+            { status: 400 },
+          );
+        }
+      }
+    }
+
+    // Check across the entire event registrations
+    const { data: allRegs } = await supabase
+      .from("registrations")
+      .select("profile_id, phone")
+      .eq("event_id", team.event_id);
+
+    if (allRegs) {
+      for (const reg of allRegs) {
+        if (
+          reg.profile_id !== candidateProfile.id &&
+          cleanPhone(reg.phone) === cleanCandidatePhone
+        ) {
+          return NextResponse.json(
+            {
+              error: `The phone number ${cleanCandidatePhone} is already registered by another participant for this event. Duplicate phone numbers are not allowed.`,
+            },
+            { status: 400 },
+          );
+        }
+      }
+    }
+  }
+
   // Insert as pending (Request Sent)
   const { error: insErr } = await supabase.from("team_members").insert({
     team_id: teamId,
@@ -707,17 +832,18 @@ export async function PATCH(
     );
   }
 
-  // Optionally store teammate details if leader supplied them
+  // Store teammate details if leader supplied them
   if (phone || collegeId || branch || section) {
-    const detailsStr = `Branch: ${branch} | Section: ${section}`.trim();
+    const detailsStr =
+      `Branch: ${branch || "CSE"} | Section: ${section || ""}`.trim();
     await supabase.from("registrations").upsert(
       {
         event_id: team.event_id,
         profile_id: candidateProfile.id,
         team_id: teamId,
-        phone,
+        phone: cleanCandidatePhone || phone,
         college_id: collegeId,
-        year,
+        year: year || "3rd Year",
         expectations: detailsStr,
         status: "confirmed",
       },
@@ -731,6 +857,9 @@ export async function PATCH(
       profileId: candidateProfile.id,
       username: candidateProfile.username,
       displayName: candidateProfile.display_name,
+      avatarUrl: candidateProfile.avatar_url || "",
+      branch: branch || "CSE",
+      year: year || "3rd Year",
       status: "pending",
     },
     message: `Invitation sent to @${candidateProfile.username}!`,
