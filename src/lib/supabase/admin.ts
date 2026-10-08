@@ -20,10 +20,32 @@ function getServiceRoleKey(): string {
   return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 }
 
-export function getAdminClient() {
+export function getAdminClient(userToken?: string | null) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const key = getServiceRoleKey();
-  return createClient(url, key, {
+  const isServiceRole =
+    key &&
+    key !== process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    key.length > 50;
+
+  if (isServiceRole) {
+    return createClient(url, key, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+  }
+
+  // Fallback for Vercel if SERVICE_ROLE_KEY is not yet added to Vercel env vars:
+  // Forward the authenticated user's access token so queries run as the logged-in user.
+  const globalHeaders: Record<string, string> = {};
+  if (userToken) {
+    globalHeaders["Authorization"] = `Bearer ${userToken}`;
+  }
+
+  return createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    global: { headers: globalHeaders },
     auth: {
       persistSession: false,
       autoRefreshToken: false,

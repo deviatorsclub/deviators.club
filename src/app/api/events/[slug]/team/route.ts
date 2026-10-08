@@ -2,8 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 
-// Helper to get authenticated user from request
-async function getAuthUser() {
+// Helper to extract bearer token from Authorization header
+function extractToken(req: NextRequest): string | null {
+  const authHeader = req.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.replace("Bearer ", "").trim();
+  }
+  return null;
+}
+
+// Helper to get authenticated user from request (Bearer token or Cookie)
+async function getAuthUser(req: NextRequest) {
+  const token = extractToken(req);
+  if (token) {
+    const admin = getAdminClient(token);
+    const { data, error } = await admin.auth.getUser(token);
+    if (!error && data?.user) return data.user;
+  }
   try {
     const supabase = await createServerClient();
     const {
@@ -21,7 +36,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const user = await getAuthUser();
+  const user = await getAuthUser(req);
   if (!user) {
     return NextResponse.json({
       registered: false,
@@ -31,7 +46,8 @@ export async function GET(
     });
   }
 
-  const supabase = getAdminClient();
+  const token = extractToken(req);
+  const supabase = getAdminClient(token);
 
   // Find event (support slug aliases e.g. debug-decrypt-3.0 or craftcon-2k26)
   const { data: event } = await supabase
@@ -185,7 +201,7 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const user = await getAuthUser();
+  const user = await getAuthUser(req);
   if (!user) {
     return NextResponse.json(
       { error: "Please log in to register." },
@@ -193,7 +209,8 @@ export async function POST(
     );
   }
 
-  const supabase = getAdminClient();
+  const token = extractToken(req);
+  const supabase = getAdminClient(token);
   const body = await req.json();
   const {
     teamName,
@@ -406,12 +423,13 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const user = await getAuthUser();
+  const user = await getAuthUser(req);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = getAdminClient();
+  const token = extractToken(req);
+  const supabase = getAdminClient(token);
   const { teamId, name } = await req.json();
 
   if (!teamId || !name || name.trim().length < 2) {
@@ -455,12 +473,13 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const user = await getAuthUser();
+  const user = await getAuthUser(req);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = getAdminClient();
+  const token = extractToken(req);
+  const supabase = getAdminClient(token);
   const { teamId, usernameOrEmail } = await req.json();
 
   if (!teamId || !usernameOrEmail) {
@@ -587,12 +606,13 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const user = await getAuthUser();
+  const user = await getAuthUser(req);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = getAdminClient();
+  const token = extractToken(req);
+  const supabase = getAdminClient(token);
   const { searchParams } = new URL(req.url);
   const teamId = searchParams.get("teamId");
   const memberProfileId = searchParams.get("memberProfileId");
