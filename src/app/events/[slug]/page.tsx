@@ -943,9 +943,11 @@ export default function EventDashboardPage({
                 ) : (
                   <Link
                     href={
-                      slug === "debug-decrypt-3.0"
-                        ? "/debug-decrypt-3.0/registration"
-                        : `/events/${slug}/registration`
+                      !currentUser
+                        ? `/login?next=/events/${slug}/registration`
+                        : slug === "debug-decrypt-3.0"
+                          ? "/debug-decrypt-3.0/registration"
+                          : `/events/${slug}/registration`
                     }
                     className="group relative flex w-full items-center justify-center gap-2.5 rounded-2xl border border-blue-500/40 bg-blue-600 px-6 py-4 text-sm font-extrabold tracking-wider text-white uppercase shadow-xl shadow-blue-600/25 transition-all duration-200 hover:border-blue-400 hover:bg-blue-500 hover:shadow-blue-500/40 active:scale-[0.99]"
                   >

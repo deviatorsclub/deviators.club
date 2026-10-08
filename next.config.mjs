@@ -97,6 +97,16 @@ const nextConfig = {
       },
     ];
   },
+
+  async redirects() {
+    return [
+      {
+        source: "/event/:slug*",
+        destination: "/events/:slug*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

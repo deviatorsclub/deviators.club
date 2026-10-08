@@ -31,10 +31,23 @@ function LoginInner() {
     if (!configured) return;
     createClient()
       .auth.getUser()
-      .then(({ data }) => {
-        if (data.user) router.replace("/dashboard");
+      .then(async ({ data }) => {
+        if (data.user) {
+          const supabase = createClient();
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("onboarded")
+            .eq("id", data.user.id)
+            .maybeSingle();
+
+          if (prof && !prof.onboarded) {
+            router.replace(`/onboarding?next=${encodeURIComponent(next)}`);
+          } else {
+            router.replace(next);
+          }
+        }
       });
-  }, [configured, router]);
+  }, [configured, router, next]);
 
   const callbackUrl = (path: string) =>
     `${window.location.origin}/auth/callback?next=${encodeURIComponent(path)}`;

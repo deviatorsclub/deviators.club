@@ -27,7 +27,9 @@ export async function GET(request: Request) {
           return NextResponse.redirect(`${origin}${next}`);
         }
       }
-      return NextResponse.redirect(`${origin}/onboarding`);
+      return NextResponse.redirect(
+        `${origin}/onboarding?next=${encodeURIComponent(next)}`,
+      );
     }
   }
   return NextResponse.redirect(`${origin}/login`);
