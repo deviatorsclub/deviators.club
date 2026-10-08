@@ -72,9 +72,8 @@ export const debugDecrypt3Data: EventDetailsData = {
   subTagline: "Think. Debug. Optimize. Conquer.",
   bannerUrl: "/debug_decrypt_banner_1.png",
   logoUrl: "/red_logo.png",
-  location: "Dronacharya College of Engineering, Farukh Nagar, Gurugram",
-  venueDetails:
-    "Main Auditorium & Computing Centers, Dronacharya College of Engineering, Farukh Nagar, Gurugram",
+  location: "Dronacharya College of Engineering",
+  venueDetails: "Dronacharya College of Engineering",
   mode: "Offline",
   startsAt: "2026-10-15T08:00:00+05:30",
   endsAt: "2026-10-15T19:00:00+05:30",
