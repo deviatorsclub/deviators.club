@@ -2,7 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 
-async function getAuthUser() {
+// Helper to extract bearer token from Authorization header
+function extractToken(req: NextRequest): string | null {
+  const authHeader = req.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.replace("Bearer ", "").trim();
+  }
+  return null;
+}
+
+async function getAuthUser(req: NextRequest) {
+  const token = extractToken(req);
+  if (token) {
+    const admin = getAdminClient(token);
+    const { data, error } = await admin.auth.getUser(token);
+    if (!error && data?.user) return data.user;
+  }
   try {
     const supabase = await createServerClient();
     const {
@@ -20,12 +35,13 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const user = await getAuthUser();
+  const user = await getAuthUser(req);
   if (!user) {
     return NextResponse.json({ error: "Please log in." }, { status: 401 });
   }
 
-  const supabase = getAdminClient();
+  const token = extractToken(req);
+  const supabase = getAdminClient(token);
   const body = await req.json();
   const {
     teamId,
@@ -65,12 +81,19 @@ export async function POST(
     return NextResponse.json({ error: "Team not found." }, { status: 404 });
   }
 
-  // If declining: remove invite
+  // If declining: remove invite and any pending registration row
   if (action === "decline") {
     await supabase
       .from("team_members")
       .delete()
       .eq("team_id", teamId)
+      .eq("profile_id", user.id);
+
+    // Also remove registration row created during leader invite so user can register anew or join other teams
+    await supabase
+      .from("registrations")
+      .delete()
+      .eq("event_id", event.id)
       .eq("profile_id", user.id);
 
     return NextResponse.json({

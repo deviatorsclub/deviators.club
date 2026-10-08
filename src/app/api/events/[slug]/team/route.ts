@@ -409,6 +409,39 @@ export async function POST(
     await supabase.from("profiles").update({ branch }).eq("id", user.id);
   }
 
+  // 8. Store invited teammate details entered during registration
+  const membersDataList = Array.isArray(body.membersData)
+    ? body.membersData
+    : [];
+  for (const mate of mateProfiles) {
+    const mData = membersDataList.find(
+      (md: any) =>
+        (md.username &&
+          md.username.toLowerCase() === mate.username.toLowerCase()) ||
+        md.profileId === mate.id,
+    );
+    const mPhone = mData?.phone || "";
+    const mCollegeId = mData?.collegeId || "";
+    const mBranch = mData?.branch || "";
+    const mSection = mData?.section || "";
+    const mYear = mData?.year || "3rd Year";
+    const mDetails = `Branch: ${mBranch} | Section: ${mSection}`.trim();
+
+    await supabase.from("registrations").upsert(
+      {
+        event_id: event.id,
+        profile_id: mate.id,
+        team_id: team.id,
+        phone: mPhone,
+        college_id: mCollegeId,
+        year: mYear,
+        expectations: mDetails,
+        status: "confirmed",
+      },
+      { onConflict: "event_id,profile_id" },
+    );
+  }
+
   return NextResponse.json({
     success: true,
     teamId: team.id,
@@ -480,7 +513,17 @@ export async function PATCH(
 
   const token = extractToken(req);
   const supabase = getAdminClient(token);
-  const { teamId, usernameOrEmail } = await req.json();
+
+  const body = await req.json();
+  const {
+    teamId,
+    usernameOrEmail,
+    phone = "",
+    collegeId = "",
+    branch = "",
+    section = "",
+    year = "3rd Year",
+  } = body;
 
   if (!teamId || !usernameOrEmail) {
     return NextResponse.json(
@@ -538,7 +581,7 @@ export async function PATCH(
   } else {
     const { data: authUsers } = await supabase.auth.admin.listUsers();
     const foundAuth = authUsers?.users?.find(
-      (u) => u.email && u.email.toLowerCase() === clean,
+      (u: any) => u.email && u.email.toLowerCase() === clean,
     );
     if (foundAuth) {
       const { data: byId } = await supabase
@@ -586,6 +629,24 @@ export async function PATCH(
     return NextResponse.json(
       { error: "Member already has a pending or accepted invitation." },
       { status: 400 },
+    );
+  }
+
+  // Optionally store teammate details if leader supplied them
+  if (phone || collegeId || branch || section) {
+    const detailsStr = `Branch: ${branch} | Section: ${section}`.trim();
+    await supabase.from("registrations").upsert(
+      {
+        event_id: team.event_id,
+        profile_id: candidateProfile.id,
+        team_id: teamId,
+        phone,
+        college_id: collegeId,
+        year,
+        expectations: detailsStr,
+        status: "confirmed",
+      },
+      { onConflict: "event_id,profile_id" },
     );
   }
 

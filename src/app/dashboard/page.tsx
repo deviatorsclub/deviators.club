@@ -21,6 +21,7 @@ import RegisterModal, {
 import MyEvents from "@/components/dashboard/MyEvents";
 import CommunityFeed from "@/components/dashboard/CommunityFeed";
 import PresidentTeamsView from "@/components/dashboard/PresidentTeamsView";
+import TeamInvitesView from "@/components/dashboard/TeamInvitesView";
 import type {
   DemoEvent,
   DemoMember,
@@ -49,10 +50,31 @@ export default function DashboardPage() {
   const [events, setEvents] = useState<DemoEvent[]>([]);
   const [regs, setRegs] = useState<DemoRegistration[]>([]);
   const [community, setCommunity] = useState<CommunityMember[]>([]);
+  const [invitesCount, setInvitesCount] = useState<number>(0);
   const [activeEvent, setActiveEvent] = useState<DemoEvent | null>(null);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<DashboardTabId>("events");
   const [ready, setReady] = useState(false);
+
+  const refreshInvitesCount = useCallback(async () => {
+    try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {};
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+      const res = await fetch("/api/user/invitations", { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setInvitesCount(data.received?.length || 0);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -80,9 +102,10 @@ export default function DashboardPage() {
       setEvents(dbEvents);
       setRegs(dbRegs);
       setCommunity(dbCommunity);
+      refreshInvitesCount();
       setReady(true);
     })();
-  }, [router]);
+  }, [router, refreshInvitesCount]);
 
   const sendRsvp = (eventTitle: string, teamName: string | null) => {
     fetch("/api/rsvp", {
@@ -221,6 +244,7 @@ export default function DashboardPage() {
             counts={{
               events: filtered.length,
               myEvents: regs.length,
+              invites: invitesCount,
               community: community.length,
             }}
             isPresident={
@@ -268,6 +292,10 @@ export default function DashboardPage() {
                   registrations={regs}
                   onWithdraw={handleWithdraw}
                 />
+              )}
+
+              {tab === "invites" && (
+                <TeamInvitesView onInviteHandled={refreshInvitesCount} />
               )}
 
               {tab === "community" && <CommunityFeed members={community} />}

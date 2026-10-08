@@ -65,7 +65,9 @@ export default function PresidentTeamsView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "complete" | "pending">("all");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "complete" | "pending"
+  >("all");
 
   const fetchTeams = async () => {
     setLoading(true);
@@ -89,7 +91,9 @@ export default function PresidentTeamsView() {
         return;
       }
       setTeams(data.teams || []);
-      setStats(data.stats || { totalTeams: 0, totalConfirmed: 0, totalPending: 0 });
+      setStats(
+        data.stats || { totalTeams: 0, totalConfirmed: 0, totalPending: 0 },
+      );
     } catch (err: any) {
       setError(err?.message || "An unexpected error occurred.");
     } finally {
@@ -173,11 +177,15 @@ export default function PresidentTeamsView() {
       ].join(",");
     });
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+    const csvContent =
+      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `debug_decrypt_teams_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute(
+      "download",
+      `debug_decrypt_teams_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -186,8 +194,14 @@ export default function PresidentTeamsView() {
   if (error) {
     return (
       <div className="rounded-3xl border border-red-500/20 bg-[#12080a] p-8 text-center text-red-300">
-        <HugeiconsIcon icon={CrownIcon} size={36} className="mx-auto mb-3 text-red-400 opacity-80" />
-        <h3 className="font-heading text-lg font-bold text-white">President Access Only</h3>
+        <HugeiconsIcon
+          icon={CrownIcon}
+          size={36}
+          className="mx-auto mb-3 text-red-400 opacity-80"
+        />
+        <h3 className="font-heading text-lg font-bold text-white">
+          President Access Only
+        </h3>
         <p className="mt-1 text-sm text-red-300/80">{error}</p>
       </div>
     );
@@ -207,7 +221,8 @@ export default function PresidentTeamsView() {
             </h2>
           </div>
           <p className="mt-1 text-xs text-white/50">
-            Real-time registered teams, member confirmations, and participant roll sheets.
+            Real-time registered teams, member confirmations, and participant
+            roll sheets.
           </p>
         </div>
 
@@ -241,26 +256,50 @@ export default function PresidentTeamsView() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-white/10 bg-[#0c111e]/80 p-4">
           <div className="flex items-center justify-between text-white/50">
-            <span className="font-mono text-xs font-semibold uppercase">Total Teams</span>
-            <HugeiconsIcon icon={UserGroupIcon} size={16} className="text-blue-400" />
+            <span className="font-mono text-xs font-semibold uppercase">
+              Total Teams
+            </span>
+            <HugeiconsIcon
+              icon={UserGroupIcon}
+              size={16}
+              className="text-blue-400"
+            />
           </div>
-          <p className="font-heading mt-2 text-3xl font-black text-white">{stats.totalTeams}</p>
+          <p className="font-heading mt-2 text-3xl font-black text-white">
+            {stats.totalTeams}
+          </p>
         </div>
 
         <div className="rounded-2xl border border-emerald-500/20 bg-[#081510]/80 p-4">
           <div className="flex items-center justify-between text-emerald-300/60">
-            <span className="font-mono text-xs font-semibold uppercase">Confirmed Members</span>
-            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} className="text-emerald-400" />
+            <span className="font-mono text-xs font-semibold uppercase">
+              Confirmed Members
+            </span>
+            <HugeiconsIcon
+              icon={CheckmarkCircle01Icon}
+              size={16}
+              className="text-emerald-400"
+            />
           </div>
-          <p className="font-heading mt-2 text-3xl font-black text-emerald-300">{stats.totalConfirmed}</p>
+          <p className="font-heading mt-2 text-3xl font-black text-emerald-300">
+            {stats.totalConfirmed}
+          </p>
         </div>
 
         <div className="rounded-2xl border border-amber-500/20 bg-[#161208]/80 p-4">
           <div className="flex items-center justify-between text-amber-300/60">
-            <span className="font-mono text-xs font-semibold uppercase">Pending Invites</span>
-            <HugeiconsIcon icon={Time02Icon} size={16} className="text-amber-400" />
+            <span className="font-mono text-xs font-semibold uppercase">
+              Pending Invites
+            </span>
+            <HugeiconsIcon
+              icon={Time02Icon}
+              size={16}
+              className="text-amber-400"
+            />
           </div>
-          <p className="font-heading mt-2 text-3xl font-black text-amber-300">{stats.totalPending}</p>
+          <p className="font-heading mt-2 text-3xl font-black text-amber-300">
+            {stats.totalPending}
+          </p>
         </div>
       </div>
 
@@ -325,9 +364,13 @@ export default function PresidentTeamsView() {
         </div>
       ) : filteredTeams.length === 0 ? (
         <div className="rounded-2xl border border-white/10 bg-[#0c111e]/40 py-16 text-center">
-          <p className="font-heading text-sm font-semibold text-white/60">No teams found</p>
+          <p className="font-heading text-sm font-semibold text-white/60">
+            No teams found
+          </p>
           <p className="mt-1 font-mono text-xs text-white/35">
-            {search ? `No results matching "${search}"` : "No teams have registered yet."}
+            {search
+              ? `No results matching "${search}"`
+              : "No teams have registered yet."}
           </p>
         </div>
       ) : (
@@ -342,7 +385,9 @@ export default function PresidentTeamsView() {
                 {/* Team Card Header */}
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] bg-white/[0.02] px-5 py-3.5">
                   <div className="flex items-center gap-2.5">
-                    <span className="font-mono text-xs font-extrabold text-white/40">#{idx + 1}</span>
+                    <span className="font-mono text-xs font-extrabold text-white/40">
+                      #{idx + 1}
+                    </span>
                     <h3 className="font-heading text-base font-extrabold text-white">
                       {team.name}
                     </h3>
@@ -358,7 +403,10 @@ export default function PresidentTeamsView() {
                     >
                       {isFull ? (
                         <>
-                          <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} />
+                          <HugeiconsIcon
+                            icon={CheckmarkCircle01Icon}
+                            size={12}
+                          />
                           Complete (3/3)
                         </>
                       ) : (
@@ -406,7 +454,7 @@ export default function PresidentTeamsView() {
                                   unoptimized
                                 />
                               ) : (
-                                <div className="flex h-full w-full items-center justify-center font-bold text-white/50 text-xs">
+                                <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white/50">
                                   {member.displayName.slice(0, 2).toUpperCase()}
                                 </div>
                               )}
@@ -435,7 +483,7 @@ export default function PresidentTeamsView() {
                               ? "Leader"
                               : isAccepted
                                 ? "Accepted"
-                                : "Pending"}
+                                : "Request Sent"}
                           </span>
                         </div>
 
@@ -443,28 +491,46 @@ export default function PresidentTeamsView() {
                         <div className="mt-3 space-y-1 border-t border-white/[0.06] pt-2.5 text-[11px] text-white/70">
                           {member.email && (
                             <div className="flex items-center gap-1.5 truncate">
-                              <HugeiconsIcon icon={Mail01Icon} size={12} className="shrink-0 text-white/40" />
+                              <HugeiconsIcon
+                                icon={Mail01Icon}
+                                size={12}
+                                className="shrink-0 text-white/40"
+                              />
                               <span className="truncate">{member.email}</span>
                             </div>
                           )}
                           {member.phone && (
                             <div className="flex items-center gap-1.5">
-                              <HugeiconsIcon icon={CallIcon} size={12} className="shrink-0 text-white/40" />
+                              <HugeiconsIcon
+                                icon={CallIcon}
+                                size={12}
+                                className="shrink-0 text-white/40"
+                              />
                               <span>{member.phone}</span>
                             </div>
                           )}
                           {(member.branch || member.section) && (
                             <div className="flex items-center gap-1.5">
-                              <HugeiconsIcon icon={MortarboardIcon} size={12} className="shrink-0 text-white/40" />
+                              <HugeiconsIcon
+                                icon={MortarboardIcon}
+                                size={12}
+                                className="shrink-0 text-white/40"
+                              />
                               <span>
                                 {member.branch}
-                                {member.section ? ` · Sec ${member.section}` : ""}
+                                {member.section
+                                  ? ` · Sec ${member.section}`
+                                  : ""}
                               </span>
                             </div>
                           )}
                           {member.collegeId && (
                             <div className="flex items-center gap-1.5">
-                              <HugeiconsIcon icon={IdIcon} size={12} className="shrink-0 text-white/40" />
+                              <HugeiconsIcon
+                                icon={IdIcon}
+                                size={12}
+                                className="shrink-0 text-white/40"
+                              />
                               <span className="font-mono text-[10px] text-white/60">
                                 Roll: {member.collegeId}
                               </span>

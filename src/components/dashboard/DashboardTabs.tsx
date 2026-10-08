@@ -7,13 +7,11 @@ import {
   CheckmarkCircle01Icon,
   Megaphone01Icon,
   CrownIcon,
+  UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 
 export type DashboardTabId =
-  | "events"
-  | "my-events"
-  | "community"
-  | "admin-teams";
+  "events" | "my-events" | "invites" | "community" | "admin-teams";
 
 export default function DashboardTabs({
   active,
@@ -23,7 +21,12 @@ export default function DashboardTabs({
 }: {
   active: DashboardTabId;
   onChange: (tab: DashboardTabId) => void;
-  counts: { events: number; myEvents: number; community?: number };
+  counts: {
+    events: number;
+    myEvents: number;
+    invites?: number;
+    community?: number;
+  };
   isPresident?: boolean;
 }) {
   const tabs: {
@@ -45,6 +48,12 @@ export default function DashboardTabs({
       label: "My Events",
       icon: CheckmarkCircle01Icon,
       pill: String(counts.myEvents),
+    },
+    {
+      id: "invites",
+      label: "Team Invites",
+      icon: UserGroupIcon,
+      pill: counts.invites ? String(counts.invites) : undefined,
     },
     {
       id: "community",

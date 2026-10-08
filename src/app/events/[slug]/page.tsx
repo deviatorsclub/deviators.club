@@ -123,15 +123,18 @@ export default function EventDashboardPage({
     return () => clearInterval(interval);
   }, []);
 
-  // Check URL query parameters for ?register=true to automatically open modal
+  // Check URL query parameters for ?register=true to route to dedicated registration page
   useEffect(() => {
     if (typeof window !== "undefined") {
       const sp = new URLSearchParams(window.location.search);
       if (sp.get("register") === "true") {
-        setShowRegModal(true);
+        window.location.href =
+          slug === "debug-decrypt-3.0"
+            ? "/debug-decrypt-3.0/registration"
+            : `/events/${slug}/registration`;
       }
     }
-  }, []);
+  }, [slug]);
 
   // Load auth state & team registration status
   const fetchStatus = async () => {
@@ -873,7 +876,7 @@ export default function EventDashboardPage({
                       className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/20 py-3.5 text-sm font-bold text-emerald-300 shadow-lg transition-colors hover:bg-emerald-500/30"
                     >
                       <HugeiconsIcon icon={CheckmarkCircle01Icon} size={17} />
-                      <span>View Team Card · {team?.name}</span>
+                      <span>View Team Details · {team?.name}</span>
                     </Link>
                     <p className="text-center font-mono text-[11px] text-white/40">
                       Team Leader: {team?.isLeader ? "You" : "Teammate"} ·{" "}
@@ -883,7 +886,7 @@ export default function EventDashboardPage({
                 ) : currentUser && !currentUser.onboarded ? (
                   <div className="space-y-2">
                     <Link
-                      href={`/onboarding?next=/events/${slug}`}
+                      href={`/onboarding?next=/events/${slug}/registration`}
                       className="btn-primary flex w-full items-center justify-center gap-2 py-3.5 text-sm font-bold"
                     >
                       Build Profile to Register
@@ -893,15 +896,32 @@ export default function EventDashboardPage({
                       * Complete your profile to form a team.
                     </p>
                   </div>
+                ) : invitations.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 p-3 text-xs text-cyan-200">
+                      <p className="font-semibold text-white">
+                        Invitation Received!
+                      </p>
+                      <p className="mt-0.5 text-white/70">
+                        You are invited to join &quot;{invitations[0].teamName}
+                        &quot;. Accept in dashboard or manager below.
+                      </p>
+                    </div>
+                    <Link
+                      href="/dashboard"
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-500/40 bg-cyan-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/25 transition-all hover:bg-cyan-500"
+                    >
+                      <HugeiconsIcon icon={UserGroupIcon} size={17} />
+                      <span>View Team Invitations</span>
+                    </Link>
+                  </div>
                 ) : (
-                  <button
-                    onClick={() => {
-                      if (!currentUser) {
-                        window.location.href = `/login?next=/events/${slug}?register=true`;
-                      } else {
-                        setShowRegModal(true);
-                      }
-                    }}
+                  <Link
+                    href={
+                      slug === "debug-decrypt-3.0"
+                        ? "/debug-decrypt-3.0/registration"
+                        : `/events/${slug}/registration`
+                    }
                     className="group relative flex w-full items-center justify-center gap-2.5 rounded-2xl border border-blue-500/40 bg-blue-600 px-6 py-4 text-sm font-extrabold tracking-wider text-white uppercase shadow-xl shadow-blue-600/25 transition-all duration-200 hover:border-blue-400 hover:bg-blue-500 hover:shadow-blue-500/40 active:scale-[0.99]"
                   >
                     <span className="flex h-2 w-2 animate-pulse rounded-full bg-cyan-300" />
@@ -913,7 +933,7 @@ export default function EventDashboardPage({
                       size={17}
                       className="text-blue-200 transition-transform group-hover:translate-x-1 group-hover:text-white"
                     />
-                  </button>
+                  </Link>
                 )}
               </div>
 

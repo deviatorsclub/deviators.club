@@ -84,6 +84,10 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: "/:slug(debug-decrypt-3\\.0|debug-decrypt-3)/registration",
+        destination: "/events/:slug/registration",
+      },
+      {
         source: "/:slug(debug-decrypt-3\\.0|debug-decrypt-3)/team/:teamName",
         destination: "/events/:slug/team/:teamName",
       },
