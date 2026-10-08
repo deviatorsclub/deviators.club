@@ -508,10 +508,6 @@ export default function EventRegistrationPage({
           <HugeiconsIcon icon={ArrowLeft01Icon} size={15} />
           <span>Back to {event.title}</span>
         </Link>
-
-        <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 font-mono text-xs font-semibold text-cyan-300">
-          Unstop-Grade Team Registration
-        </span>
       </div>
 
       {/* Main Form Container */}

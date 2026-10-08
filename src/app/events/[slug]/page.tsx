@@ -878,7 +878,7 @@ export default function EventDashboardPage({
                     Online Round:
                   </span>
                   <span className="font-mono text-xs font-bold text-white">
-                    12 Oct 2026 · 7:00 PM – 8:00 PM
+                    13 Oct 2026 · 7:00 PM – 8:00 PM
                   </span>
                 </div>
 
