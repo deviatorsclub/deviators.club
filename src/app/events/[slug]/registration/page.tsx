@@ -299,6 +299,32 @@ export default function EventRegistrationPage({
       }
     }
 
+    // Duplicate phone number check within squad
+    const pLeader = leaderPhone.trim().replace(/\D/g, "");
+    const p1 = member1.phone.trim().replace(/\D/g, "");
+    const p2 = hasMember2 ? member2.phone.trim().replace(/\D/g, "") : "";
+
+    if (pLeader && p1 && pLeader === p1) {
+      setErrorMessage(
+        "Leader and Member 1 cannot have the same phone number. Duplicate phone numbers are not allowed.",
+      );
+      return;
+    }
+    if (hasMember2 && p2) {
+      if (pLeader === p2) {
+        setErrorMessage(
+          "Leader and Member 2 cannot have the same phone number. Duplicate phone numbers are not allowed.",
+        );
+        return;
+      }
+      if (p1 === p2) {
+        setErrorMessage(
+          "Member 1 and Member 2 cannot have the same phone number. Duplicate phone numbers are not allowed.",
+        );
+        return;
+      }
+    }
+
     setSubmitting(true);
 
     try {

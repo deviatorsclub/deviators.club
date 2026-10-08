@@ -276,10 +276,10 @@ export async function POST(
     .eq("teams.event_id", event.id);
 
   if (existingUserTeam && existingUserTeam.length > 0) {
-    const existingName = (existingUserTeam[0].teams as any)?.name;
     return NextResponse.json(
       {
-        error: `You are already part of team "${existingName}". You can only be in one team at a time.`,
+        error:
+          "You are already part of a team. Each person can only be in one team.",
       },
       { status: 400 },
     );
@@ -334,6 +334,7 @@ export async function POST(
   }
 
   // Rule 2 check for mates: Check if any teammate is already in another accepted team for this event
+  // Do NOT reveal team name — simply say they are already in a team
   for (const mate of mateProfiles) {
     const { data: mateExisting } = await supabase
       .from("team_members")
@@ -343,13 +344,91 @@ export async function POST(
       .eq("teams.event_id", event.id);
 
     if (mateExisting && mateExisting.length > 0) {
-      const existingName = (mateExisting[0].teams as any)?.name;
       return NextResponse.json(
         {
-          error: `@${mate.username} is already an accepted member of team "${existingName}". Each person can only join one team at a time.`,
+          error: `@${mate.username} is already part of a team. Each person can only join one team.`,
         },
         { status: 400 },
       );
+    }
+  }
+
+  // 4.5 Validate Duplicate Phone Numbers & Duplicate Emails
+  const membersDataList = Array.isArray(body.membersData)
+    ? body.membersData
+    : [];
+  const cleanPhone = (p: string) => (p || "").trim().replace(/\D/g, "");
+
+  const leaderCleanPhone = cleanPhone(phone);
+  const allPhones: { phone: string; label: string; profileId: string }[] = [];
+  if (leaderCleanPhone) {
+    allPhones.push({
+      phone: leaderCleanPhone,
+      label: "Leader",
+      profileId: user.id,
+    });
+  }
+
+  for (const mate of mateProfiles) {
+    const mData = membersDataList.find(
+      (md: any) =>
+        (md.username &&
+          md.username.toLowerCase() === mate.username.toLowerCase()) ||
+        md.profileId === mate.id,
+    );
+    const mPhoneClean = cleanPhone(mData?.phone || "");
+    if (mPhoneClean) {
+      allPhones.push({
+        phone: mPhoneClean,
+        label: `@${mate.username}`,
+        profileId: mate.id,
+      });
+    }
+  }
+
+  // Check 1: Duplicate phone numbers inside this squad
+  const seenPhones = new Set<string>();
+  for (const item of allPhones) {
+    if (seenPhones.has(item.phone)) {
+      return NextResponse.json(
+        {
+          error: `Duplicate phone number (${item.phone}) detected in squad. Each member must provide their own distinct phone number.`,
+        },
+        { status: 400 },
+      );
+    }
+    seenPhones.add(item.phone);
+  }
+
+  // Check 2: Duplicate phone numbers in database for this event
+  if (allPhones.length > 0) {
+    const phoneList = allPhones.map((p) => p.phone);
+    const { data: existingRegs } = await supabase
+      .from("registrations")
+      .select("profile_id, phone")
+      .eq("event_id", event.id);
+
+    const currentSquadIds = new Set([
+      user.id,
+      ...mateProfiles.map((m) => m.id),
+    ]);
+
+    if (existingRegs) {
+      for (const reg of existingRegs) {
+        const existingClean = cleanPhone(reg.phone);
+        if (
+          existingClean &&
+          phoneList.includes(existingClean) &&
+          !currentSquadIds.has(reg.profile_id)
+        ) {
+          return NextResponse.json(
+            {
+              error: `The phone number ${existingClean} is already registered by another participant for this event. Duplicate phone numbers are not allowed.`,
+            },
+            { status: 400 },
+          );
+        }
+      }
     }
   }
 
@@ -410,9 +489,6 @@ export async function POST(
   }
 
   // 8. Store invited teammate details entered during registration
-  const membersDataList = Array.isArray(body.membersData)
-    ? body.membersData
-    : [];
   for (const mate of mateProfiles) {
     const mData = membersDataList.find(
       (md: any) =>
@@ -609,10 +685,9 @@ export async function PATCH(
     .eq("teams.event_id", team.event_id);
 
   if (mateExisting && mateExisting.length > 0) {
-    const existingName = (mateExisting[0].teams as any)?.name;
     return NextResponse.json(
       {
-        error: `@${candidateProfile.username} is already an accepted member of team "${existingName}". Members can only be in one team.`,
+        error: `@${candidateProfile.username} is already part of a team. Each person can only join one team.`,
       },
       { status: 400 },
     );

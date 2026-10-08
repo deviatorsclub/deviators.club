@@ -94,7 +94,7 @@ export default function EventDashboardPage({
   });
 
   useEffect(() => {
-    const regTarget = new Date("2026-10-12T23:59:59+05:30").getTime();
+    const regTarget = new Date("2026-10-12T00:00:00+05:30").getTime();
     const eventTarget = new Date("2026-10-15T08:00:00+05:30").getTime();
 
     const updateCountdowns = () => {
@@ -851,15 +851,24 @@ export default function EventDashboardPage({
                 </div>
 
                 <p className="mt-2 font-mono text-[11px] text-white/50">
-                  Strict Cutoff: 12 Oct 2026 · 11:59 PM
+                  Strict Cutoff: 12 Oct 2026 · 12:00 AM (Midnight)
                 </p>
               </div>
 
-              {/* EVENT START COUNTDOWN SNIPPET */}
-              <div className="mt-3 rounded-2xl border border-white/10 bg-black/40 p-3">
-                <div className="flex items-center justify-between text-xs">
+              {/* ONLINE SHORTLISTING & EVENT START SNIPPETS */}
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center justify-between rounded-2xl border border-cyan-500/20 bg-cyan-500/[0.06] p-3 text-xs">
+                  <span className="font-mono text-[11px] font-semibold tracking-wider text-cyan-300 uppercase">
+                    Online Round:
+                  </span>
+                  <span className="font-mono text-xs font-bold text-white">
+                    12 Oct 2026 · 7:00 PM – 8:00 PM
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 p-3 text-xs">
                   <span className="font-mono text-[11px] tracking-wider text-white/50 uppercase">
-                    Event Kickoff:
+                    On-Campus Finale:
                   </span>
                   <span className="font-mono text-xs font-bold text-cyan-300">
                     15 Oct 2026 · 8:00 AM
