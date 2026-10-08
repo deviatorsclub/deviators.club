@@ -62,13 +62,24 @@ export default function EventCard({
           )}
         </div>
 
-        <div>
-          <h3 className="font-heading text-xl font-extrabold tracking-tight text-white sm:text-2xl">
-            {event.title}
-          </h3>
-          <p className="mt-1 text-xs text-white/60 sm:text-sm">
-            {event.tagline}
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="font-heading text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+              {event.title}
+            </h3>
+            <p className="mt-1 text-xs text-white/60 sm:text-sm">
+              {event.tagline}
+            </p>
+          </div>
+          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-[#090d16] shadow-md sm:h-14 sm:w-14">
+            <Image
+              src="/debug_logo.png"
+              alt={`${event.title} Logo`}
+              fill
+              className="object-contain p-1.5"
+              unoptimized
+            />
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

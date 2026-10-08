@@ -349,7 +349,7 @@ export default function EventDashboardPage({
                     src={event.logoUrl}
                     alt="Event Badge"
                     fill
-                    className="object-cover"
+                    className="object-contain p-2"
                     unoptimized
                   />
                 </div>
@@ -466,6 +466,22 @@ export default function EventDashboardPage({
                           <span>{h}</span>
                         </div>
                       ))}
+                    </div>
+                  </div>
+
+                  {/* Official Challenge Poster */}
+                  <div className="border-t border-white/[0.08] pt-6">
+                    <h4 className="font-heading mb-3 text-base font-bold text-white">
+                      Official Challenge Poster
+                    </h4>
+                    <div className="relative aspect-[1916/821] w-full overflow-hidden rounded-2xl border border-white/10 bg-[#090d16] shadow-xl">
+                      <Image
+                        src="/debug_decrypt_poster.png"
+                        alt={`${event.title} Official Poster`}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
                     </div>
                   </div>
 

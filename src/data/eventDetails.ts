@@ -71,7 +71,7 @@ export const debugDecrypt3Data: EventDetailsData = {
   mainTagline: "THE ULTIMATE ALGORITHM CHALLENGE",
   subTagline: "Think. Debug. Optimize. Conquer.",
   bannerUrl: "/debug_decrypt_banner_1.png",
-  logoUrl: "/red_logo.png",
+  logoUrl: "/debug_logo.png",
   location: "Dronacharya College of Engineering",
   venueDetails: "Dronacharya College of Engineering",
   mode: "Offline",
