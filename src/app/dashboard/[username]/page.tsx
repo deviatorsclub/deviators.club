@@ -77,9 +77,38 @@ export async function generateMetadata({
   const { username } = await params;
   const card = await getCard(username);
   if (!card) return { title: "Badge not found · Deviators Club" };
+
+  const siteUrl = "https://www.deviators.club";
+  const title = `I AM A DEVIATOR — @${card.username} · Deviators Club`;
+  const description =
+    card.bio ||
+    `Check out ${card.display_name} (@${card.username})'s official Deviator builder card on Deviators Club.`;
+  const ogImage = card.avatar_url || `${siteUrl}/dev%20posters%20new%201.png`;
+
   return {
-    title: `I AM A DEVIATOR — @${card.username} · Deviators Club`,
-    description: card.bio || `Check out @${card.username}'s Deviator badge.`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${siteUrl}/dashboard/@${card.username}`,
+      siteName: "Deviators Club",
+      images: [
+        {
+          url: ogImage,
+          width: 800,
+          height: 800,
+          alt: `${card.display_name} (@${card.username})`,
+        },
+      ],
+      type: "profile",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
   };
 }
 

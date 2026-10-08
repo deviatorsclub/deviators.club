@@ -836,7 +836,7 @@ export default function EventTeamManager({
                       type="text"
                       value={memberSearch}
                       onChange={(e) => setMemberSearch(e.target.value)}
-                      placeholder="Type username (e.g. @dhruviii78) or name..."
+                      placeholder="Type username (e.g. @username) or name..."
                       className="w-full rounded-xl border border-white/10 bg-black/50 py-2.5 pr-24 pl-10 text-xs text-white placeholder-white/30 transition-colors outline-none focus:border-cyan-400 sm:text-sm"
                     />
                     {searchingMember && (

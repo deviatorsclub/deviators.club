@@ -81,17 +81,27 @@ export default function TeamShowcasePage({
             .select("profile_id, status")
             .eq("team_id", t.id);
 
-          const profileIds = (tm || []).map((x) => x.profile_id);
+          // Only include accepted teammates or the team leader
+          const acceptedTm = (tm || []).filter(
+            (x) => x.status === "accepted" || x.profile_id === t.leader_id,
+          );
+
+          const profileIds = acceptedTm.map((x) => x.profile_id);
           const { data: profiles } = await supabase
             .from("profiles")
             .select(
               "id, username, display_name, bio, avatar_url, branch, year, github_url, linkedin_url, website",
             )
-            .in("id", profileIds);
+            .in(
+              "id",
+              profileIds.length > 0
+                ? profileIds
+                : ["00000000-0000-0000-0000-000000000000"],
+            );
 
           const pMap = new Map((profiles || []).map((p) => [p.id, p]));
 
-          const members = (tm || []).map((x) => {
+          const members = acceptedTm.map((x) => {
             const p = pMap.get(x.profile_id);
             const isLeader = x.profile_id === t.leader_id;
             return {
@@ -116,6 +126,8 @@ export default function TeamShowcasePage({
             leaderId: t.leader_id,
             members,
           });
+        } else {
+          setTeamData(null);
         }
       } catch (e) {
         console.error(e);
@@ -148,6 +160,50 @@ export default function TeamShowcasePage({
       setTimeout(() => setCopiedStory(false), 2000);
     } catch {}
   };
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#07090e] text-white">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
+          <p className="font-mono text-xs tracking-wider text-white/50 uppercase">
+            Loading Team Card...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!teamData) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-[#07090e] px-4 pt-24 pb-20 text-center text-white">
+        <div className="max-w-md rounded-3xl border border-white/10 bg-[#0a0e19] p-8 shadow-2xl">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 text-red-400">
+            <HugeiconsIcon icon={Shield01Icon} size={30} />
+          </div>
+          <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 font-mono text-[11px] font-bold text-red-300 uppercase">
+            Team Not Found
+          </span>
+          <h1 className="font-heading mt-3 text-2xl font-black text-white sm:text-3xl">
+            @{cleanTeamName}
+          </h1>
+          <p className="mt-2 text-xs leading-relaxed text-white/60 sm:text-sm">
+            This team does not exist or has been disbanded. Please check the
+            team name or view other teams in {event.title}.
+          </p>
+          <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
+            <Link
+              href={`/events/${slug}`}
+              className="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold"
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={15} />
+              <span>Back to {event.title}</span>
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#07090e] pt-24 pb-20 text-white sm:pt-28">
