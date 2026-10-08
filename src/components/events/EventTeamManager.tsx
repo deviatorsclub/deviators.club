@@ -25,6 +25,7 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import type { SearchMemberResult } from "@/app/api/members/search/route";
+import { normalizePhone, isValidPhone, normalizeRollNo } from "@/lib/utils";
 
 export type EventTeamInfo = {
   id: string;
@@ -141,6 +142,19 @@ export default function EventTeamManager({
       return;
     }
 
+    if (!isValidPhone(memberPhone)) {
+      setActionError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    const cleanMemberPhone = normalizePhone(memberPhone);
+    const cleanMemberRoll = normalizeRollNo(memberRoll);
+
+    if (!cleanMemberRoll || cleanMemberRoll.length < 2) {
+      setActionError("Please enter a valid college roll number / ID.");
+      return;
+    }
+
     setSubmittingAccept(true);
     setActionError("");
     setActionSuccess("");
@@ -152,8 +166,8 @@ export default function EventTeamManager({
         body: JSON.stringify({
           teamId: acceptingInv.teamId,
           action: "accept",
-          phone: memberPhone.trim(),
-          collegeId: memberRoll.trim(),
+          phone: cleanMemberPhone,
+          collegeId: cleanMemberRoll,
           branch: memberBranch.trim(),
           section: memberSection.trim(),
         }),
@@ -302,16 +316,25 @@ export default function EventTeamManager({
       return;
     }
 
-    const cleanCandidatePhone = candidatePhone.trim().replace(/\D/g, "");
-    if (cleanCandidatePhone.length < 10) {
-      setActionError("Please enter a valid 10-digit mobile number.");
+    if (!isValidPhone(candidatePhone)) {
+      setActionError(
+        "Please enter a valid 10-digit mobile number for your teammate.",
+      );
       return;
     }
 
-    // Check against leader phone
-    const cleanLeaderPhone = (currentUser?.phone || "")
-      .trim()
-      .replace(/\D/g, "");
+    const cleanCandidatePhone = normalizePhone(candidatePhone);
+    const cleanCandidateRoll = normalizeRollNo(candidateCollegeId);
+
+    if (!cleanCandidateRoll || cleanCandidateRoll.length < 2) {
+      setActionError(
+        "Please enter a valid college roll number for your teammate.",
+      );
+      return;
+    }
+
+    // Check against leader phone & roll
+    const cleanLeaderPhone = normalizePhone(currentUser?.phone || "");
     if (cleanLeaderPhone && cleanLeaderPhone === cleanCandidatePhone) {
       setActionError(
         "Leader and Teammate cannot have the same phone number. Duplicate phone numbers are not allowed.",
@@ -319,14 +342,25 @@ export default function EventTeamManager({
       return;
     }
 
+    const cleanLeaderRoll = normalizeRollNo(currentUser?.collegeId || "");
+    if (cleanLeaderRoll && cleanLeaderRoll === cleanCandidateRoll) {
+      setActionError(
+        "Leader and Teammate cannot have the same college roll number. Duplicate roll numbers are not allowed.",
+      );
+      return;
+    }
+
     // Check against existing teammates
     for (const m of team.members) {
-      if (
-        m.phone &&
-        m.phone.trim().replace(/\D/g, "") === cleanCandidatePhone
-      ) {
+      if (m.phone && normalizePhone(m.phone) === cleanCandidatePhone) {
         setActionError(
           `Teammate @${m.username} already uses this phone number. Duplicate phone numbers are not allowed.`,
+        );
+        return;
+      }
+      if (m.collegeId && normalizeRollNo(m.collegeId) === cleanCandidateRoll) {
+        setActionError(
+          `Teammate @${m.username} already uses this college roll number. Duplicate roll numbers are not allowed.`,
         );
         return;
       }
@@ -341,8 +375,8 @@ export default function EventTeamManager({
         body: JSON.stringify({
           teamId: team.id,
           usernameOrEmail: selectedCandidate.username,
-          phone: candidatePhone.trim(),
-          collegeId: candidateCollegeId.trim(),
+          phone: cleanCandidatePhone,
+          collegeId: cleanCandidateRoll,
           branch: candidateBranch.trim(),
           section: candidateSection.trim(),
           year: candidateYear.trim(),

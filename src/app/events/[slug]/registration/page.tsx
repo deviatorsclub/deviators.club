@@ -26,6 +26,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { getEventDetails } from "@/data/eventDetails";
 import { createClient } from "@/lib/supabase/client";
+import { normalizePhone, isValidPhone, normalizeRollNo } from "@/lib/utils";
 
 type SearchResultUser = {
   id: string;
@@ -259,6 +260,21 @@ export default function EventRegistrationPage({
       return;
     }
 
+    if (!isValidPhone(leaderPhone)) {
+      setErrorMessage(
+        "Please enter a valid 10-digit mobile number for the team leader.",
+      );
+      return;
+    }
+
+    const rLeader = normalizeRollNo(leaderCollegeId);
+    if (!rLeader || rLeader.length < 2) {
+      setErrorMessage(
+        "Please enter a valid college roll number for the team leader.",
+      );
+      return;
+    }
+
     // Member 1 validation
     if (!member1.profile) {
       setErrorMessage(
@@ -278,7 +294,23 @@ export default function EventRegistrationPage({
       return;
     }
 
+    if (!isValidPhone(member1.phone)) {
+      setErrorMessage(
+        `Please enter a valid 10-digit mobile number for Member 1 (@${member1.profile.username}).`,
+      );
+      return;
+    }
+
+    const r1 = normalizeRollNo(member1.collegeId);
+    if (!r1 || r1.length < 2) {
+      setErrorMessage(
+        `Please enter a valid college roll number for Member 1 (@${member1.profile.username}).`,
+      );
+      return;
+    }
+
     // Member 2 validation (if added)
+    let r2 = "";
     if (hasMember2) {
       if (!member2.profile) {
         setErrorMessage(
@@ -297,12 +329,27 @@ export default function EventRegistrationPage({
         );
         return;
       }
+
+      if (!isValidPhone(member2.phone)) {
+        setErrorMessage(
+          `Please enter a valid 10-digit mobile number for Member 2 (@${member2.profile.username}).`,
+        );
+        return;
+      }
+
+      r2 = normalizeRollNo(member2.collegeId);
+      if (!r2 || r2.length < 2) {
+        setErrorMessage(
+          `Please enter a valid college roll number for Member 2 (@${member2.profile.username}).`,
+        );
+        return;
+      }
     }
 
-    // Duplicate phone number check within squad
-    const pLeader = leaderPhone.trim().replace(/\D/g, "");
-    const p1 = member1.phone.trim().replace(/\D/g, "");
-    const p2 = hasMember2 ? member2.phone.trim().replace(/\D/g, "") : "";
+    // Duplicate phone number check within squad (normalized)
+    const pLeader = normalizePhone(leaderPhone);
+    const p1 = normalizePhone(member1.phone);
+    const p2 = hasMember2 ? normalizePhone(member2.phone) : "";
 
     if (pLeader && p1 && pLeader === p1) {
       setErrorMessage(
@@ -320,6 +367,28 @@ export default function EventRegistrationPage({
       if (p1 === p2) {
         setErrorMessage(
           "Member 1 and Member 2 cannot have the same phone number. Duplicate phone numbers are not allowed.",
+        );
+        return;
+      }
+    }
+
+    // Duplicate roll number check within squad (normalized)
+    if (rLeader && r1 && rLeader === r1) {
+      setErrorMessage(
+        "Leader and Member 1 cannot have the same college roll number. Duplicate roll numbers are not allowed.",
+      );
+      return;
+    }
+    if (hasMember2 && r2) {
+      if (rLeader === r2) {
+        setErrorMessage(
+          "Leader and Member 2 cannot have the same college roll number. Duplicate roll numbers are not allowed.",
+        );
+        return;
+      }
+      if (r1 === r2) {
+        setErrorMessage(
+          "Member 1 and Member 2 cannot have the same college roll number. Duplicate roll numbers are not allowed.",
         );
         return;
       }

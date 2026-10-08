@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
+import { normalizePhone, isValidPhone, normalizeRollNo } from "@/lib/utils";
 
 // Helper to extract bearer token from Authorization header
 function extractToken(req: NextRequest): string | null {
@@ -138,6 +139,90 @@ export async function POST(
     );
   }
 
+  const cleanUserPhone = normalizePhone(phone);
+  const cleanUserRoll = normalizeRollNo(collegeId);
+
+  if (phone && !isValidPhone(phone)) {
+    return NextResponse.json(
+      { error: "Please enter a valid 10-digit mobile number." },
+      { status: 400 },
+    );
+  }
+
+  if (collegeId && (!cleanUserRoll || cleanUserRoll.length < 2)) {
+    return NextResponse.json(
+      { error: "Please enter a valid college roll number / ID." },
+      { status: 400 },
+    );
+  }
+
+  // Check duplicate phone or roll number in squad
+  if (cleanUserPhone || cleanUserRoll) {
+    const { data: squadRegs } = await supabase
+      .from("registrations")
+      .select("profile_id, phone, college_id")
+      .eq("event_id", event.id)
+      .eq("team_id", teamId);
+
+    if (squadRegs) {
+      for (const sr of squadRegs) {
+        if (sr.profile_id !== user.id) {
+          if (cleanUserPhone && normalizePhone(sr.phone) === cleanUserPhone) {
+            return NextResponse.json(
+              {
+                error: `Duplicate phone number (${cleanUserPhone}) detected in squad. Each member must provide their own distinct phone number.`,
+              },
+              { status: 400 },
+            );
+          }
+          if (
+            cleanUserRoll &&
+            normalizeRollNo(sr.college_id) === cleanUserRoll
+          ) {
+            return NextResponse.json(
+              {
+                error: `Duplicate roll number (${cleanUserRoll}) detected in squad. Each member must have their own unique college roll number.`,
+              },
+              { status: 400 },
+            );
+          }
+        }
+      }
+    }
+
+    // Check duplicate phone or roll number in event registrations
+    const { data: allRegs } = await supabase
+      .from("registrations")
+      .select("profile_id, phone, college_id")
+      .eq("event_id", event.id);
+
+    if (allRegs) {
+      for (const reg of allRegs) {
+        if (reg.profile_id !== user.id) {
+          if (cleanUserPhone && normalizePhone(reg.phone) === cleanUserPhone) {
+            return NextResponse.json(
+              {
+                error: `The phone number ${cleanUserPhone} is already registered by another participant for this event. Duplicate phone numbers are not allowed.`,
+              },
+              { status: 400 },
+            );
+          }
+          if (
+            cleanUserRoll &&
+            normalizeRollNo(reg.college_id) === cleanUserRoll
+          ) {
+            return NextResponse.json(
+              {
+                error: `The roll number ${cleanUserRoll} is already registered by another participant for this event. Duplicate roll numbers are not allowed.`,
+              },
+              { status: 400 },
+            );
+          }
+        }
+      }
+    }
+  }
+
   // Update status to accepted
   const { error: updErr } = await supabase
     .from("team_members")
@@ -160,8 +245,8 @@ export async function POST(
       event_id: event.id,
       profile_id: user.id,
       team_id: teamId,
-      phone,
-      college_id: collegeId,
+      phone: cleanUserPhone || phone,
+      college_id: cleanUserRoll || collegeId,
       expectations: detailsStr,
       status: "confirmed",
     },

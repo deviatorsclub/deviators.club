@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
+import { normalizePhone, isValidPhone, normalizeRollNo } from "@/lib/utils";
 
 // Helper to extract bearer token from Authorization header
 function extractToken(req: NextRequest): string | null {
@@ -376,20 +377,39 @@ export async function POST(
   }
 
   // 4.5 Validate Duplicate Phone Numbers & Duplicate Emails
+  // 4.5 Validate Phone Numbers & Roll Numbers (Normalization & Duplication Checks)
   const membersDataList = Array.isArray(body.membersData)
     ? body.membersData
     : [];
-  const cleanPhone = (p: string) => (p || "").trim().replace(/\D/g, "");
 
-  const leaderCleanPhone = cleanPhone(phone);
-  const allPhones: { phone: string; label: string; profileId: string }[] = [];
-  if (leaderCleanPhone) {
-    allPhones.push({
-      phone: leaderCleanPhone,
-      label: "Leader",
-      profileId: user.id,
-    });
+  // Validate leader phone and roll number
+  if (!isValidPhone(phone)) {
+    return NextResponse.json(
+      {
+        error:
+          "Please enter a valid 10-digit mobile number for the team leader.",
+      },
+      { status: 400 },
+    );
   }
+  const leaderNormPhone = normalizePhone(phone);
+  const leaderNormRoll = normalizeRollNo(collegeId);
+  if (!leaderNormRoll || leaderNormRoll.length < 2) {
+    return NextResponse.json(
+      {
+        error:
+          "Please enter a valid college roll number / ID for the team leader.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const allPhones: { phone: string; label: string; profileId: string }[] = [
+    { phone: leaderNormPhone, label: "Leader", profileId: user.id },
+  ];
+  const allRolls: { roll: string; label: string; profileId: string }[] = [
+    { roll: leaderNormRoll, label: "Leader", profileId: user.id },
+  ];
 
   for (const mate of mateProfiles) {
     const mData = membersDataList.find(
@@ -398,14 +418,37 @@ export async function POST(
           md.username.toLowerCase() === mate.username.toLowerCase()) ||
         md.profileId === mate.id,
     );
-    const mPhoneClean = cleanPhone(mData?.phone || "");
-    if (mPhoneClean) {
-      allPhones.push({
-        phone: mPhoneClean,
-        label: `@${mate.username}`,
-        profileId: mate.id,
-      });
+
+    if (!isValidPhone(mData?.phone || "")) {
+      return NextResponse.json(
+        {
+          error: `Please enter a valid 10-digit mobile number for teammate @${mate.username}.`,
+        },
+        { status: 400 },
+      );
     }
+    const mNormPhone = normalizePhone(mData?.phone || "");
+    const mNormRoll = normalizeRollNo(mData?.collegeId || "");
+
+    if (!mNormRoll || mNormRoll.length < 2) {
+      return NextResponse.json(
+        {
+          error: `Please enter a valid college roll number / ID for teammate @${mate.username}.`,
+        },
+        { status: 400 },
+      );
+    }
+
+    allPhones.push({
+      phone: mNormPhone,
+      label: `@${mate.username}`,
+      profileId: mate.id,
+    });
+    allRolls.push({
+      roll: mNormRoll,
+      label: `@${mate.username}`,
+      profileId: mate.id,
+    });
   }
 
   // Check 1: Duplicate phone numbers inside this squad
@@ -422,30 +465,48 @@ export async function POST(
     seenPhones.add(item.phone);
   }
 
-  // Check 2: Duplicate phone numbers in database for this event
-  if (allPhones.length > 0) {
-    const phoneList = allPhones.map((p) => p.phone);
-    const { data: existingRegs } = await supabase
-      .from("registrations")
-      .select("profile_id, phone")
-      .eq("event_id", event.id);
+  // Check 2: Duplicate roll numbers inside this squad
+  const seenRolls = new Set<string>();
+  for (const item of allRolls) {
+    if (seenRolls.has(item.roll)) {
+      return NextResponse.json(
+        {
+          error: `Duplicate roll number (${item.roll}) detected in squad. Each member must have their own unique college roll number.`,
+        },
+        { status: 400 },
+      );
+    }
+    seenRolls.add(item.roll);
+  }
 
-    const currentSquadIds = new Set([
-      user.id,
-      ...mateProfiles.map((m) => m.id),
-    ]);
+  // Check 3: Duplicate phone numbers & roll numbers across this event in database
+  const phoneList = allPhones.map((p) => p.phone);
+  const rollList = allRolls.map((r) => r.roll);
+  const { data: existingRegs } = await supabase
+    .from("registrations")
+    .select("profile_id, phone, college_id")
+    .eq("event_id", event.id);
 
-    if (existingRegs) {
-      for (const reg of existingRegs) {
-        const existingClean = cleanPhone(reg.phone);
-        if (
-          existingClean &&
-          phoneList.includes(existingClean) &&
-          !currentSquadIds.has(reg.profile_id)
-        ) {
+  const currentSquadIds = new Set([user.id, ...mateProfiles.map((m) => m.id)]);
+
+  if (existingRegs) {
+    for (const reg of existingRegs) {
+      if (!currentSquadIds.has(reg.profile_id)) {
+        const existingNormPhone = normalizePhone(reg.phone);
+        if (existingNormPhone && phoneList.includes(existingNormPhone)) {
           return NextResponse.json(
             {
-              error: `The phone number ${existingClean} is already registered by another participant for this event. Duplicate phone numbers are not allowed.`,
+              error: `The phone number ${existingNormPhone} is already registered by another participant for this event. Duplicate phone numbers are not allowed.`,
+            },
+            { status: 400 },
+          );
+        }
+
+        const existingNormRoll = normalizeRollNo(reg.college_id);
+        if (existingNormRoll && rollList.includes(existingNormRoll)) {
+          return NextResponse.json(
+            {
+              error: `The roll number ${existingNormRoll} is already registered by another participant for this event. Duplicate roll numbers are not allowed.`,
             },
             { status: 400 },
           );
@@ -497,8 +558,8 @@ export async function POST(
       event_id: event.id,
       profile_id: user.id,
       team_id: team.id,
-      phone,
-      college_id: collegeId,
+      phone: leaderNormPhone,
+      college_id: leaderNormRoll,
       year,
       expectations: detailsStr,
       status: "confirmed",
@@ -530,8 +591,8 @@ export async function POST(
         event_id: event.id,
         profile_id: mate.id,
         team_id: team.id,
-        phone: mPhone,
-        college_id: mCollegeId,
+        phone: normalizePhone(mPhone),
+        college_id: normalizeRollNo(mCollegeId),
         year: mYear,
         expectations: mDetails,
         status: "confirmed",
@@ -757,33 +818,42 @@ export async function PATCH(
     );
   }
 
-  // Validate duplicate phone numbers
-  const cleanPhone = (p: string) => (p || "").trim().replace(/\D/g, "");
-  const cleanCandidatePhone = cleanPhone(phone);
+  // Validate duplicate phone numbers & roll numbers
+  const cleanCandidatePhone = normalizePhone(phone);
+  const cleanCandidateRoll = normalizeRollNo(collegeId);
 
-  if (cleanCandidatePhone) {
-    if (cleanCandidatePhone.length < 10) {
-      return NextResponse.json(
-        {
-          error:
-            "Please enter a valid 10-digit mobile number for your teammate.",
-        },
-        { status: 400 },
-      );
-    }
+  if (phone && !isValidPhone(phone)) {
+    return NextResponse.json(
+      {
+        error: "Please enter a valid 10-digit mobile number for your teammate.",
+      },
+      { status: 400 },
+    );
+  }
 
-    // Check against current squad members
-    const { data: squadRegs } = await supabase
-      .from("registrations")
-      .select("profile_id, phone")
-      .eq("event_id", team.event_id)
-      .eq("team_id", teamId);
+  if (collegeId && (!cleanCandidateRoll || cleanCandidateRoll.length < 2)) {
+    return NextResponse.json(
+      {
+        error:
+          "Please enter a valid college roll number / ID for your teammate.",
+      },
+      { status: 400 },
+    );
+  }
 
-    if (squadRegs) {
-      for (const sr of squadRegs) {
+  // Check against current squad members
+  const { data: squadRegs } = await supabase
+    .from("registrations")
+    .select("profile_id, phone, college_id")
+    .eq("event_id", team.event_id)
+    .eq("team_id", teamId);
+
+  if (squadRegs) {
+    for (const sr of squadRegs) {
+      if (sr.profile_id !== candidateProfile.id) {
         if (
-          sr.profile_id !== candidateProfile.id &&
-          cleanPhone(sr.phone) === cleanCandidatePhone
+          cleanCandidatePhone &&
+          normalizePhone(sr.phone) === cleanCandidatePhone
         ) {
           return NextResponse.json(
             {
@@ -792,24 +862,50 @@ export async function PATCH(
             { status: 400 },
           );
         }
+
+        if (
+          cleanCandidateRoll &&
+          normalizeRollNo(sr.college_id) === cleanCandidateRoll
+        ) {
+          return NextResponse.json(
+            {
+              error: `Duplicate roll number (${cleanCandidateRoll}) detected in squad. Each member must have their own unique college roll number.`,
+            },
+            { status: 400 },
+          );
+        }
       }
     }
+  }
 
-    // Check across the entire event registrations
-    const { data: allRegs } = await supabase
-      .from("registrations")
-      .select("profile_id, phone")
-      .eq("event_id", team.event_id);
+  // Check across the entire event registrations
+  const { data: allRegs } = await supabase
+    .from("registrations")
+    .select("profile_id, phone, college_id")
+    .eq("event_id", team.event_id);
 
-    if (allRegs) {
-      for (const reg of allRegs) {
+  if (allRegs) {
+    for (const reg of allRegs) {
+      if (reg.profile_id !== candidateProfile.id) {
         if (
-          reg.profile_id !== candidateProfile.id &&
-          cleanPhone(reg.phone) === cleanCandidatePhone
+          cleanCandidatePhone &&
+          normalizePhone(reg.phone) === cleanCandidatePhone
         ) {
           return NextResponse.json(
             {
               error: `The phone number ${cleanCandidatePhone} is already registered by another participant for this event. Duplicate phone numbers are not allowed.`,
+            },
+            { status: 400 },
+          );
+        }
+
+        if (
+          cleanCandidateRoll &&
+          normalizeRollNo(reg.college_id) === cleanCandidateRoll
+        ) {
+          return NextResponse.json(
+            {
+              error: `The roll number ${cleanCandidateRoll} is already registered by another participant for this event. Duplicate roll numbers are not allowed.`,
             },
             { status: 400 },
           );
@@ -842,7 +938,7 @@ export async function PATCH(
         profile_id: candidateProfile.id,
         team_id: teamId,
         phone: cleanCandidatePhone || phone,
-        college_id: collegeId,
+        college_id: cleanCandidateRoll || collegeId,
         year: year || "3rd Year",
         expectations: detailsStr,
         status: "confirmed",
