@@ -86,6 +86,10 @@ const Navigation = memo(() => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  if (pathname?.includes("/round-1")) {
+    return null;
+  }
+
   return (
     <motion.nav
       initial={{ y: -100, opacity: 0 }}

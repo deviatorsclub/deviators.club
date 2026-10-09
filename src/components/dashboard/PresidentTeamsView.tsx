@@ -53,6 +53,14 @@ type RegisteredTeam = {
   memberCount: number;
   acceptedCount: number;
   pendingCount: number;
+  round1?: {
+    hasAttempted: boolean;
+    status: "submitted" | "terminated" | "in_progress" | "not_started";
+    score: number | null;
+    maxScore: number | null;
+    submittedAt: string | null;
+    strikes: number;
+  };
 };
 
 export default function PresidentTeamsView() {
@@ -66,7 +74,7 @@ export default function PresidentTeamsView() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<
-    "all" | "complete" | "pending"
+    "all" | "complete" | "pending" | "round1"
   >("all");
 
   const fetchTeams = async () => {
@@ -112,6 +120,7 @@ export default function PresidentTeamsView() {
       // Status filter
       if (filterStatus === "complete" && t.acceptedCount < 3) return false;
       if (filterStatus === "pending" && t.pendingCount === 0) return false;
+      if (filterStatus === "round1" && !t.round1?.hasAttempted) return false;
 
       // Text search
       if (!q) return true;
@@ -149,6 +158,8 @@ export default function PresidentTeamsView() {
       "Leader Roll No",
       "Leader Branch",
       "Leader Section",
+      "Round 1 Status",
+      "Round 1 Score",
       "Members Details",
     ];
 
@@ -159,6 +170,14 @@ export default function PresidentTeamsView() {
             `${m.displayName} (@${m.username}, ${m.status}, Roll: ${m.collegeId || "N/A"}, Phone: ${m.phone || "N/A"}, Branch: ${m.branch || "N/A"})`,
         )
         .join(" | ");
+
+      const r1Status = t.round1?.hasAttempted
+        ? t.round1.status
+        : "Not Attempted";
+      const r1Score =
+        t.round1?.score !== null && t.round1?.score !== undefined
+          ? `${t.round1.score}/${t.round1.maxScore ?? 30}`
+          : "N/A";
 
       return [
         `"${t.name.replace(/"/g, '""')}"`,
@@ -173,6 +192,8 @@ export default function PresidentTeamsView() {
         `"${t.leader.collegeId}"`,
         `"${t.leader.branch}"`,
         `"${t.leader.section}"`,
+        `"${r1Status}"`,
+        `"${r1Score}"`,
         `"${membersStr.replace(/"/g, '""')}"`,
       ].join(",");
     });
@@ -354,6 +375,17 @@ export default function PresidentTeamsView() {
           >
             Has Pending
           </button>
+          <button
+            type="button"
+            onClick={() => setFilterStatus("round1")}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+              filterStatus === "round1"
+                ? "bg-purple-500/20 text-purple-300"
+                : "text-white/50 hover:text-white"
+            }`}
+          >
+            Round 1 ({teams.filter((t) => t.round1?.hasAttempted).length})
+          </button>
         </div>
       </div>
 
@@ -394,6 +426,34 @@ export default function PresidentTeamsView() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {/* Round 1 Score Badge */}
+                    {team.round1?.hasAttempted ? (
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold ${
+                          team.round1.status === "submitted"
+                            ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-300"
+                            : team.round1.status === "terminated"
+                              ? "border-red-400/40 bg-red-500/15 text-red-300"
+                              : "animate-pulse border-cyan-400/40 bg-cyan-500/15 text-cyan-300"
+                        }`}
+                        title={
+                          team.round1.submittedAt
+                            ? `Submitted: ${new Date(team.round1.submittedAt).toLocaleTimeString()}`
+                            : undefined
+                        }
+                      >
+                        {team.round1.status === "submitted"
+                          ? `Round 1: ${team.round1.score}/${team.round1.maxScore ?? 30} pts`
+                          : team.round1.status === "terminated"
+                            ? `Round 1: Terminated (${team.round1.score ?? 0}/${team.round1.maxScore ?? 30})`
+                            : "Round 1: In Progress"}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-0.5 font-mono text-[11px] text-white/40">
+                        Round 1: Not Attempted
+                      </span>
+                    )}
+
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold ${
                         isFull

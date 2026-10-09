@@ -125,7 +125,9 @@ export async function GET(req: NextRequest) {
     // 8. Fetch registrations (phone, roll no, branch, section)
     const { data: registrations } = await adminDb
       .from("registrations")
-      .select("profile_id, team_id, phone, college_id, year, expectations, status")
+      .select(
+        "profile_id, team_id, phone, college_id, year, expectations, status",
+      )
       .eq("event_id", event.id)
       .in("profile_id", allProfileIds);
 
@@ -138,9 +140,7 @@ export async function GET(req: NextRequest) {
         perPage: 1000,
       });
       if (authData?.users) {
-        emailMap = new Map(
-          authData.users.map((u) => [u.id, u.email || ""]),
-        );
+        emailMap = new Map(authData.users.map((u) => [u.id, u.email || ""]));
       }
     } catch (e) {
       console.warn("Could not list auth users:", e);
@@ -148,6 +148,11 @@ export async function GET(req: NextRequest) {
 
     let totalConfirmed = 0;
     let totalPending = 0;
+
+    // 10. Fetch Round 1 quiz sessions for leaders
+    const { getAllQuizSessions } = await import("@/lib/round1/sessionStore");
+    const allRound1Sessions = await getAllQuizSessions("round-1");
+    const round1Map = new Map(allRound1Sessions.map((s) => [s.user_id, s]));
 
     const enrichedTeams = teams.map((t) => {
       const leaderProfile = profileMap.get(t.leader_id);
@@ -221,8 +226,26 @@ export async function GET(req: NextRequest) {
         },
         members: teamMembers,
         memberCount: teamMembers.length,
-        acceptedCount: teamMembers.filter((m) => m.status === "accepted").length,
+        acceptedCount: teamMembers.filter((m) => m.status === "accepted")
+          .length,
         pendingCount: teamMembers.filter((m) => m.status === "pending").length,
+        round1: round1Map.has(t.leader_id)
+          ? {
+              hasAttempted: true,
+              status: round1Map.get(t.leader_id)!.status,
+              score: round1Map.get(t.leader_id)!.score,
+              maxScore: round1Map.get(t.leader_id)!.max_score,
+              submittedAt: round1Map.get(t.leader_id)!.submitted_at,
+              strikes: round1Map.get(t.leader_id)!.strike_count || 0,
+            }
+          : {
+              hasAttempted: false,
+              status: "not_started",
+              score: null,
+              maxScore: null,
+              submittedAt: null,
+              strikes: 0,
+            },
       };
     });
 
