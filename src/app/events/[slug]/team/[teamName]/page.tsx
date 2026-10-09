@@ -20,6 +20,8 @@ import {
   FlashIcon,
   GithubIcon,
   GlobeIcon,
+  Time02Icon,
+  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { getEventDetails } from "@/data/eventDetails";
 import TeamFlexModal from "@/components/team/TeamFlexModal";
@@ -62,6 +64,37 @@ export default function TeamShowcasePage({
   const [copiedStory, setCopiedStory] = useState(false);
   const [selectedFlexMember, setSelectedFlexMember] =
     useState<TeamMemberData | null>(null);
+
+  // Round 1 Contest Timer (13 Oct 2026, 7:00 PM IST)
+  const [round1Timer, setRound1Timer] = useState<{
+    expired: boolean;
+    label: string;
+  }>({ expired: false, label: "" });
+
+  useEffect(() => {
+    const checkSchedule = () => {
+      const now = Date.now();
+      const start = new Date("2026-10-13T19:00:00+05:30").getTime();
+      const diff = start - now;
+
+      if (diff <= 0) {
+        setRound1Timer({ expired: true, label: "Live Now" });
+      } else {
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / 1000 / 60) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+        const label =
+          d > 0
+            ? `${d}d ${h}h left`
+            : `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        setRound1Timer({ expired: false, label });
+      }
+    };
+    checkSchedule();
+    const interval = setInterval(checkSchedule, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -274,6 +307,33 @@ export default function TeamShowcasePage({
                 {event.location}
               </span>
             </div>
+
+            {/* Round 1 Action Button / Timer for Debug Decrypt 3.0 */}
+            {slug === "debug-decrypt-3.0" && (
+              <div className="mt-4 flex justify-center">
+                {round1Timer.expired ? (
+                  <Link
+                    href="/debug-decrypt-3.0/round-1"
+                    className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/50 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 px-5 py-2.5 text-xs font-bold text-white shadow-xl shadow-cyan-500/25 transition-all hover:scale-[1.03] hover:brightness-110"
+                  >
+                    <span>⚡ Attempt Round 1 (Assessment Live)</span>
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
+                  </Link>
+                ) : (
+                  <div
+                    title="Round 1 goes live on October 13 at 7:00 PM IST"
+                    className="inline-flex items-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-xs font-semibold text-cyan-300"
+                  >
+                    <HugeiconsIcon
+                      icon={Time02Icon}
+                      size={14}
+                      className="text-cyan-400"
+                    />
+                    <span>Round 1 Assessment Opens in {round1Timer.label}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </motion.div>
 

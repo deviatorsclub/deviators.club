@@ -10,6 +10,7 @@ import {
   sanitizeQuestion,
   gradeSubmission,
   ROUND_1_DURATION_MINUTES,
+  isRound1Active,
 } from "@/data/round1Questions";
 
 export async function GET(req: NextRequest) {
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const session = await getQuizSession(user.id, "round-1");
+    const schedule = isRound1Active(user.isPresident);
 
     // If no session started yet
     if (!session) {
@@ -32,6 +34,7 @@ export async function GET(req: NextRequest) {
         roundSlug: "round-1",
         durationMinutes: ROUND_1_DURATION_MINUTES,
         totalQuestions: MASTER_QUESTIONS.length,
+        schedule,
       });
     }
 

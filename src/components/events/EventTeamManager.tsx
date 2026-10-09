@@ -17,6 +17,7 @@ import {
   ArrowRight01Icon,
   Edit02Icon,
   Clock01Icon,
+  Time02Icon,
   NewTwitterIcon,
   Linkedin02Icon,
   WhatsappIcon,
@@ -102,6 +103,37 @@ export default function EventTeamManager({
   const [actionSuccess, setActionSuccess] = useState("");
   const [copied, setCopied] = useState(false);
   const [copiedStory, setCopiedStory] = useState(false);
+
+  // Round 1 Contest Timer (13 Oct 2026, 7:00 PM IST)
+  const [round1Timer, setRound1Timer] = useState<{
+    expired: boolean;
+    label: string;
+  }>({ expired: false, label: "" });
+
+  useEffect(() => {
+    const checkSchedule = () => {
+      const now = Date.now();
+      const start = new Date("2026-10-13T19:00:00+05:30").getTime();
+      const diff = start - now;
+
+      if (diff <= 0) {
+        setRound1Timer({ expired: true, label: "Live Now" });
+      } else {
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / 1000 / 60) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+        const label =
+          d > 0
+            ? `${d}d ${h}h left`
+            : `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        setRound1Timer({ expired: false, label });
+      }
+    };
+    checkSchedule();
+    const interval = setInterval(checkSchedule, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Invitation acceptance details modal state
   const [acceptingInv, setAcceptingInv] = useState<TeamInvitation | null>(null);
@@ -756,8 +788,31 @@ export default function EventTeamManager({
               </p>
             </div>
 
-            {/* Direct Link to Team Showcase Card */}
+            {/* Direct Link to Team Showcase Card & Round 1 Button */}
             <div className="flex flex-wrap items-center gap-2">
+              {slug === "debug-decrypt-3.0" &&
+                (round1Timer.expired ? (
+                  <Link
+                    href="/debug-decrypt-3.0/round-1"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-gradient-to-r from-blue-600 to-cyan-500 px-3.5 py-2 text-xs font-bold text-white shadow-lg shadow-cyan-500/25 transition-all hover:scale-[1.02] hover:brightness-110"
+                  >
+                    <span>⚡ Attempt Round 1</span>
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
+                  </Link>
+                ) : (
+                  <div
+                    title="Round 1 goes live on October 13 at 7:00 PM IST"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-300"
+                  >
+                    <HugeiconsIcon
+                      icon={Time02Icon}
+                      size={14}
+                      className="text-cyan-400"
+                    />
+                    <span>Round 1 in {round1Timer.label}</span>
+                  </div>
+                ))}
+
               <Link
                 href={`/events/${slug}/team/@${encodeURIComponent(team.name)}`}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3.5 py-2 text-xs font-bold text-blue-300 transition-colors hover:bg-blue-500/20"

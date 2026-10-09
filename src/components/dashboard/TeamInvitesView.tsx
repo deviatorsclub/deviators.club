@@ -80,6 +80,37 @@ export default function TeamInvitesView({
     message: string;
   } | null>(null);
 
+  // Round 1 Contest Timer (13 Oct 2026, 7:00 PM IST)
+  const [round1Timer, setRound1Timer] = useState<{
+    expired: boolean;
+    label: string;
+  }>({ expired: false, label: "" });
+
+  useEffect(() => {
+    const checkSchedule = () => {
+      const now = Date.now();
+      const start = new Date("2026-10-13T19:00:00+05:30").getTime();
+      const diff = start - now;
+
+      if (diff <= 0) {
+        setRound1Timer({ expired: true, label: "Live Now" });
+      } else {
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / 1000 / 60) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+        const label =
+          d > 0
+            ? `${d}d ${h}h left`
+            : `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        setRound1Timer({ expired: false, label });
+      }
+    };
+    checkSchedule();
+    const interval = setInterval(checkSchedule, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchInvites = async () => {
     setLoading(true);
     setError(null);
@@ -231,13 +262,38 @@ export default function TeamInvitesView({
               </div>
             </div>
 
-            <Link
-              href={`/events/${acceptedTeams[0].eventSlug}/team/@${encodeURIComponent(acceptedTeams[0].teamName)}`}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400/30 bg-emerald-500/20 px-3 py-1.5 font-mono text-xs font-bold text-emerald-200 hover:bg-emerald-500/30"
-            >
-              <span>View Team Details</span>
-              <HugeiconsIcon icon={ArrowRight01Icon} size={13} />
-            </Link>
+            <div className="flex flex-wrap items-center gap-2">
+              {acceptedTeams[0].eventSlug === "debug-decrypt-3.0" &&
+                (round1Timer.expired ? (
+                  <Link
+                    href="/debug-decrypt-3.0/round-1"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-gradient-to-r from-blue-600 to-cyan-500 px-3.5 py-1.5 font-mono text-xs font-bold text-white shadow-lg shadow-cyan-500/25 transition-all hover:scale-[1.02] hover:brightness-110"
+                  >
+                    <span>⚡ Attempt Round 1</span>
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={13} />
+                  </Link>
+                ) : (
+                  <div
+                    title="Round 1 goes live on October 13 at 7:00 PM IST"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-1.5 font-mono text-xs font-medium text-cyan-300"
+                  >
+                    <HugeiconsIcon
+                      icon={Time02Icon}
+                      size={13}
+                      className="text-cyan-400"
+                    />
+                    <span>Round 1 in {round1Timer.label}</span>
+                  </div>
+                ))}
+
+              <Link
+                href={`/events/${acceptedTeams[0].eventSlug}/team/@${encodeURIComponent(acceptedTeams[0].teamName)}`}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400/30 bg-emerald-500/20 px-3 py-1.5 font-mono text-xs font-bold text-emerald-200 hover:bg-emerald-500/30"
+              >
+                <span>View Team Details</span>
+                <HugeiconsIcon icon={ArrowRight01Icon} size={13} />
+              </Link>
+            </div>
           </div>
         </div>
       )}

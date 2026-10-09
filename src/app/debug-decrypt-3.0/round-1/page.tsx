@@ -18,7 +18,12 @@ import {
 } from "react-icons/lu";
 import deviatorsLogoMin from "@/assets/logo/sm.svg";
 import { createClient } from "@/lib/supabase/client";
-import type { ClientQuestion } from "@/data/round1Questions";
+import {
+  ROUND_1_START_TIME,
+  ROUND_1_END_TIME,
+  ROUND_1_DURATION_MINUTES,
+  type ClientQuestion,
+} from "@/data/round1Questions";
 
 type SessionStatus =
   | "loading"
@@ -46,16 +51,86 @@ export default function DebugDecryptRound1Page() {
   const [errorMessage, setErrorMessage] = useState("");
   const [user, setUser] = useState<UserInfo | null>(null);
 
+  // Contest Schedule Countdown (13th Oct 2026, 7:00 PM to 8:00 PM IST)
+  const [scheduleState, setScheduleState] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isLive: boolean;
+    hasEnded: boolean;
+  }>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isLive: false,
+    hasEnded: false,
+  });
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = Date.now();
+      const start = new Date(ROUND_1_START_TIME).getTime();
+      const end = new Date(ROUND_1_END_TIME).getTime();
+
+      if (now > end) {
+        setScheduleState({
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          isLive: false,
+          hasEnded: true,
+        });
+        return;
+      }
+
+      if (now >= start && now <= end) {
+        setScheduleState({
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          isLive: true,
+          hasEnded: false,
+        });
+        return;
+      }
+
+      const diff = Math.max(0, start - now);
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      setScheduleState({
+        days,
+        hours,
+        minutes,
+        seconds,
+        isLive: false,
+        hasEnded: false,
+      });
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Briefing
   const [agreedToRules, setAgreedToRules] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
 
-  // Active Assessment
+  // Active Assessment (45 Minutes)
   const [questions, setQuestions] = useState<ClientQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
-  const [remainingSeconds, setRemainingSeconds] = useState(3600);
+  const [remainingSeconds, setRemainingSeconds] = useState(
+    ROUND_1_DURATION_MINUTES * 60,
+  );
   const [strikeCount, setStrikeCount] = useState(0);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">(
     "saved",
@@ -558,21 +633,22 @@ export default function DebugDecryptRound1Page() {
   }
 
   // ----------------------------------------------------
-  // C. Not President
+  // C. Restricted Candidate Access (Not Leader or President)
   // ----------------------------------------------------
   if (status === "not_president") {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-md items-center justify-center px-4">
-        <div className="glass-card w-full rounded-2xl border-red-500/20 p-6 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-400">
+        <div className="glass-card w-full rounded-2xl border-amber-500/20 p-6 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-300">
             <LuShieldAlert size={22} />
           </div>
           <h2 className="font-heading mb-2 text-lg font-bold text-white">
-            President Access Only
+            Restricted Access · Team Leaders Only
           </h2>
           <p className="mb-5 text-xs leading-relaxed text-white/60">
-            This round is strictly restricted to club presidents and designated
-            team leads. Your account does not have required permissions.
+            Round 1 is strictly restricted to registered Team Leaders of Debug
+            Decrypt 3.0 teams and Club Officials. If you are a team member,
+            please have your designated Team Leader attempt the test.
           </p>
           <Link href="/dashboard" className="btn-secondary w-full text-xs">
             Return to Dashboard
@@ -731,6 +807,89 @@ export default function DebugDecryptRound1Page() {
           </div>
         </div>
 
+        {/* Contest Schedule Live Countdown Window Banner */}
+        {!scheduleState.isLive && !scheduleState.hasEnded && (
+          <div className="glass-card mb-6 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 via-black/50 to-blue-950/30 p-6 text-center shadow-2xl">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/10 text-cyan-300">
+              <LuClock size={24} />
+            </div>
+            <span className="inline-block rounded-full border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-[11px] font-bold tracking-wider text-cyan-300 uppercase">
+              Official Assessment Schedule
+            </span>
+            <h2 className="font-heading mt-2 text-xl font-bold text-white sm:text-2xl">
+              Round 1 Opens October 13, 2026
+            </h2>
+            <p className="mx-auto mt-2 max-w-lg text-xs leading-relaxed text-white/70 sm:text-sm">
+              Please come back on{" "}
+              <strong className="text-white">
+                13th October between 7:00 PM to 8:00 PM IST
+              </strong>{" "}
+              to attempt your 45-minute assessment. The launch portal will
+              unlock automatically.
+            </p>
+
+            {/* Live Countdown Counters */}
+            <div className="mx-auto mt-6 grid max-w-sm grid-cols-4 gap-2.5 sm:gap-3">
+              <div className="rounded-xl border border-white/10 bg-black/60 p-3">
+                <div className="font-heading text-xl font-black text-white sm:text-2xl">
+                  {scheduleState.days}
+                </div>
+                <div className="text-[10px] tracking-wider text-white/40 uppercase">
+                  Days
+                </div>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/60 p-3">
+                <div className="font-heading text-xl font-black text-white sm:text-2xl">
+                  {scheduleState.hours.toString().padStart(2, "0")}
+                </div>
+                <div className="text-[10px] tracking-wider text-white/40 uppercase">
+                  Hours
+                </div>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/60 p-3">
+                <div className="font-heading text-xl font-black text-white sm:text-2xl">
+                  {scheduleState.minutes.toString().padStart(2, "0")}
+                </div>
+                <div className="text-[10px] tracking-wider text-white/40 uppercase">
+                  Mins
+                </div>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/60 p-3">
+                <div className="font-heading text-xl font-black text-cyan-300 sm:text-2xl">
+                  {scheduleState.seconds.toString().padStart(2, "0")}
+                </div>
+                <div className="text-[10px] tracking-wider text-white/40 uppercase">
+                  Secs
+                </div>
+              </div>
+            </div>
+
+            {user?.isPresident && (
+              <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3.5 py-1.5 text-xs font-semibold text-amber-300">
+                <span>
+                  President Bypass: You can start or preview the assessment at
+                  any time.
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {scheduleState.hasEnded && (
+          <div className="glass-card mb-6 rounded-2xl border border-red-500/20 bg-red-950/20 p-6 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/10 text-red-400">
+              <LuShieldAlert size={24} />
+            </div>
+            <h2 className="font-heading text-xl font-bold text-white">
+              Round 1 Testing Window Has Concluded
+            </h2>
+            <p className="mt-2 text-xs text-white/60">
+              The testing window closed at 8:00 PM IST on October 13, 2026.
+              Submissions are no longer accepted.
+            </p>
+          </div>
+        )}
+
         {/* Hero Section Card */}
         <div className="glass-card mb-6 rounded-2xl p-6 sm:p-8">
           <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -740,8 +899,8 @@ export default function DebugDecryptRound1Page() {
             <span className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-0.5 text-xs font-semibold text-white/70">
               30 MCQs
             </span>
-            <span className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-0.5 text-xs font-semibold text-white/70">
-              60 Minutes
+            <span className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-300">
+              45 Minutes
             </span>
           </div>
 
@@ -763,8 +922,8 @@ export default function DebugDecryptRound1Page() {
             </div>
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
               <div className="mb-1 text-xs text-white/40">Time Limit</div>
-              <div className="font-heading text-lg font-bold text-white">
-                60 Mins
+              <div className="font-heading text-lg font-bold text-cyan-300">
+                45 Mins
               </div>
             </div>
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
@@ -865,29 +1024,43 @@ export default function DebugDecryptRound1Page() {
                 className="text-brand focus:ring-brand mt-0.5 h-4 w-4 cursor-pointer rounded border-white/20 bg-black/40 focus:ring-offset-black sm:mt-0"
               />
               <span className="text-xs leading-relaxed text-white/70">
-                I understand the rules and agree to take the 60-minute proctored
+                I understand the rules and agree to take the 45-minute proctored
                 test in fullscreen mode.
               </span>
             </label>
 
-            <button
-              onClick={handleStartTest}
-              disabled={!agreedToRules || isStarting}
-              className={`btn-primary shrink-0 px-6 py-3 text-xs ${
-                !agreedToRules || isStarting
-                  ? "cursor-not-allowed opacity-50"
-                  : "cursor-pointer"
-              }`}
-            >
-              {isStarting ? (
-                <span>Entering Fullscreen…</span>
-              ) : (
-                <>
-                  <span>Enter Fullscreen & Start Test</span>
-                  <LuArrowRight size={14} />
-                </>
-              )}
-            </button>
+            {!scheduleState.isLive &&
+            !scheduleState.hasEnded &&
+            !user?.isPresident ? (
+              <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-xs font-semibold text-white/50">
+                <LuLock size={14} />
+                <span>Opens 13 Oct, 7:00 PM IST</span>
+              </div>
+            ) : scheduleState.hasEnded && !user?.isPresident ? (
+              <div className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-3 text-xs font-semibold text-red-400">
+                <LuLock size={14} />
+                <span>Assessment Window Closed</span>
+              </div>
+            ) : (
+              <button
+                onClick={handleStartTest}
+                disabled={!agreedToRules || isStarting}
+                className={`btn-primary shrink-0 px-6 py-3 text-xs ${
+                  !agreedToRules || isStarting
+                    ? "cursor-not-allowed opacity-50"
+                    : "cursor-pointer"
+                }`}
+              >
+                {isStarting ? (
+                  <span>Entering Fullscreen…</span>
+                ) : (
+                  <>
+                    <span>Enter Fullscreen & Start Test</span>
+                    <LuArrowRight size={14} />
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           {errorMessage && (

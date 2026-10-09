@@ -10,6 +10,7 @@ import {
   sanitizeQuestion,
   shuffleArray,
   ROUND_1_DURATION_MINUTES,
+  isRound1Active,
 } from "@/data/round1Questions";
 
 export async function POST(req: NextRequest) {
@@ -19,6 +20,31 @@ export async function POST(req: NextRequest) {
       { error: errorMessage },
       { status: errorStatus || 401 },
     );
+  }
+
+  // Enforce Contest Schedule: 13th Oct 2026, 7:00 PM to 8:00 PM IST (Presidents can bypass to test/preview)
+  const schedule = isRound1Active(user.isPresident);
+  if (!schedule.active) {
+    if (!schedule.hasStarted) {
+      return NextResponse.json(
+        {
+          error:
+            "Round 1 goes live on October 13, 2026 between 7:00 PM – 8:00 PM IST. Please return then to attempt your test.",
+          schedule,
+        },
+        { status: 403 },
+      );
+    }
+    if (schedule.hasEnded) {
+      return NextResponse.json(
+        {
+          error:
+            "Round 1 concluded at 8:00 PM IST on October 13, 2026. The testing window is closed.",
+          schedule,
+        },
+        { status: 403 },
+      );
+    }
   }
 
   try {

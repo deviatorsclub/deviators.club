@@ -28,8 +28,34 @@ export interface ClientQuestion {
   points: number;
 }
 
-export const ROUND_1_DURATION_MINUTES = 60;
+export const ROUND_1_DURATION_MINUTES = 45; // 45 minutes for assessment arena
 export const MAX_STRIKES_ALLOWED = 2; // 1st strike is a 5s grace warning, 2nd strike is instant auto-submit
+
+// Official Schedule: 13th October 2026, 7:00 PM to 8:00 PM IST (UTC+05:30)
+export const ROUND_1_START_TIME = "2026-10-13T19:00:00+05:30";
+export const ROUND_1_END_TIME = "2026-10-13T20:00:00+05:30";
+
+export function isRound1Active(isPresident = false): {
+  active: boolean;
+  hasStarted: boolean;
+  hasEnded: boolean;
+  startsAt: string;
+  endsAt: string;
+} {
+  const now = Date.now();
+  const start = new Date(ROUND_1_START_TIME).getTime();
+  const end = new Date(ROUND_1_END_TIME).getTime();
+  const hasStarted = now >= start;
+  const hasEnded = now > end;
+  const active = isPresident ? true : hasStarted && !hasEnded;
+  return {
+    active,
+    hasStarted,
+    hasEnded,
+    startsAt: ROUND_1_START_TIME,
+    endsAt: ROUND_1_END_TIME,
+  };
+}
 
 export const MASTER_QUESTIONS: MasterQuestion[] = [
   {
