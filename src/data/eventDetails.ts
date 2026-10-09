@@ -293,9 +293,10 @@ export const debugDecrypt3Data: EventDetailsData = {
     {
       name: "CodeCrafters",
       tier: "Challenge & Tooling Partner",
+      logoUrl: "/sponsors/codecrafters.png",
       offering:
         "Advanced systems challenges, developer mastery sandbox, and engineering resources.",
-      website: "https://codecrafters.io",
+      website: "https://codecrafters.io/",
     },
   ],
   closingQuote: {

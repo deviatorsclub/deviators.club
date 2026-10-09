@@ -685,29 +685,46 @@ export default function EventDashboardPage({
 
                   <div className="grid gap-5 sm:grid-cols-2">
                     {event.sponsors.map((s) => (
-                      <div
+                      <a
                         key={s.name}
-                        className="rounded-3xl border border-white/15 bg-black/40 p-6 transition-colors hover:border-blue-500/30"
+                        href={s.website}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group flex flex-col justify-between rounded-3xl border border-white/15 bg-black/40 p-6 transition-all duration-300 hover:border-blue-500/40 hover:bg-white/[0.02] hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]"
                       >
-                        <span className="font-mono text-xs font-semibold tracking-wider text-blue-300 uppercase">
-                          {s.tier}
-                        </span>
-                        <h4 className="font-heading mt-1 text-xl font-bold text-white">
-                          {s.name}
-                        </h4>
-                        <p className="mt-2 text-xs leading-relaxed text-white/70 sm:text-sm">
-                          {s.offering}
-                        </p>
-                        <a
-                          href={s.website}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 transition-colors hover:text-blue-300"
-                        >
+                        <div>
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="font-mono text-xs font-semibold tracking-wider text-blue-300 uppercase">
+                              {s.tier}
+                            </span>
+                            {s.logoUrl && (
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 p-2 transition-transform duration-300 group-hover:scale-110 group-hover:border-white/20">
+                                <Image
+                                  src={s.logoUrl}
+                                  alt={s.name}
+                                  width={32}
+                                  height={32}
+                                  className="h-full w-full object-contain"
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <h4 className="font-heading mt-2 text-xl font-bold text-white transition-colors group-hover:text-blue-300">
+                            {s.name}
+                          </h4>
+                          <p className="mt-2 text-xs leading-relaxed text-white/70 sm:text-sm">
+                            {s.offering}
+                          </p>
+                        </div>
+                        <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 transition-colors group-hover:text-blue-300">
                           <span>Visit {s.name}</span>
-                          <HugeiconsIcon icon={ArrowRight01Icon} size={13} />
-                        </a>
-                      </div>
+                          <HugeiconsIcon
+                            icon={ArrowRight01Icon}
+                            size={13}
+                            className="transition-transform group-hover:translate-x-1"
+                          />
+                        </div>
+                      </a>
                     ))}
                   </div>
                 </div>
@@ -1032,23 +1049,32 @@ export default function EventDashboardPage({
                 <span className="block font-mono text-[10px] tracking-wider text-white/40 uppercase">
                   Official Partners
                 </span>
-                <div className="mt-2 flex items-center justify-center gap-4 text-xs font-bold text-white/70">
+                <div className="mt-2.5 flex items-center justify-center gap-4 text-xs font-bold text-white/70">
                   <a
                     href="https://unstop.com"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-white"
+                    className="transition-colors hover:text-white"
                   >
                     Unstop
                   </a>
                   <span className="text-white/20">·</span>
                   <a
-                    href="https://codecrafters.io"
+                    href="https://codecrafters.io/"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-white"
+                    className="group inline-flex items-center gap-1.5 transition-colors hover:text-white"
                   >
-                    CodeCrafters
+                    <span className="flex h-4 w-4 items-center justify-center rounded bg-white/10 p-0.5 transition-transform group-hover:scale-110">
+                      <Image
+                        src="/sponsors/codecrafters.png"
+                        alt="CodeCrafters"
+                        width={14}
+                        height={14}
+                        className="h-full w-full object-contain"
+                      />
+                    </span>
+                    <span>CodeCrafters</span>
                   </a>
                 </div>
               </div>
