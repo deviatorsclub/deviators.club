@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Enforce Contest Schedule: 13th Oct 2026, 7:00 PM to 8:00 PM IST (Presidents can bypass to test/preview)
-  const schedule = isRound1Active(user.isPresident);
+  // Enforce Contest Schedule: 13th Oct 2026, 7:00 PM to 8:00 PM IST (Strictly locked until timer expires)
+  const schedule = isRound1Active(false);
   if (!schedule.active) {
     if (!schedule.hasStarted) {
       return NextResponse.json(

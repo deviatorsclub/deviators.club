@@ -764,131 +764,161 @@ export default function DebugDecryptRound1Page() {
   // E. Briefing Screen (DEVIATORS DASHBOARD THEME)
   // ----------------------------------------------------
   if (status === "briefing") {
-    return (
-      <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-16 sm:px-6">
-        {/* Top bar (Exact Deviators Dashboard format) */}
-        <div className="glass-card mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-3">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2">
-              <Image
-                src={deviatorsLogoMin.src}
-                alt="Deviators Logo"
-                width={28}
-                height={28}
-                className="h-6 w-auto brightness-125"
-              />
-              <span className="font-heading text-sm font-extrabold text-white">
-                Deviators Club
-              </span>
-            </Link>
-            <span className="text-white/20">/</span>
-            <span className="font-mono text-xs text-white/60">
-              Debug Decrypt 3.0 · Round 1
+    // Top bar component
+    const renderTopBar = () => (
+      <div className="glass-card mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-3">
+        <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src={deviatorsLogoMin.src}
+              alt="Deviators Logo"
+              width={28}
+              height={28}
+              className="h-6 w-auto brightness-125"
+            />
+            <span className="font-heading text-sm font-extrabold text-white">
+              Deviators Club
             </span>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <Link
-              href="/debug-decrypt-3.0/round-1/leaderboard"
-              className="btn-secondary px-3 py-1.5 text-xs"
-            >
-              Standings
-            </Link>
-            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-3 py-1.5 text-xs text-white/60">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-              <span>Proctor Online</span>
-            </div>
-            <Link
-              href="/dashboard"
-              className="btn-secondary px-3 py-1.5 text-xs"
-            >
-              Dashboard
-            </Link>
-          </div>
+          </Link>
+          <span className="text-white/20">/</span>
+          <span className="font-mono text-xs text-white/60">
+            Debug Decrypt 3.0 · Round 1
+          </span>
         </div>
 
-        {/* Contest Schedule Live Countdown Window Banner */}
-        {!scheduleState.isLive && !scheduleState.hasEnded && (
-          <div className="glass-card mb-6 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 via-black/50 to-blue-950/30 p-6 text-center shadow-2xl">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/10 text-cyan-300">
-              <LuClock size={24} />
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/debug-decrypt-3.0/round-1/leaderboard"
+            className="btn-secondary px-3 py-1.5 text-xs"
+          >
+            Standings
+          </Link>
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-3 py-1.5 text-xs text-white/60">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+            <span>Proctor Online</span>
+          </div>
+          <Link href="/dashboard" className="btn-secondary px-3 py-1.5 text-xs">
+            Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+
+    // 1. BEFORE START TIME: Show ONLY Countdown and Schedule Window (ZERO test components or start buttons below)
+    if (!scheduleState.isLive && !scheduleState.hasEnded) {
+      return (
+        <main className="mx-auto w-full max-w-4xl px-4 pt-6 pb-16 sm:px-6">
+          {renderTopBar()}
+
+          <div className="glass-card rounded-3xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 via-black/60 to-blue-950/30 p-8 text-center shadow-2xl sm:p-12">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/10 text-cyan-300 shadow-inner">
+              <LuClock size={28} />
             </div>
-            <span className="inline-block rounded-full border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-[11px] font-bold tracking-wider text-cyan-300 uppercase">
+
+            <span className="inline-block rounded-full border border-cyan-400/30 bg-cyan-500/15 px-3.5 py-1 text-[11px] font-bold tracking-wider text-cyan-300 uppercase">
               Official Assessment Schedule
             </span>
-            <h2 className="font-heading mt-2 text-xl font-bold text-white sm:text-2xl">
+
+            <h1 className="font-heading mt-3 text-2xl font-black text-white sm:text-4xl">
               Round 1 Opens October 13, 2026
-            </h2>
-            <p className="mx-auto mt-2 max-w-lg text-xs leading-relaxed text-white/70 sm:text-sm">
+            </h1>
+
+            <p className="mx-auto mt-3 max-w-xl text-xs leading-relaxed text-white/70 sm:text-sm">
               Please come back on{" "}
               <strong className="text-white">
                 13th October between 7:00 PM to 8:00 PM IST
               </strong>{" "}
-              to attempt your 45-minute assessment. The launch portal will
-              unlock automatically.
+              to attempt your 45-minute assessment. The test guidelines,
+              questions, and attempt interface will unlock automatically once
+              this timer reaches zero.
             </p>
 
             {/* Live Countdown Counters */}
-            <div className="mx-auto mt-6 grid max-w-sm grid-cols-4 gap-2.5 sm:gap-3">
-              <div className="rounded-xl border border-white/10 bg-black/60 p-3">
-                <div className="font-heading text-xl font-black text-white sm:text-2xl">
+            <div className="mx-auto mt-8 grid max-w-sm grid-cols-4 gap-2.5 sm:gap-3">
+              <div className="rounded-2xl border border-white/10 bg-black/60 p-3.5 sm:p-4">
+                <div className="font-heading text-xl font-black text-white sm:text-3xl">
                   {scheduleState.days}
                 </div>
-                <div className="text-[10px] tracking-wider text-white/40 uppercase">
+                <div className="mt-1 text-[10px] font-bold tracking-wider text-white/40 uppercase">
                   Days
                 </div>
               </div>
-              <div className="rounded-xl border border-white/10 bg-black/60 p-3">
-                <div className="font-heading text-xl font-black text-white sm:text-2xl">
+              <div className="rounded-2xl border border-white/10 bg-black/60 p-3.5 sm:p-4">
+                <div className="font-heading text-xl font-black text-white sm:text-3xl">
                   {scheduleState.hours.toString().padStart(2, "0")}
                 </div>
-                <div className="text-[10px] tracking-wider text-white/40 uppercase">
+                <div className="mt-1 text-[10px] font-bold tracking-wider text-white/40 uppercase">
                   Hours
                 </div>
               </div>
-              <div className="rounded-xl border border-white/10 bg-black/60 p-3">
-                <div className="font-heading text-xl font-black text-white sm:text-2xl">
+              <div className="rounded-2xl border border-white/10 bg-black/60 p-3.5 sm:p-4">
+                <div className="font-heading text-xl font-black text-white sm:text-3xl">
                   {scheduleState.minutes.toString().padStart(2, "0")}
                 </div>
-                <div className="text-[10px] tracking-wider text-white/40 uppercase">
+                <div className="mt-1 text-[10px] font-bold tracking-wider text-white/40 uppercase">
                   Mins
                 </div>
               </div>
-              <div className="rounded-xl border border-white/10 bg-black/60 p-3">
-                <div className="font-heading text-xl font-black text-cyan-300 sm:text-2xl">
+              <div className="rounded-2xl border border-white/10 bg-black/60 p-3.5 sm:p-4">
+                <div className="font-heading text-xl font-black text-cyan-300 sm:text-3xl">
                   {scheduleState.seconds.toString().padStart(2, "0")}
                 </div>
-                <div className="text-[10px] tracking-wider text-white/40 uppercase">
+                <div className="mt-1 text-[10px] font-bold tracking-wider text-white/40 uppercase">
                   Secs
                 </div>
               </div>
             </div>
 
-            {user?.isPresident && (
-              <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3.5 py-1.5 text-xs font-semibold text-amber-300">
-                <span>
-                  President Bypass: You can start or preview the assessment at
-                  any time.
-                </span>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-white/60 select-none">
+                <LuLock size={14} className="text-cyan-400" />
+                <span>Test Portal Locked Until 13 Oct, 7:00 PM IST</span>
               </div>
-            )}
+              <Link
+                href="/dashboard"
+                className="btn-secondary px-4 py-2 text-xs"
+              >
+                Return to Dashboard
+              </Link>
+            </div>
           </div>
-        )}
+        </main>
+      );
+    }
 
-        {scheduleState.hasEnded && (
-          <div className="glass-card mb-6 rounded-2xl border border-red-500/20 bg-red-950/20 p-6 text-center">
+    // 2. AFTER END TIME: Window closed
+    if (scheduleState.hasEnded) {
+      return (
+        <main className="mx-auto w-full max-w-4xl px-4 pt-6 pb-16 sm:px-6">
+          {renderTopBar()}
+          <div className="glass-card rounded-2xl border border-red-500/20 bg-red-950/20 p-8 text-center sm:p-12">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/10 text-red-400">
               <LuShieldAlert size={24} />
             </div>
-            <h2 className="font-heading text-xl font-bold text-white">
+            <h2 className="font-heading text-xl font-bold text-white sm:text-2xl">
               Round 1 Testing Window Has Concluded
             </h2>
-            <p className="mt-2 text-xs text-white/60">
+            <p className="mt-2 text-xs text-white/60 sm:text-sm">
               The testing window closed at 8:00 PM IST on October 13, 2026.
               Submissions are no longer accepted.
             </p>
+            <div className="mt-6">
+              <Link
+                href="/debug-decrypt-3.0/round-1/leaderboard"
+                className="btn-primary px-5 py-2.5 text-xs"
+              >
+                View Official Standings
+              </Link>
+            </div>
           </div>
-        )}
+        </main>
+      );
+    }
+
+    // 3. ONLY WHEN TIMER EXPIRES (13 Oct, 7:00 PM to 8:00 PM IST): Render the actual assessment launch interface!
+    return (
+      <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-16 sm:px-6">
+        {renderTopBar()}
 
         {/* Hero Section Card */}
         <div className="glass-card mb-6 rounded-2xl p-6 sm:p-8">
