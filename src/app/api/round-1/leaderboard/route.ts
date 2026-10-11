@@ -38,19 +38,34 @@ export async function GET(req: NextRequest) {
         .select("tag")
         .eq("profile_id", currentUser.id);
 
-      const hasPresidentRole = (userRoles || []).some(
-        (r: any) => r.tag === "president" || r.tag === "club-official",
-      );
+      const hasPresidentRole = (userRoles || []).some((r: any) => {
+        const tag = (r.tag || "").toLowerCase().trim();
+        return tag === "president" || tag === "club-president";
+      });
 
-      const usernameLower = (userProfile?.username || "").toLowerCase();
-      const emailLower = (currentUser.email || "").toLowerCase();
+      const usernameLower = (userProfile?.username || "").toLowerCase().trim();
+      const emailLower = (currentUser.email || "").toLowerCase().trim();
       isPresident =
         hasPresidentRole ||
         usernameLower === "akshitbhandaricodes" ||
+        usernameLower === "akshit" ||
         usernameLower === "aarushi" ||
-        usernameLower === "deviatorsclub" ||
+        emailLower === "akshitbhandaricodes@gmail.com" ||
         emailLower.includes("akshitbhandaricodes") ||
         emailLower.includes("arushik");
+    }
+
+    // STRICT: Only Club Presidents can view the leaderboard!
+    if (!isPresident) {
+      return NextResponse.json(
+        {
+          error:
+            "Forbidden: Round 1 leaderboard and standings are restricted exclusively to Club Presidents.",
+          isPresident: false,
+          leaderboard: [],
+        },
+        { status: 403 },
+      );
     }
 
     // 2. Fetch all Round 1 sessions

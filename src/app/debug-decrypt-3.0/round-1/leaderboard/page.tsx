@@ -12,6 +12,7 @@ import {
   LuDownload,
   LuUser,
   LuSearch,
+  LuLock,
 } from "react-icons/lu";
 import deviatorsLogoMin from "@/assets/logo/sm.svg";
 import { createClient } from "@/lib/supabase/client";
@@ -117,6 +118,38 @@ export default function Round1LeaderboardPage() {
     link.click();
     document.body.removeChild(link);
   };
+
+  if (loading) {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-md items-center justify-center px-4">
+        <p className="text-xs font-semibold text-white/50">
+          Loading standings…
+        </p>
+      </main>
+    );
+  }
+
+  if (!isPresident) {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-md items-center justify-center px-4">
+        <div className="glass-card w-full rounded-2xl border-amber-500/20 p-6 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-300">
+            <LuLock size={22} />
+          </div>
+          <h2 className="font-heading mb-2 text-lg font-bold text-white">
+            Restricted Access · President Only
+          </h2>
+          <p className="mb-5 text-xs leading-relaxed text-white/60">
+            Round 1 scores and standings are strictly confidential and reserved
+            exclusively for the Club President.
+          </p>
+          <Link href="/dashboard" className="btn-secondary w-full text-xs">
+            Return to Dashboard
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-16 sm:px-6">

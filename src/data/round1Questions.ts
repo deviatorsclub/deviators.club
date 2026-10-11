@@ -28,7 +28,8 @@ export interface ClientQuestion {
   points: number;
 }
 
-export const ROUND_1_DURATION_MINUTES = 45; // 45 minutes for assessment arena
+export const ROUND_1_DURATION_MINUTES = 30; // 30 minutes overall (1 minute strictly per question)
+export const QUESTION_DURATION_SECONDS = 60; // 1 minute per question (auto-advance with 10s audio ticking)
 export const MAX_STRIKES_ALLOWED = 2; // 1st strike is a 5s grace warning, 2nd strike is instant auto-submit
 
 // Official Schedule: 13th October 2026, 7:00 PM to 8:00 PM IST (UTC+05:30)

@@ -123,7 +123,7 @@ export default function DebugDecryptRound1Page() {
   const [agreedToRules, setAgreedToRules] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
 
-  // Active Assessment (45 Minutes)
+  // Active Assessment (30 Minutes, 1 Minute Per Question)
   const [questions, setQuestions] = useState<ClientQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
@@ -131,6 +131,7 @@ export default function DebugDecryptRound1Page() {
   const [remainingSeconds, setRemainingSeconds] = useState(
     ROUND_1_DURATION_MINUTES * 60,
   );
+  const [questionTimeLeft, setQuestionTimeLeft] = useState(60);
   const [strikeCount, setStrikeCount] = useState(0);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">(
     "saved",
@@ -233,9 +234,19 @@ export default function DebugDecryptRound1Page() {
 
       setQuestions(data.questions || []);
       setResponses(data.savedResponses || {});
-      setFlagged(new Set(data.flaggedQuestions || []));
-      setRemainingSeconds(data.remainingSeconds || 3600);
+      setRemainingSeconds(
+        data.remainingSeconds || ROUND_1_DURATION_MINUTES * 60,
+      );
       setStrikeCount(data.session.strike_count || 0);
+
+      // Resume from the earliest unanswered question (forward-only progression)
+      const answeredKeys = Object.keys(data.savedResponses || {});
+      const resumeIndex = Math.min(
+        (data.questions || []).length - 1,
+        Math.max(0, answeredKeys.length),
+      );
+      setCurrentIndex(resumeIndex);
+      setQuestionTimeLeft(60);
       setStatus("in_progress");
     } catch (err) {
       console.error(err);
@@ -270,6 +281,63 @@ export default function DebugDecryptRound1Page() {
       if (testTimerRef.current) clearInterval(testTimerRef.current);
     };
   }, [status]);
+
+  // Audio Ticker: Synthetic mechanical clock tick via Web Audio API in last 10s
+  const playClockTick = useCallback((sec: number) => {
+    try {
+      const AudioCtx =
+        window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      const isFinal = sec <= 3;
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(isFinal ? 1046.5 : 820, ctx.currentTime);
+
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } catch {}
+  }, []);
+
+  // Per-Question 1-Minute Timer (Strict auto-advance at 0s)
+  const handleQuestionTimeUp = useCallback(() => {
+    setCurrentIndex((prev) => {
+      if (prev < questions.length - 1) {
+        setQuestionTimeLeft(60);
+        return prev + 1;
+      } else {
+        handleSubmitTest();
+        return prev;
+      }
+    });
+  }, [questions.length]);
+
+  useEffect(() => {
+    if (status !== "in_progress") return;
+
+    const timer = setInterval(() => {
+      setQuestionTimeLeft((prev) => {
+        const next = prev - 1;
+        if (next <= 10 && next > 0) {
+          playClockTick(next);
+        }
+        if (next <= 0) {
+          handleQuestionTimeUp();
+          return 60;
+        }
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [status, handleQuestionTimeUp, playClockTick]);
 
   const handleTimeExpired = async () => {
     try {
@@ -400,10 +468,31 @@ export default function DebugDecryptRound1Page() {
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "F12" || e.key === "F11" || e.key === "F5") {
+      // 1. Screenshot / PrintScreen interception
+      if (e.key === "PrintScreen" || e.code === "PrintScreen") {
         e.preventDefault();
+        try {
+          if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText("");
+          }
+        } catch {}
+        triggerViolation("Prohibited screen capture attempt (PrintScreen)");
         return false;
       }
+
+      // 2. DevTools and Refresh Function Keys
+      if (
+        e.key === "F12" ||
+        e.key === "F11" ||
+        e.key === "F5" ||
+        e.key === "F1"
+      ) {
+        e.preventDefault();
+        triggerViolation(`Prohibited hotkey pressed (${e.key})`);
+        return false;
+      }
+
+      // 3. Prohibited shortcuts (Copy, Cut, Paste, Print, Save, View Source)
       if (
         (e.ctrlKey || e.metaKey) &&
         ["c", "v", "x", "a", "u", "w", "r", "p", "s"].includes(
@@ -411,14 +500,18 @@ export default function DebugDecryptRound1Page() {
         )
       ) {
         e.preventDefault();
+        triggerViolation(`Prohibited shortcut (Ctrl+${e.key.toUpperCase()})`);
         return false;
       }
+
+      // 4. DevTools / Capture combinations
       if (
         (e.ctrlKey || e.metaKey) &&
         e.shiftKey &&
-        ["i", "j", "c"].includes(e.key.toLowerCase())
+        ["i", "j", "c", "s", "p"].includes(e.key.toLowerCase())
       ) {
         e.preventDefault();
+        triggerViolation("DevTools / Screen capture shortcut detected");
         return false;
       }
     };
@@ -440,6 +533,21 @@ export default function DebugDecryptRound1Page() {
       return e.returnValue;
     };
 
+    // Screen sharing restriction via getDisplayMedia hook
+    let origGetDisplayMedia: any = null;
+    if (
+      typeof navigator !== "undefined" &&
+      navigator.mediaDevices?.getDisplayMedia
+    ) {
+      origGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
+      navigator.mediaDevices.getDisplayMedia = async () => {
+        triggerViolation("Prohibited screen sharing attempt detected");
+        throw new Error(
+          "Screen sharing is strictly prohibited during Round 1.",
+        );
+      };
+    }
+
     document.addEventListener("fullscreenchange", onFullscreenChange);
     document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("blur", onWindowBlur);
@@ -460,6 +568,9 @@ export default function DebugDecryptRound1Page() {
       window.removeEventListener("paste", onCopyPaste);
       window.removeEventListener("cut", onCopyPaste);
       window.removeEventListener("beforeunload", onBeforeUnload);
+      if (origGetDisplayMedia && navigator.mediaDevices) {
+        navigator.mediaDevices.getDisplayMedia = origGetDisplayMedia;
+      }
     };
   }, [status, triggerViolation]);
 
@@ -1016,7 +1127,7 @@ export default function DebugDecryptRound1Page() {
               30 MCQs
             </span>
             <span className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-300">
-              45 Minutes
+              30 Minutes (1 Min / Question)
             </span>
           </div>
 
@@ -1024,9 +1135,9 @@ export default function DebugDecryptRound1Page() {
             Online Shortlisting Round
           </h1>
           <p className="mt-2 max-w-2xl text-xs leading-relaxed text-white/60 sm:text-sm">
-            Welcome, {user?.displayName || user?.username}. You are about to
-            attempt the 30-question DSA shortlisting round. Questions and
-            options are shuffled for each participant.
+            Welcome, {user?.displayName || user?.username}. You have exactly 1
+            minute per question for 30 questions. Questions automatically lock
+            and advance when time runs out. Navigation is strictly one-way.
           </p>
 
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -1037,62 +1148,80 @@ export default function DebugDecryptRound1Page() {
               </div>
             </div>
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
-              <div className="mb-1 text-xs text-white/40">Time Limit</div>
+              <div className="mb-1 text-xs text-white/40">Per Question</div>
               <div className="font-heading text-lg font-bold text-cyan-300">
-                45 Mins
+                1 Minute
               </div>
             </div>
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
-              <div className="mb-1 text-xs text-white/40">Marking Scheme</div>
+              <div className="mb-1 text-xs text-white/40">Total Time</div>
               <div className="font-heading text-lg font-bold text-white">
-                +1 / 0
+                30 Mins
               </div>
             </div>
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
-              <div className="mb-1 text-xs text-white/40">Negative Marking</div>
-              <div className="font-heading text-lg font-bold text-white">
-                None
+              <div className="mb-1 text-xs text-white/40">Navigation</div>
+              <div className="font-heading text-lg font-bold text-amber-300">
+                Forward Only
               </div>
             </div>
           </div>
         </div>
 
-        {/* Proctoring Protocol Section (Clean Lucide Icons, Zero Emojis) */}
-        <div className="glass-card mb-6 rounded-2xl border border-white/10 p-6 sm:p-7">
-          <div className="mb-4 flex items-center gap-2">
-            <LuShieldAlert size={18} className="text-white/80" />
-            <h2 className="font-heading text-sm font-bold text-white sm:text-base">
-              Anti-Cheating & Proctoring Rules
-            </h2>
+        {/* Threatening Anti-Cheating & Proctoring Protocol Section */}
+        <div className="glass-card mb-6 rounded-2xl border border-red-500/30 bg-gradient-to-b from-red-950/20 via-black/40 to-black/60 p-6 shadow-xl sm:p-7">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <LuShieldAlert size={20} className="text-red-400" />
+              <h2 className="font-heading text-sm font-bold text-white sm:text-base">
+                Zero-Tolerance Anti-Cheating & Proctoring Rules
+              </h2>
+            </div>
+            <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-red-400 uppercase">
+              Strictly Enforced
+            </span>
+          </div>
+
+          <div className="mb-4 rounded-xl border border-red-500/30 bg-red-950/30 p-4 text-xs leading-relaxed text-red-200/90">
+            <strong className="font-heading mb-1 block text-sm text-red-300">
+              🚨 CHEATING IS STRICTLY PROHIBITED
+            </strong>
+            Every candidate receives an independently randomized question and
+            option order. Responses and focus patterns are tracked in real time.
+            Any cross-collaboration, screen sharing, dual displays, external
+            communication, or screenshots will lead to immediate
+            disqualification and permanent blacklisting from all Deviators Club
+            events.
           </div>
 
           <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
-            <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-3.5">
-              <div className="shrink-0 rounded-lg border border-white/10 bg-white/[0.04] p-2 text-white/80">
-                <LuMaximize2 size={16} />
+            <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/40 p-3.5">
+              <div className="shrink-0 rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-2 text-cyan-300">
+                <LuClock size={16} />
               </div>
               <div>
                 <span className="mb-0.5 block font-bold text-white">
-                  Fullscreen Enforced
+                  60s Per Question (Auto-Advance)
                 </span>
                 <span className="block leading-relaxed text-white/55">
-                  The test must remain in fullscreen mode throughout the
-                  duration.
+                  Each question has a strict 1-minute limit. Ticking audio
+                  triggers during the final 10 seconds. When time expires, it
+                  auto-advances.
                 </span>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-3.5">
-              <div className="shrink-0 rounded-lg border border-white/10 bg-white/[0.04] p-2 text-white/80">
-                <LuTriangleAlert size={16} />
+            <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/40 p-3.5">
+              <div className="shrink-0 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-amber-300">
+                <LuLock size={16} />
               </div>
               <div>
                 <span className="mb-0.5 block font-bold text-white">
-                  Zero Tab Switching
+                  One-Way Flow · No Going Back
                 </span>
                 <span className="block leading-relaxed text-white/55">
-                  Switching tabs, minimizing, or clicking outside triggers an
-                  instant violation.
+                  You CANNOT return to previous questions. Once you move to the
+                  next question or time runs out, your answer is locked.
                 </span>
               </div>
             </div>
@@ -1112,17 +1241,17 @@ export default function DebugDecryptRound1Page() {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-3.5">
-              <div className="shrink-0 rounded-lg border border-red-500/20 bg-red-500/10 p-2 text-red-400">
+            <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/40 p-3.5">
+              <div className="shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400">
                 <LuShieldAlert size={16} />
               </div>
               <div>
-                <span className="mb-0.5 block font-bold text-red-400">
-                  Strike 2: Direct Auto-Submit
+                <span className="mb-0.5 block font-bold text-white">
+                  Screen Sharing & Screenshots Blocked
                 </span>
                 <span className="block leading-relaxed text-white/55">
-                  A second violation or grace expiry instantly terminates and
-                  submits the test.
+                  PrintScreen, screenshot utilities, and screen sharing are
+                  actively blocked and trigger instant proctor violations.
                 </span>
               </div>
             </div>
@@ -1140,8 +1269,8 @@ export default function DebugDecryptRound1Page() {
                 className="text-brand focus:ring-brand mt-0.5 h-4 w-4 cursor-pointer rounded border-white/20 bg-black/40 focus:ring-offset-black sm:mt-0"
               />
               <span className="text-xs leading-relaxed text-white/70">
-                I understand the rules and agree to take the 45-minute proctored
-                test in fullscreen mode.
+                I understand the rules and agree to take the 30-minute proctored
+                test (1 minute per question, forward-only) in fullscreen mode.
               </span>
             </label>
 
@@ -1240,24 +1369,42 @@ export default function DebugDecryptRound1Page() {
           </div>
         </div>
 
-        {/* Center / Right: Live Timer & Submission */}
-        <div className="flex items-center gap-3">
+        {/* Center / Right: Question Countdown + Live Timer + Submission */}
+        <div className="flex items-center gap-2.5">
+          {/* Question 60s countdown */}
           <div
-            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1 font-mono text-xs font-bold sm:text-sm ${
-              remainingSeconds < 300
-                ? "border-red-500/40 bg-red-500/10 text-red-400"
-                : remainingSeconds < 900
-                  ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
-                  : "border-white/10 bg-black/40 text-white"
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1 font-mono text-xs font-bold transition-all sm:text-sm ${
+              questionTimeLeft <= 10
+                ? "animate-pulse border-red-500 bg-red-500/20 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                : "border-cyan-500/30 bg-cyan-500/10 text-cyan-300"
             }`}
           >
-            <LuClock size={14} />
+            <LuClock
+              size={14}
+              className={
+                questionTimeLeft <= 10
+                  ? "animate-spin text-red-400"
+                  : "text-cyan-400"
+              }
+            />
+            <span>Q Time: {questionTimeLeft}s</span>
+          </div>
+
+          {/* Total assessment timer */}
+          <div
+            className={`hidden items-center gap-1.5 rounded-xl border px-3 py-1 font-mono text-xs font-bold sm:flex ${
+              remainingSeconds < 300
+                ? "border-red-500/40 bg-red-500/10 text-red-400"
+                : "border-white/10 bg-black/40 text-white/80"
+            }`}
+          >
+            <span className="text-[10px] text-white/40 uppercase">Total:</span>
             <span>{formatTimer(remainingSeconds)}</span>
           </div>
 
           <button
             onClick={() => setShowSubmitModal(true)}
-            className="btn-primary cursor-pointer rounded-xl px-3.5 py-1.5 text-xs"
+            className="btn-primary cursor-pointer rounded-xl px-3.5 py-1.5 text-xs font-bold"
           >
             Submit Test
           </button>
@@ -1281,21 +1428,27 @@ export default function DebugDecryptRound1Page() {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => toggleFlag(currentQuestion.id)}
-                  className={`flex cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all ${
-                    flagged.has(currentQuestion.id)
-                      ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
-                      : "border-white/10 bg-white/[0.03] text-white/50 hover:text-white"
+                <div
+                  className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-mono text-xs font-bold transition-all ${
+                    questionTimeLeft <= 10
+                      ? "animate-pulse border-red-500/50 bg-red-500/20 text-red-300"
+                      : "border-white/10 bg-white/[0.04] text-white/70"
                   }`}
                 >
-                  <LuFlag size={12} />
+                  <LuClock
+                    size={13}
+                    className={
+                      questionTimeLeft <= 10
+                        ? "animate-spin text-red-400"
+                        : "text-white/50"
+                    }
+                  />
                   <span>
-                    {flagged.has(currentQuestion.id)
-                      ? "Marked"
-                      : "Review Later"}
+                    {questionTimeLeft <= 10
+                      ? `⚠️ ${questionTimeLeft}s remaining`
+                      : `${questionTimeLeft}s remaining`}
                   </span>
-                </button>
+                </div>
               </div>
 
               {/* Title & Description */}
@@ -1356,62 +1509,55 @@ export default function DebugDecryptRound1Page() {
             </div>
           )}
 
-          {/* Bottom Bar */}
+          {/* Bottom Bar (Forward Only Navigation) */}
           <div className="mx-auto flex w-full max-w-3xl items-center justify-between border-t border-white/10 pt-4">
-            <button
-              onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
-              disabled={currentIndex === 0}
-              className={`btn-secondary flex items-center gap-1.5 px-3 py-2 text-xs ${
-                currentIndex === 0
-                  ? "cursor-not-allowed opacity-30"
-                  : "cursor-pointer"
-              }`}
-            >
-              <LuArrowLeft size={13} />
-              <span>Previous</span>
-            </button>
+            <div className="flex items-center gap-1.5 text-xs text-amber-300/80">
+              <LuLock size={13} />
+              <span>One-way flow · Cannot return to past questions</span>
+            </div>
 
             <button
               onClick={() => {
+                if (!currentQuestion) return;
                 const nextResponses = { ...responses };
                 delete nextResponses[currentQuestion.id];
                 setResponses(nextResponses);
-                saveAnswer(
-                  currentQuestion.id,
-                  null,
-                  flagged.has(currentQuestion.id),
-                );
+                saveAnswer(currentQuestion.id, null);
               }}
               className="cursor-pointer px-2 py-1 text-xs text-white/40 transition-colors hover:text-white/80"
             >
               Clear Choice
             </button>
 
-            <button
-              onClick={() =>
-                setCurrentIndex((prev) =>
-                  Math.min(totalQuestions - 1, prev + 1),
-                )
-              }
-              disabled={currentIndex === totalQuestions - 1}
-              className={`btn-primary flex items-center gap-1.5 px-4 py-2 text-xs ${
-                currentIndex === totalQuestions - 1
-                  ? "cursor-not-allowed opacity-30"
-                  : "cursor-pointer"
-              }`}
-            >
-              <span>Next</span>
-              <LuArrowRight size={13} />
-            </button>
+            {currentIndex < totalQuestions - 1 ? (
+              <button
+                onClick={() => {
+                  setCurrentIndex((prev) => prev + 1);
+                  setQuestionTimeLeft(60);
+                }}
+                className="btn-primary flex cursor-pointer items-center gap-1.5 px-4 py-2 text-xs font-bold"
+              >
+                <span>Next Question</span>
+                <LuArrowRight size={13} />
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowSubmitModal(true)}
+                className="btn-primary flex cursor-pointer items-center gap-1.5 border-emerald-500/50 bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-500"
+              >
+                <span>Submit Final Assessment</span>
+                <LuCheck size={13} />
+              </button>
+            )}
           </div>
         </main>
 
-        {/* Right Palette (Clean 30-Question Matrix) */}
+        {/* Right Palette (Strict Non-Clickable Forward Progress Indicator) */}
         <aside className="hidden w-72 shrink-0 flex-col justify-between overflow-y-auto border-l border-white/10 bg-black/40 p-5 backdrop-blur-xl lg:flex">
           <div>
             <div className="mb-3 flex items-center justify-between">
               <span className="font-heading text-xs font-bold tracking-wider text-white uppercase">
-                Questions
+                Question Progress
               </span>
               <span className="font-mono text-xs text-white/40">
                 {answeredCount}/{totalQuestions}
@@ -1422,46 +1568,57 @@ export default function DebugDecryptRound1Page() {
             <div className="mb-4 grid grid-cols-2 gap-2 text-[11px] text-white/60">
               <div className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded border border-emerald-500/40 bg-emerald-500/20" />
-                <span>Answered ({answeredCount})</span>
+                <span>Completed ({currentIndex})</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded border border-white/15 bg-black/60" />
-                <span>Pending ({totalQuestions - answeredCount})</span>
+                <span className="h-2.5 w-2.5 rounded border border-cyan-400 bg-white" />
+                <span>Current (Q{currentIndex + 1})</span>
               </div>
-              <div className="col-span-2 flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded border border-amber-500/40 bg-amber-500/20" />
-                <span>Review Later ({flagged.size})</span>
+              <div className="col-span-2 flex items-center gap-1.5 text-white/40">
+                <span className="h-2.5 w-2.5 rounded border border-white/5 bg-black/60" />
+                <span>
+                  Locked Ahead ({Math.max(0, totalQuestions - currentIndex - 1)}
+                  )
+                </span>
               </div>
             </div>
 
-            {/* 30 Question Grid */}
+            {/* 30 Question Grid (Locked Progression) */}
             <div className="grid grid-cols-5 gap-2">
               {questions.map((q, idx) => {
                 const isCurrent = idx === currentIndex;
-                const isAnswered =
+                const isPast = idx < currentIndex;
+                const hasAnswer =
                   responses[q.id] !== undefined &&
                   responses[q.id] !== "" &&
                   (!Array.isArray(responses[q.id]) ||
                     responses[q.id].length > 0);
-                const isFlg = flagged.has(q.id);
 
                 return (
-                  <button
+                  <div
                     key={q.id}
-                    onClick={() => setCurrentIndex(idx)}
-                    className={`relative h-8 cursor-pointer rounded-lg font-mono text-xs font-bold transition-all ${
+                    title={
                       isCurrent
-                        ? "border border-white bg-white text-black"
-                        : isAnswered
-                          ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
-                          : "border border-white/10 bg-white/[0.03] text-white/50 hover:bg-white/[0.06] hover:text-white"
+                        ? "Active Question"
+                        : isPast
+                          ? `Question ${idx + 1} (Locked)`
+                          : `Question ${idx + 1} (Upcoming)`
+                    }
+                    className={`relative flex h-8 items-center justify-center rounded-lg font-mono text-xs font-bold transition-all select-none ${
+                      isCurrent
+                        ? "border-2 border-cyan-400 bg-white text-black shadow-md shadow-cyan-400/20"
+                        : isPast
+                          ? hasAnswer
+                            ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
+                            : "border border-white/10 bg-white/[0.04] text-white/40"
+                          : "border border-white/5 bg-black/40 text-white/20"
                     }`}
                   >
                     {idx + 1}
-                    {isFlg && (
-                      <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-amber-400" />
+                    {isPast && (
+                      <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-white/40" />
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
