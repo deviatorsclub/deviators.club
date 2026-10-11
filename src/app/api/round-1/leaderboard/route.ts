@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
 
     const { data: profiles } = await adminDb
       .from("profiles")
-      .select("id, username, display_name, avatar_url")
+      .select("id, username, display_name, avatar_url, branch, year")
       .in("id", userIds);
 
     const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
@@ -89,21 +89,74 @@ export async function GET(req: NextRequest) {
 
     const teamMap = new Map((teams || []).map((t) => [t.leader_id, t]));
 
-    // 4. Sort standings
-    // If president, sort by score descending, then submitted_at ascending.
-    // If not president, sort by submission time ascending.
-    const sortedSessions = [...sessions].sort((a, b) => {
-      if (isPresident) {
-        if (b.score !== a.score) return b.score - a.score;
+    // Fetch event registrations to get accurate branch / year fallback
+    const { data: event } = await adminDb
+      .from("events")
+      .select("id")
+      .or("slug.eq.debug-decrypt-3.0,slug.eq.craftcon-2k26")
+      .maybeSingle();
+
+    let regMap = new Map<string, any>();
+    if (event?.id && userIds.length > 0) {
+      const { data: registrations } = await adminDb
+        .from("registrations")
+        .select("profile_id, year, expectations")
+        .eq("event_id", event.id)
+        .in("profile_id", userIds);
+      if (registrations) {
+        regMap = new Map(registrations.map((r) => [r.profile_id, r]));
       }
+    }
+
+    // 4. Sort standings
+    // Primary: Score descending. Tie-breaker: Faster time taken to complete wins.
+    const sortedSessions = [...sessions].sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+
+      const timeTakenA =
+        a.started_at && a.submitted_at
+          ? new Date(a.submitted_at).getTime() -
+            new Date(a.started_at).getTime()
+          : 999999999;
+      const timeTakenB =
+        b.started_at && b.submitted_at
+          ? new Date(b.submitted_at).getTime() -
+            new Date(b.started_at).getTime()
+          : 999999999;
+      if (timeTakenA !== timeTakenB) return timeTakenA - timeTakenB;
+
       const timeA = a.submitted_at ? new Date(a.submitted_at).getTime() : 0;
       const timeB = b.submitted_at ? new Date(b.submitted_at).getTime() : 0;
-      return timeB - timeA;
+      return timeA - timeB;
     });
 
     const leaderboard = sortedSessions.map((s, index) => {
       const prof = profileMap.get(s.user_id);
       const team = teamMap.get(s.user_id);
+      const reg = regMap.get(s.user_id);
+
+      let leaderBranch = prof?.branch || "";
+      let leaderYear = reg?.year || prof?.year || "";
+      if (reg?.expectations) {
+        const bMatch = reg.expectations.match(/Branch:\s*([^|]+)/i);
+        if (bMatch) leaderBranch = bMatch[1].trim();
+      }
+      if (!leaderBranch) leaderBranch = "CSE";
+      if (!leaderYear) leaderYear = "3rd Year";
+
+      let timeTakenSeconds: number | null = null;
+      let timeTakenFormatted = "--";
+      if (s.started_at && s.submitted_at) {
+        const startMs = new Date(s.started_at).getTime();
+        const endMs = new Date(s.submitted_at).getTime();
+        const diffSecs = Math.max(0, Math.floor((endMs - startMs) / 1000));
+        timeTakenSeconds = diffSecs;
+        const mins = Math.floor(diffSecs / 60);
+        const secs = diffSecs % 60;
+        timeTakenFormatted = `${mins}m ${secs.toString().padStart(2, "0")}s`;
+      } else if (s.started_at && s.status === "in_progress") {
+        timeTakenFormatted = "In Progress";
+      }
 
       return {
         rank: index + 1,
@@ -112,9 +165,14 @@ export async function GET(req: NextRequest) {
         username: prof?.username || "deviator",
         avatarUrl: prof?.avatar_url || "",
         teamName: team?.name || "Independent Leader",
+        branch: leaderBranch,
+        year: leaderYear,
         role: "Team Leader",
         status: s.status, // "submitted" | "terminated" | "in_progress"
+        startedAt: s.started_at,
         submittedAt: s.submitted_at,
+        timeTakenSeconds,
+        timeTakenFormatted,
         // CRITICAL RULE: Scores are only exposed to Presidents!
         score: isPresident ? s.score : null,
         maxScore: isPresident ? s.max_score : null,

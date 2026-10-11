@@ -13,6 +13,8 @@ import {
   LuUser,
   LuSearch,
   LuLock,
+  LuUsers,
+  LuTimer,
 } from "react-icons/lu";
 import deviatorsLogoMin from "@/assets/logo/sm.svg";
 import { createClient } from "@/lib/supabase/client";
@@ -24,9 +26,14 @@ interface LeaderboardEntry {
   username: string;
   avatarUrl: string;
   teamName: string;
+  branch: string;
+  year: string;
   role: string;
   status: string;
+  startedAt: string | null;
   submittedAt: string | null;
+  timeTakenSeconds: number | null;
+  timeTakenFormatted: string;
   score: number | null; // Null for candidates, populated only for Presidents
   maxScore: number | null;
   strikes: number | null;
@@ -75,7 +82,9 @@ export default function Round1LeaderboardPage() {
     return (
       e.name.toLowerCase().includes(q) ||
       e.username.toLowerCase().includes(q) ||
-      e.teamName.toLowerCase().includes(q)
+      e.teamName.toLowerCase().includes(q) ||
+      (e.branch || "").toLowerCase().includes(q) ||
+      (e.year || "").toLowerCase().includes(q)
     );
   });
 
@@ -83,33 +92,35 @@ export default function Round1LeaderboardPage() {
     if (entries.length === 0) return;
     const headers = [
       "Rank",
+      "Team Name",
       "Leader Name",
       "Username",
-      "Team Name",
-      "Role",
+      "Branch",
+      "Year",
+      "Time Taken",
+      "Score",
+      "Max Score",
       "Status",
       "Submitted At",
-      ...(isPresident ? ["Score", "Max Score"] : []),
     ];
 
-    const rows = filtered.map((e) => {
-      const base = [
-        e.rank,
-        `"${e.name.replace(/"/g, '""')}"`,
-        `"@${e.username}"`,
-        `"${e.teamName.replace(/"/g, '""')}"`,
-        `"${e.role}"`,
-        `"${e.status}"`,
-        `"${e.submittedAt ? new Date(e.submittedAt).toLocaleString("en-IN") : "N/A"}"`,
-      ];
-      if (isPresident) {
-        base.push(e.score ?? "N/A", e.maxScore ?? 30);
-      }
-      return base.join(",");
-    });
+    const rows = filtered.map((e) => [
+      e.rank,
+      `"${e.teamName.replace(/"/g, '""')}"`,
+      `"${e.name.replace(/"/g, '""')}"`,
+      `"@${e.username}"`,
+      `"${e.branch}"`,
+      `"${e.year}"`,
+      `"${e.timeTakenFormatted}"`,
+      e.score ?? "N/A",
+      e.maxScore ?? 30,
+      `"${e.status}"`,
+      `"${e.submittedAt ? new Date(e.submittedAt).toLocaleString("en-IN") : "N/A"}"`,
+    ]);
 
     const csvContent =
-      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -267,9 +278,19 @@ export default function Round1LeaderboardPage() {
               key={entry.profileId}
               className="glass-card flex flex-wrap items-center justify-between gap-4 rounded-xl p-4 transition-all hover:border-white/20 sm:p-5"
             >
-              {/* Left: Rank & Candidate Info */}
-              <div className="flex min-w-[240px] items-center gap-3.5">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/40 font-mono text-xs font-bold text-white/60">
+              {/* Left: Rank, Avatar & Leader / Team Details */}
+              <div className="flex min-w-[280px] flex-1 items-center gap-3.5">
+                <div
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border font-mono text-xs font-bold ${
+                    entry.rank === 1
+                      ? "border-amber-400/50 bg-amber-400/15 text-amber-300 shadow-sm shadow-amber-400/20"
+                      : entry.rank === 2
+                        ? "border-slate-300/50 bg-slate-300/15 text-slate-200"
+                        : entry.rank === 3
+                          ? "border-amber-700/50 bg-amber-700/15 text-amber-500"
+                          : "border-white/10 bg-black/40 text-white/60"
+                  }`}
+                >
                   #{entry.rank}
                 </div>
 
@@ -277,50 +298,74 @@ export default function Round1LeaderboardPage() {
                   <Image
                     src={entry.avatarUrl}
                     alt={entry.name}
-                    width={36}
-                    height={36}
-                    className="h-9 w-9 shrink-0 rounded-full border border-white/10 object-cover"
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 shrink-0 rounded-full border border-white/10 object-cover"
                   />
                 ) : (
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/60">
-                    <LuUser size={16} />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/60">
+                    <LuUser size={18} />
                   </div>
                 )}
 
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-heading text-sm font-bold text-white">
-                      {entry.name}
-                    </span>
-                    <span className="font-mono text-xs text-white/40">
-                      @{entry.username}
-                    </span>
-                  </div>
-                  <div className="mt-0.5 flex items-center gap-2 text-xs text-white/50">
-                    <span className="font-semibold text-white/70">
+                <div className="space-y-1">
+                  {/* Team Name Heading */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-heading text-sm font-extrabold tracking-wide text-white">
                       {entry.teamName}
                     </span>
-                    <span>·</span>
-                    <span className="py-0.2 rounded border border-white/10 bg-white/[0.04] px-1.5 text-[10px] text-white/60">
-                      {entry.role}
+                    <span className="inline-flex items-center gap-1 rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-300">
+                      <LuUsers size={11} />
+                      Team
+                    </span>
+                  </div>
+
+                  {/* Leader Info & Branch / Year */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-white/60">
+                    <span className="font-semibold text-white/90">
+                      {entry.name}
+                    </span>
+                    <span className="font-mono text-[11px] text-white/40">
+                      @{entry.username}
+                    </span>
+                    <span className="text-white/20">·</span>
+                    <span className="rounded border border-purple-500/30 bg-purple-500/10 px-1.5 py-0.5 text-[10px] font-bold text-purple-300">
+                      {entry.branch}
+                    </span>
+                    <span className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-white/60">
+                      {entry.year}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Right: Submission Status & Score */}
-              <div className="ml-auto flex items-center gap-3">
+              {/* Right: Time to Solve, Score & Status Badge */}
+              <div className="flex flex-wrap items-center gap-3 sm:gap-5">
+                {/* Time to Solve Whole Test */}
+                <div className="rounded-xl border border-white/10 bg-black/30 px-3.5 py-2 text-right">
+                  <div className="flex items-center justify-end gap-1 text-[10px] font-semibold tracking-wider text-white/40 uppercase">
+                    <LuTimer size={11} className="text-amber-400" />
+                    <span>Time Taken</span>
+                  </div>
+                  <div className="font-mono text-sm font-bold text-white/90">
+                    {entry.timeTakenFormatted}
+                  </div>
+                </div>
+
                 {/* Score (Presidents Only) */}
                 {isPresident && entry.score !== null && (
-                  <div className="text-right">
-                    <span className="font-mono text-xs font-bold text-emerald-400">
+                  <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2 text-right">
+                    <div className="text-[10px] font-semibold tracking-wider text-emerald-400/80 uppercase">
+                      Score
+                    </div>
+                    <div className="font-mono text-sm font-extrabold text-emerald-300">
                       {entry.score} / {entry.maxScore ?? 30} pts
-                    </span>
+                    </div>
                   </div>
                 )}
 
                 {/* Status Badge */}
-                <div className="text-right">
+                <div className="min-w-[105px] text-right">
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${
                       entry.status === "submitted"
