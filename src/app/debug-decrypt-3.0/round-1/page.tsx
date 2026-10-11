@@ -22,6 +22,7 @@ import {
   ROUND_1_START_TIME,
   ROUND_1_END_TIME,
   ROUND_1_DURATION_MINUTES,
+  QUESTION_DURATION_SECONDS,
   type ClientQuestion,
 } from "@/data/round1Questions";
 
@@ -123,7 +124,7 @@ export default function DebugDecryptRound1Page() {
   const [agreedToRules, setAgreedToRules] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
 
-  // Active Assessment (30 Minutes, 1 Minute Per Question)
+  // Active Assessment (15 Minutes, 30 Seconds Per Question)
   const [questions, setQuestions] = useState<ClientQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
@@ -131,7 +132,9 @@ export default function DebugDecryptRound1Page() {
   const [remainingSeconds, setRemainingSeconds] = useState(
     ROUND_1_DURATION_MINUTES * 60,
   );
-  const [questionTimeLeft, setQuestionTimeLeft] = useState(60);
+  const [questionTimeLeft, setQuestionTimeLeft] = useState(
+    QUESTION_DURATION_SECONDS,
+  );
   const [strikeCount, setStrikeCount] = useState(0);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">(
     "saved",
@@ -246,7 +249,7 @@ export default function DebugDecryptRound1Page() {
         Math.max(0, answeredKeys.length),
       );
       setCurrentIndex(resumeIndex);
-      setQuestionTimeLeft(60);
+      setQuestionTimeLeft(QUESTION_DURATION_SECONDS);
       setStatus("in_progress");
     } catch (err) {
       console.error(err);
@@ -306,11 +309,11 @@ export default function DebugDecryptRound1Page() {
     } catch {}
   }, []);
 
-  // Per-Question 1-Minute Timer (Strict auto-advance at 0s)
+  // Per-Question 30-Second Timer (Strict auto-advance at 0s)
   const handleQuestionTimeUp = useCallback(() => {
     setCurrentIndex((prev) => {
       if (prev < questions.length - 1) {
-        setQuestionTimeLeft(60);
+        setQuestionTimeLeft(QUESTION_DURATION_SECONDS);
         return prev + 1;
       } else {
         handleSubmitTest();
@@ -330,7 +333,7 @@ export default function DebugDecryptRound1Page() {
         }
         if (next <= 0) {
           handleQuestionTimeUp();
-          return 60;
+          return QUESTION_DURATION_SECONDS;
         }
         return next;
       });
@@ -602,11 +605,14 @@ export default function DebugDecryptRound1Page() {
       }
 
       setQuestions(data.questions || []);
-      setRemainingSeconds(data.remainingSeconds || 3600);
+      setRemainingSeconds(
+        data.remainingSeconds || ROUND_1_DURATION_MINUTES * 60,
+      );
       setStrikeCount(0);
       setCurrentIndex(0);
       setResponses({});
       setFlagged(new Set());
+      setQuestionTimeLeft(QUESTION_DURATION_SECONDS);
       setStatus("in_progress");
     } catch (err: any) {
       console.error(err);
@@ -712,6 +718,7 @@ export default function DebugDecryptRound1Page() {
         setFlagged(new Set());
         setStrikeCount(0);
         setRemainingSeconds(ROUND_1_DURATION_MINUTES * 60);
+        setQuestionTimeLeft(QUESTION_DURATION_SECONDS);
         setFinalResult(null);
         setStatus("briefing");
         await fetchSession();
@@ -1127,7 +1134,7 @@ export default function DebugDecryptRound1Page() {
               30 MCQs
             </span>
             <span className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-300">
-              30 Minutes (1 Min / Question)
+              15 Minutes (30s / Question)
             </span>
           </div>
 
@@ -1135,9 +1142,10 @@ export default function DebugDecryptRound1Page() {
             Online Shortlisting Round
           </h1>
           <p className="mt-2 max-w-2xl text-xs leading-relaxed text-white/60 sm:text-sm">
-            Welcome, {user?.displayName || user?.username}. You have exactly 1
-            minute per question for 30 questions. Questions automatically lock
-            and advance when time runs out. Navigation is strictly one-way.
+            Welcome, {user?.displayName || user?.username}. You have exactly 30
+            seconds per question for 30 questions (total 15 minutes). Questions
+            automatically lock and advance when time runs out. Navigation is
+            strictly one-way.
           </p>
 
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -1150,13 +1158,13 @@ export default function DebugDecryptRound1Page() {
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
               <div className="mb-1 text-xs text-white/40">Per Question</div>
               <div className="font-heading text-lg font-bold text-cyan-300">
-                1 Minute
+                30 Seconds
               </div>
             </div>
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
               <div className="mb-1 text-xs text-white/40">Total Time</div>
               <div className="font-heading text-lg font-bold text-white">
-                30 Mins
+                15 Mins
               </div>
             </div>
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
@@ -1201,10 +1209,10 @@ export default function DebugDecryptRound1Page() {
               </div>
               <div>
                 <span className="mb-0.5 block font-bold text-white">
-                  60s Per Question (Auto-Advance)
+                  30s Per Question (Auto-Advance)
                 </span>
                 <span className="block leading-relaxed text-white/55">
-                  Each question has a strict 1-minute limit. Ticking audio
+                  Each question has a strict 30-second limit. Ticking audio
                   triggers during the final 10 seconds. When time expires, it
                   auto-advances.
                 </span>
@@ -1269,8 +1277,8 @@ export default function DebugDecryptRound1Page() {
                 className="text-brand focus:ring-brand mt-0.5 h-4 w-4 cursor-pointer rounded border-white/20 bg-black/40 focus:ring-offset-black sm:mt-0"
               />
               <span className="text-xs leading-relaxed text-white/70">
-                I understand the rules and agree to take the 30-minute proctored
-                test (1 minute per question, forward-only) in fullscreen mode.
+                I understand the rules and agree to take the 15-minute proctored
+                test (30 seconds per question, forward-only) in fullscreen mode.
               </span>
             </label>
 
@@ -1533,7 +1541,7 @@ export default function DebugDecryptRound1Page() {
               <button
                 onClick={() => {
                   setCurrentIndex((prev) => prev + 1);
-                  setQuestionTimeLeft(60);
+                  setQuestionTimeLeft(QUESTION_DURATION_SECONDS);
                 }}
                 className="btn-primary flex cursor-pointer items-center gap-1.5 px-4 py-2 text-xs font-bold"
               >
