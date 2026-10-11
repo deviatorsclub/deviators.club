@@ -286,10 +286,69 @@ export async function fetchRegistrationsDb(
     .select("event_id,phone,college_id,year,created_at,team_id,teams(name)")
     .eq("profile_id", userId)
     .eq("status", "confirmed");
-  if (!data) return [];
+
+  const registeredEventIds = new Set((data || []).map((r) => r.event_id));
+
+  // Check if user has an accepted squad membership for an event not yet in registrations
+  const { data: memberships } = await supabase
+    .from("team_members")
+    .select("team_id, status, teams(id, name, event_id)")
+    .eq("profile_id", userId)
+    .eq("status", "accepted");
+
+  const extraTeamRegs: DemoRegistration[] = [];
+  for (const m of memberships || []) {
+    const t = m.teams as any;
+    if (t?.event_id && !registeredEventIds.has(t.event_id)) {
+      registeredEventIds.add(t.event_id);
+
+      // Auto-repair missing registration row in database
+      supabase
+        .from("registrations")
+        .upsert(
+          {
+            event_id: t.event_id,
+            profile_id: userId,
+            team_id: t.id,
+            status: "confirmed",
+          },
+          { onConflict: "event_id,profile_id" },
+        )
+        .then(
+          () => {},
+          () => {},
+        );
+
+      // Fetch squad mates
+      const { data: tm } = await supabase
+        .from("team_members")
+        .select("profiles(username)")
+        .eq("team_id", t.id)
+        .neq("profile_id", userId)
+        .eq("status", "accepted");
+
+      const mates = (tm ?? [])
+        .map(
+          (x) =>
+            (x.profiles as unknown as { username: string } | null)
+              ?.username ?? "",
+        )
+        .filter(Boolean);
+
+      extraTeamRegs.push({
+        eventId: t.event_id,
+        teamName: t.name,
+        teamMembers: mates,
+        phone: "",
+        collegeId: "",
+        year: "",
+        registeredAt: new Date().toISOString(),
+      });
+    }
+  }
 
   const regs: DemoRegistration[] = await Promise.all(
-    data.map(async (r) => {
+    (data || []).map(async (r) => {
       let teamName: string | null = null;
       let mates: string[] = [];
       const teamId = r.team_id as string | null;
@@ -321,7 +380,8 @@ export async function fetchRegistrationsDb(
       };
     }),
   );
-  return regs;
+
+  return [...regs, ...extraTeamRegs];
 }
 
 export async function createRegistrationDb(args: {
@@ -419,6 +479,36 @@ export async function createRegistrationDb(args: {
 
 export async function withdrawRegistrationDb(eventId: string, userId: string) {
   const supabase = createClient();
+
+  try {
+    // Find if user is part of a team for this event
+    const { data: memberships } = await supabase
+      .from("team_members")
+      .select("team_id, teams(id, leader_id, event_id)")
+      .eq("profile_id", userId);
+
+    for (const m of memberships || []) {
+      const t = m.teams as any;
+      if (t && t.event_id === eventId) {
+        if (t.leader_id === userId) {
+          // Leader withdrawing disbands the entire squad cleanly
+          await supabase.from("registrations").delete().eq("team_id", t.id);
+          await supabase.from("team_members").delete().eq("team_id", t.id);
+          await supabase.from("teams").delete().eq("id", t.id);
+        } else {
+          // Teammate withdrawing removes themselves from team
+          await supabase
+            .from("team_members")
+            .delete()
+            .eq("team_id", t.id)
+            .eq("profile_id", userId);
+        }
+      }
+    }
+  } catch (e) {
+    console.error("[withdrawRegistrationDb team cleanup error]", e);
+  }
+
   await supabase
     .from("registrations")
     .delete()
