@@ -77,7 +77,7 @@ export default function EventDashboardPage({
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedStory, setCopiedStory] = useState(false);
 
-  // Live countdown timers: Registration Cutoff (12 Oct 2026, 11:59 PM) & Event Kickoff (15 Oct 2026, 8:00 AM)
+  // Live countdown timers: Registration Cutoff (13 Oct 2026, 12:00 AM Midnight) & Event Kickoff (15 Oct 2026, 8:00 AM)
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -94,7 +94,7 @@ export default function EventDashboardPage({
   });
 
   useEffect(() => {
-    const regTarget = new Date("2026-10-12T00:00:00+05:30").getTime();
+    const regTarget = new Date("2026-10-13T00:00:00+05:30").getTime();
     const eventTarget = new Date("2026-10-15T08:00:00+05:30").getTime();
 
     const updateCountdowns = () => {
@@ -844,7 +844,7 @@ export default function EventDashboardPage({
                     Registration Cutoff
                   </span>
                   <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-amber-300">
-                    3 Days Before Event
+                    2 Days Before Event
                   </span>
                 </div>
 
@@ -884,7 +884,7 @@ export default function EventDashboardPage({
                 </div>
 
                 <p className="mt-2 font-mono text-[11px] text-white/50">
-                  Strict Cutoff: 12 Oct 2026 · 12:00 AM (Midnight)
+                  Strict Cutoff: 13 Oct 2026 · 12:00 AM (Midnight)
                 </p>
               </div>
 
