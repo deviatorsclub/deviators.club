@@ -63,18 +63,26 @@ export async function verifyRound1Auth(req: NextRequest): Promise<{
       .select("tag")
       .eq("profile_id", user.id);
 
-    const hasPresidentRole = (userRoles || []).some(
-      (r: any) => r.tag === "president" || r.tag === "club-official",
-    );
+    const hasPresidentRole = (userRoles || []).some((r: any) => {
+      const tag = (r.tag || "").toLowerCase();
+      return (
+        tag.includes("president") ||
+        tag.includes("official") ||
+        tag.includes("admin")
+      );
+    });
 
     const usernameLower = (userProfile?.username || "").toLowerCase();
     const emailLower = (user.email || "").toLowerCase();
     const isPresidentIdentity =
       usernameLower === "akshitbhandaricodes" ||
+      usernameLower === "akshit" ||
       usernameLower === "aarushi" ||
       usernameLower === "deviatorsclub" ||
       emailLower.includes("akshitbhandaricodes") ||
-      emailLower.includes("arushik");
+      emailLower.includes("akshit") ||
+      emailLower.includes("arushik") ||
+      emailLower.includes("deviators");
 
     const isPresident = hasPresidentRole || isPresidentIdentity;
 

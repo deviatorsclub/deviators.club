@@ -580,6 +580,41 @@ export default function DebugDecryptRound1Page() {
     }
   };
 
+  // 8. President Reset Demo Assessment
+  const [isResetting, setIsResetting] = useState(false);
+  const handleResetDemoSession = async () => {
+    if (
+      !confirm(
+        "Reset your President test session? This lets you start fresh from Question 1 to demonstrate to teachers and officials.",
+      )
+    )
+      return;
+    setIsResetting(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/round-1/reset", {
+        method: "POST",
+        headers,
+      });
+      if (res.ok) {
+        setResponses({});
+        setFlagged(new Set());
+        setStrikeCount(0);
+        setRemainingSeconds(ROUND_1_DURATION_MINUTES * 60);
+        setFinalResult(null);
+        setStatus("briefing");
+        await fetchSession();
+      } else {
+        const d = await res.json();
+        alert(d.error || "Failed to reset session.");
+      }
+    } catch {
+      alert("Network error resetting session.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   const formatTimer = (secs: number) => {
     const h = Math.floor(secs / 3600);
     const m = Math.floor((secs % 3600) / 60);
@@ -744,7 +779,21 @@ export default function DebugDecryptRound1Page() {
             )}
           </div>
 
-          <div className="flex justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-3">
+            {user?.isPresident && (
+              <button
+                type="button"
+                onClick={handleResetDemoSession}
+                disabled={isResetting}
+                className="btn-primary flex items-center gap-2 border-amber-500/40 bg-amber-500/20 text-xs font-bold text-amber-300 hover:bg-amber-500/30"
+              >
+                <span>
+                  {isResetting
+                    ? "Resetting…"
+                    : "🔄 Reset & Retake Demo (President View)"}
+                </span>
+              </button>
+            )}
             <Link
               href="/debug-decrypt-3.0/round-1/leaderboard"
               className="btn-primary text-xs"
@@ -804,8 +853,12 @@ export default function DebugDecryptRound1Page() {
       </div>
     );
 
-    // 1. BEFORE START TIME: Show ONLY Countdown and Schedule Window (ZERO test components or start buttons below)
-    if (!scheduleState.isLive && !scheduleState.hasEnded) {
+    // 1. BEFORE START TIME (For non-presidents): Show ONLY Countdown and Schedule Window
+    if (
+      !user?.isPresident &&
+      !scheduleState.isLive &&
+      !scheduleState.hasEnded
+    ) {
       return (
         <main className="mx-auto w-full max-w-4xl px-4 pt-6 pb-16 sm:px-6">
           {renderTopBar()}
@@ -886,8 +939,8 @@ export default function DebugDecryptRound1Page() {
       );
     }
 
-    // 2. AFTER END TIME: Window closed
-    if (scheduleState.hasEnded) {
+    // 2. AFTER END TIME (For non-presidents): Window closed
+    if (!user?.isPresident && scheduleState.hasEnded) {
       return (
         <main className="mx-auto w-full max-w-4xl px-4 pt-6 pb-16 sm:px-6">
           {renderTopBar()}
@@ -915,10 +968,43 @@ export default function DebugDecryptRound1Page() {
       );
     }
 
-    // 3. ONLY WHEN TIMER EXPIRES (13 Oct, 7:00 PM to 8:00 PM IST): Render the actual assessment launch interface!
+    // 3. ASSESSMENT BRIEFING & LAUNCH INTERFACE
     return (
       <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-16 sm:px-6">
         {renderTopBar()}
+
+        {/* President Preview & Demonstration Banner */}
+        {user?.isPresident && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/20 text-amber-300">
+                <LuUser size={20} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-heading text-sm font-bold text-white">
+                    President Preview & Demonstration Sandbox
+                  </span>
+                  <span className="rounded-full border border-amber-500/30 bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-300 uppercase">
+                    Admin Access
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-white/60">
+                  You can attempt the test, verify all 30 questions, showcase
+                  proctoring rules to teachers, or reset at any time.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleResetDemoSession}
+              disabled={isResetting}
+              className="btn-secondary border-amber-500/30 text-xs text-amber-300 hover:bg-amber-500/10"
+            >
+              {isResetting ? "Resetting…" : "Reset Demo Session"}
+            </button>
+          </div>
+        )}
 
         {/* Hero Section Card */}
         <div className="glass-card mb-6 rounded-2xl p-6 sm:p-8">

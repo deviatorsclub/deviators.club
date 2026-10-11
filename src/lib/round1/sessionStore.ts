@@ -287,3 +287,48 @@ export async function getQuizResponses(sessionId: string): Promise<{
 
   return { savedResponses, flaggedQuestions };
 }
+
+/**
+ * Deletes a quiz session and associated responses (used for President test resets).
+ */
+export async function deleteQuizSession(
+  userId: string,
+  roundSlug: string = "round-1",
+): Promise<boolean> {
+  const adminDb = getAdminClient();
+
+  try {
+    const existing = await getQuizSession(userId, roundSlug);
+    if (existing) {
+      await adminDb
+        .from("quiz_responses")
+        .delete()
+        .eq("session_id", existing.id);
+      await adminDb.from("quiz_sessions").delete().eq("id", existing.id);
+    }
+  } catch (err: any) {
+    console.warn("[deleteQuizSession db caught]", err?.message);
+  }
+
+  // Clear from local file store
+  const sessions = readJsonFile<QuizSessionData>(SESSIONS_FILE);
+  const key = `${userId}:${roundSlug}`;
+  const existingLocal = sessions[key];
+  if (existingLocal) {
+    delete sessions[key];
+    writeJsonFile(SESSIONS_FILE, sessions);
+
+    const responses = readJsonFile<QuizResponseData>(RESPONSES_FILE);
+    let changed = false;
+    Object.keys(responses).forEach((k) => {
+      if (responses[k].session_id === existingLocal.id) {
+        delete responses[k];
+        changed = true;
+      }
+    });
+    if (changed) {
+      writeJsonFile(RESPONSES_FILE, responses);
+    }
+  }
+  return true;
+}

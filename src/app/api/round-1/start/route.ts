@@ -3,6 +3,7 @@ import { verifyPresidentAuth } from "@/lib/round1/auth";
 import {
   getQuizSession,
   createQuizSession,
+  deleteQuizSession,
   QuizSessionData,
 } from "@/lib/round1/sessionStore";
 import {
@@ -22,8 +23,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Enforce Contest Schedule: 13th Oct 2026, 7:00 PM to 8:00 PM IST (Strictly locked until timer expires)
-  const schedule = isRound1Active(false);
+  const body = await req.json().catch(() => ({}));
+  const resetRequested = Boolean(body?.reset);
+
+  // Enforce Contest Schedule: 13th Oct 2026, 7:00 PM to 8:00 PM IST (Presidents can bypass anytime for testing/demo)
+  const schedule = isRound1Active(user.isPresident);
   if (!schedule.active) {
     if (!schedule.hasStarted) {
       return NextResponse.json(
@@ -52,7 +56,13 @@ export async function POST(req: NextRequest) {
     const existingSession = await getQuizSession(user.id, "round-1");
 
     if (existingSession) {
-      if (existingSession.status !== "in_progress") {
+      if (
+        user.isPresident &&
+        (resetRequested || existingSession.status !== "in_progress")
+      ) {
+        // President can reset or start fresh anytime for testing & demo purposes
+        await deleteQuizSession(user.id, "round-1");
+      } else if (existingSession.status !== "in_progress") {
         return NextResponse.json(
           {
             error: "Test has already been completed or terminated.",
@@ -60,30 +70,31 @@ export async function POST(req: NextRequest) {
           },
           { status: 400 },
         );
+      } else {
+        // If already in progress, resume session
+        const questionMap = new Map(
+          MASTER_QUESTIONS.map((q) => [q.id, sanitizeQuestion(q)]),
+        );
+        const orderedQuestions = (existingSession.shuffled_order || [])
+          .map((id) => questionMap.get(id))
+          .filter(Boolean);
+
+        const now = new Date();
+        const expiresAt = new Date(existingSession.expires_at);
+        const remainingSeconds = Math.max(
+          0,
+          Math.floor((expiresAt.getTime() - now.getTime()) / 1000),
+        );
+
+        return NextResponse.json({
+          message: "Active session resumed.",
+          session: existingSession,
+          questions: orderedQuestions.length
+            ? orderedQuestions
+            : MASTER_QUESTIONS.map(sanitizeQuestion),
+          remainingSeconds,
+        });
       }
-      // If already in progress, resume session
-      const questionMap = new Map(
-        MASTER_QUESTIONS.map((q) => [q.id, sanitizeQuestion(q)]),
-      );
-      const orderedQuestions = (existingSession.shuffled_order || [])
-        .map((id) => questionMap.get(id))
-        .filter(Boolean);
-
-      const now = new Date();
-      const expiresAt = new Date(existingSession.expires_at);
-      const remainingSeconds = Math.max(
-        0,
-        Math.floor((expiresAt.getTime() - now.getTime()) / 1000),
-      );
-
-      return NextResponse.json({
-        message: "Active session resumed.",
-        session: existingSession,
-        questions: orderedQuestions.length
-          ? orderedQuestions
-          : MASTER_QUESTIONS.map(sanitizeQuestion),
-        remainingSeconds,
-      });
     }
 
     // 2. Generate randomized shuffled question order
