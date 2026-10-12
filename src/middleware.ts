@@ -4,8 +4,14 @@ import { updateSession } from "@/lib/supabase/middleware";
 const GUARDED = ["/dashboard", "/onboarding"];
 
 export async function middleware(request: NextRequest) {
-  const { response, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
+
+  // Invitations are 100% public — anyone in the world can view with the link, no account or auth needed
+  if (pathname.includes("/invitation")) {
+    return NextResponse.next();
+  }
+
+  const { response, user } = await updateSession(request);
 
   const isGuarded = GUARDED.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
