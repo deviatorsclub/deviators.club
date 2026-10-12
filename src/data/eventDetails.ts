@@ -79,7 +79,7 @@ export const debugDecrypt3Data: EventDetailsData = {
   startsAt: "2026-10-15T08:00:00+05:30",
   endsAt: "2026-10-15T19:00:00+05:30",
   timeRange: "8:00 AM – 7:00 PM",
-  regClosesAt: "2026-10-13T00:00:00+05:30",
+  regClosesAt: "2026-10-13T15:00:00+05:30",
   minTeamSize: 2,
   maxTeamSize: 3,
   fee: "Free",
@@ -131,7 +131,7 @@ export const debugDecrypt3Data: EventDetailsData = {
       id: "ann-1",
       title: "Online Shortlisting Round on 13th Oct (7:00–7:45 PM)",
       content:
-        "The online qualification round takes place on 13th October from 7:00 PM to 7:45 PM online. Make sure your team registration is complete before the cutoff at 12:00 AM (Midnight) on 13th October.",
+        "The online qualification round takes place on 13th October from 7:00 PM to 7:45 PM online. Make sure your team registration is complete before the cutoff at 3:00 PM on 13th October.",
       postedAt: "Oct 08, 2026",
       author: "Deviators Organizing Committee",
       tag: "Important",
@@ -158,8 +158,8 @@ export const debugDecrypt3Data: EventDetailsData = {
   timeline: [
     {
       stage: "Registration Deadline (Strict Cutoff)",
-      time: "13 Oct 2026 · 12:00 AM (Midnight)",
-      desc: "Registrations strictly close at 12:00 AM on 13th October. Squad rosters cannot be modified afterwards.",
+      time: "13 Oct 2026 · 3:00 PM",
+      desc: "Registrations strictly close at 3:00 PM on 13th October. Squad rosters cannot be modified afterwards.",
       active: true,
     },
     {
