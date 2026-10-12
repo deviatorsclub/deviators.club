@@ -327,7 +327,7 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
     designation: "Training & Placement Officer (TPO)",
     institution: "Dronacharya College of Engineering",
     vipPassCode: "VIP-DD3-TPO-01",
-    avatarUrl: null,
+    avatarUrl: "/Akanksha.png",
     initials: "AK",
     personalMessage:
       "Your relentless dedication to connecting student talent with industry opportunities inspires us all. We would be deeply honored to have you grace Debug Decrypt 3.0 as our Honored Guest to witness the algorithmic skill and passion of our participants.",
@@ -348,7 +348,7 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
     designation: "Training & Placement Officer (TPO)",
     institution: "Dronacharya College of Engineering",
     vipPassCode: "VIP-DD3-TPO-01",
-    avatarUrl: null,
+    avatarUrl: "/Akanksha.png",
     initials: "AK",
     personalMessage:
       "Your relentless dedication to connecting student talent with industry opportunities inspires us all. We would be deeply honored to have you grace Debug Decrypt 3.0 as our Honored Guest to witness the algorithmic skill and passion of our participants.",
