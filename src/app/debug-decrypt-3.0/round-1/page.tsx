@@ -52,7 +52,7 @@ export default function DebugDecryptRound1Page() {
   const [errorMessage, setErrorMessage] = useState("");
   const [user, setUser] = useState<UserInfo | null>(null);
 
-  // Contest Schedule Countdown (13th Oct 2026, 7:00 PM to 8:00 PM IST)
+  // Contest Schedule Countdown (13th Oct 2026, 7:00 PM to 7:45 PM IST)
   const [scheduleState, setScheduleState] = useState<{
     days: number;
     hours: number;
@@ -124,7 +124,7 @@ export default function DebugDecryptRound1Page() {
   const [agreedToRules, setAgreedToRules] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
 
-  // Active Assessment (15 Minutes, 30 Seconds Per Question)
+  // Active Assessment (10 Minutes, 20 Seconds Per Question)
   const [questions, setQuestions] = useState<ClientQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
@@ -997,9 +997,9 @@ export default function DebugDecryptRound1Page() {
             <p className="mx-auto mt-3 max-w-xl text-xs leading-relaxed text-white/70 sm:text-sm">
               Please come back on{" "}
               <strong className="text-white">
-                13th October between 7:00 PM to 8:00 PM IST
+                13th October between 7:00 PM to 7:45 PM IST
               </strong>{" "}
-              to attempt your 45-minute assessment. The test guidelines,
+              to attempt your 10-minute assessment. The test guidelines,
               questions, and attempt interface will unlock automatically once
               this timer reaches zero.
             </p>
@@ -1070,7 +1070,7 @@ export default function DebugDecryptRound1Page() {
               Round 1 Testing Window Has Concluded
             </h2>
             <p className="mt-2 text-xs text-white/60 sm:text-sm">
-              The testing window closed at 8:00 PM IST on October 13, 2026.
+              The testing window closed at 7:45 PM IST on October 13, 2026.
               Submissions are no longer accepted.
             </p>
             <div className="mt-6">
@@ -1134,7 +1134,7 @@ export default function DebugDecryptRound1Page() {
               30 MCQs
             </span>
             <span className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-300">
-              15 Minutes (30s / Question)
+              10 Minutes (20s / Question)
             </span>
           </div>
 
@@ -1142,8 +1142,8 @@ export default function DebugDecryptRound1Page() {
             Online Shortlisting Round
           </h1>
           <p className="mt-2 max-w-2xl text-xs leading-relaxed text-white/60 sm:text-sm">
-            Welcome, {user?.displayName || user?.username}. You have exactly 30
-            seconds per question for 30 questions (total 15 minutes). Questions
+            Welcome, {user?.displayName || user?.username}. You have exactly 20
+            seconds per question for 30 questions (total 10 minutes). Questions
             automatically lock and advance when time runs out. Navigation is
             strictly one-way.
           </p>
@@ -1158,13 +1158,13 @@ export default function DebugDecryptRound1Page() {
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
               <div className="mb-1 text-xs text-white/40">Per Question</div>
               <div className="font-heading text-lg font-bold text-cyan-300">
-                30 Seconds
+                20 Seconds
               </div>
             </div>
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
               <div className="mb-1 text-xs text-white/40">Total Time</div>
               <div className="font-heading text-lg font-bold text-white">
-                15 Mins
+                10 Mins
               </div>
             </div>
             <div className="rounded-xl border border-white/10 bg-black/30 p-3.5">
@@ -1209,10 +1209,10 @@ export default function DebugDecryptRound1Page() {
               </div>
               <div>
                 <span className="mb-0.5 block font-bold text-white">
-                  30s Per Question (Auto-Advance)
+                  20s Per Question (Auto-Advance)
                 </span>
                 <span className="block leading-relaxed text-white/55">
-                  Each question has a strict 30-second limit. Ticking audio
+                  Each question has a strict 20-second limit. Ticking audio
                   triggers during the final 10 seconds. When time expires, it
                   auto-advances.
                 </span>
@@ -1277,8 +1277,8 @@ export default function DebugDecryptRound1Page() {
                 className="text-brand focus:ring-brand mt-0.5 h-4 w-4 cursor-pointer rounded border-white/20 bg-black/40 focus:ring-offset-black sm:mt-0"
               />
               <span className="text-xs leading-relaxed text-white/70">
-                I understand the rules and agree to take the 15-minute proctored
-                test (30 seconds per question, forward-only) in fullscreen mode.
+                I understand the rules and agree to take the 10-minute proctored
+                test (20 seconds per question, forward-only) in fullscreen mode.
               </span>
             </label>
 

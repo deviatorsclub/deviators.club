@@ -95,10 +95,10 @@ export const debugDecrypt3Data: EventDetailsData = {
   stages: [
     {
       title: "Online Shortlisting Round — MCQ",
-      stageType: "Online Qualification Round · 13 Oct (7:00 PM – 8:00 PM)",
-      desc: "The competition kicks off with an online MCQ-based qualification round on 13th October from 7:00 PM to 8:00 PM. The questions cover fundamental Data Structures, Logical Reasoning, and Programming concepts, giving freshers and experienced coders an equal opportunity to qualify.",
+      stageType: "Online Qualification Round · 13 Oct (7:00 PM – 7:45 PM)",
+      desc: "The competition kicks off with an online MCQ-based qualification round on 13th October from 7:00 PM to 7:45 PM. The questions cover fundamental Data Structures, Logical Reasoning, and Programming concepts, giving freshers and experienced coders an equal opportunity to qualify.",
       objective:
-        "1-hour online qualification sprint (7:00 PM – 8:00 PM) to test programming fundamentals and shortlist teams for the on-campus finale.",
+        "Online qualification sprint (7:00 PM – 7:45 PM) to test programming fundamentals and shortlist teams for the on-campus finale.",
     },
     {
       title: "Algorithmic Challenge",
@@ -116,7 +116,7 @@ export const debugDecrypt3Data: EventDetailsData = {
     },
   ],
   highlights: [
-    "1-Hour Online Shortlisting Round on 13 Oct (7:00 PM – 8:00 PM)",
+    "Online Shortlisting Round on 13 Oct (7:00 PM – 7:45 PM)",
     "Grand On-Campus Finale on 15 Oct at DCE Gurugram",
     "Open to students from all academic years",
     "Team-based competition with 2–3 members",
@@ -128,9 +128,9 @@ export const debugDecrypt3Data: EventDetailsData = {
   announcements: [
     {
       id: "ann-1",
-      title: "Online Shortlisting Round on 13th Oct (7–8 PM)",
+      title: "Online Shortlisting Round on 13th Oct (7:00–7:45 PM)",
       content:
-        "The online qualification round takes place on 13th October from 7:00 PM to 8:00 PM online. Make sure your team registration is complete before the cutoff at 12:00 AM (Midnight) on 13th October.",
+        "The online qualification round takes place on 13th October from 7:00 PM to 7:45 PM online. Make sure your team registration is complete before the cutoff at 12:00 AM (Midnight) on 13th October.",
       postedAt: "Oct 08, 2026",
       author: "Deviators Organizing Committee",
       tag: "Important",
@@ -163,8 +163,8 @@ export const debugDecrypt3Data: EventDetailsData = {
     },
     {
       stage: "Online Shortlisting Round — MCQ",
-      time: "13 Oct 2026 · 7:00 PM – 8:00 PM (Online)",
-      desc: "1-hour online qualification round testing fundamental Data Structures and Programming concepts. Conducted online from 7:00 PM to 8:00 PM.",
+      time: "13 Oct 2026 · 7:00 PM – 7:45 PM (Online)",
+      desc: "Online qualification round testing fundamental Data Structures and Programming concepts. Conducted online from 7:00 PM to 7:45 PM.",
       active: true,
     },
     {

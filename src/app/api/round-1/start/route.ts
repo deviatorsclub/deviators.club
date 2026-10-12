@@ -26,14 +26,14 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const resetRequested = Boolean(body?.reset);
 
-  // Enforce Contest Schedule: 13th Oct 2026, 7:00 PM to 8:00 PM IST (Presidents can bypass anytime for testing/demo)
+  // Enforce Contest Schedule: 13th Oct 2026, 7:00 PM to 7:45 PM IST (Presidents can bypass anytime for testing/demo)
   const schedule = isRound1Active(user.isPresident);
   if (!schedule.active) {
     if (!schedule.hasStarted) {
       return NextResponse.json(
         {
           error:
-            "Round 1 goes live on October 13, 2026 between 7:00 PM – 8:00 PM IST. Please return then to attempt your test.",
+            "Round 1 goes live on October 13, 2026 between 7:00 PM – 7:45 PM IST. Please return then to attempt your test.",
           schedule,
         },
         { status: 403 },
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Round 1 concluded at 8:00 PM IST on October 13, 2026. The testing window is closed.",
+            "Round 1 concluded at 7:45 PM IST on October 13, 2026. The testing window is closed.",
           schedule,
         },
         { status: 403 },

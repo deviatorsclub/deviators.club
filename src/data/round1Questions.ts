@@ -28,13 +28,13 @@ export interface ClientQuestion {
   points: number;
 }
 
-export const ROUND_1_DURATION_MINUTES = 15; // 15 minutes overall (30 seconds strictly per question)
-export const QUESTION_DURATION_SECONDS = 30; // 30 seconds per question (auto-advance with 10s audio ticking)
+export const ROUND_1_DURATION_MINUTES = 10; // 10 minutes overall (20 seconds strictly per question)
+export const QUESTION_DURATION_SECONDS = 20; // 20 seconds per question (auto-advance with 10s audio ticking)
 export const MAX_STRIKES_ALLOWED = 2; // 1st strike is a 5s grace warning, 2nd strike is instant auto-submit
 
-// Official Schedule: 13th October 2026, 7:00 PM to 8:00 PM IST (UTC+05:30)
+// Official Schedule: 13th October 2026, 7:00 PM to 7:45 PM IST (UTC+05:30)
 export const ROUND_1_START_TIME = "2026-10-13T19:00:00+05:30";
-export const ROUND_1_END_TIME = "2026-10-13T20:00:00+05:30";
+export const ROUND_1_END_TIME = "2026-10-13T19:45:00+05:30";
 
 export function isRound1Active(isPresident = false): {
   active: boolean;
