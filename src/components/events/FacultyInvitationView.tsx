@@ -790,7 +790,7 @@ export default function FacultyInvitationView({
                       <div className="flex items-center gap-1.5 sm:justify-end">
                         <LuMapPin size={15} className="text-cyan-400" />
                         <span className="font-mono text-xs text-white/80">
-                          Campus Auditorium, DCE
+                          Computer Labs & Seminar Hall of the College, DCE
                         </span>
                       </div>
                       <div className="mt-1 flex items-center gap-1.5 sm:justify-end">

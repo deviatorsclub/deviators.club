@@ -39,7 +39,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "For every question you welcomed, every milestone you inspired, and every student you believed in — thank you. Tonight, a little of that courage becomes code.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   ashima: {
     slug: "ashima-mehta",
@@ -60,7 +61,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "For every question you welcomed, every milestone you inspired, and every student you believed in — thank you. Tonight, a little of that courage becomes code.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   "dr-ashima-mehta": {
     slug: "ashima-mehta",
@@ -81,7 +83,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "For every question you welcomed, every milestone you inspired, and every student you believed in — thank you. Tonight, a little of that courage becomes code.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   "isha-malhotra": {
     slug: "isha-malhotra",
@@ -102,7 +105,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for leading our institution with vision, empowering student initiatives, and always believing in our potential.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   "yashwardhan-soni": {
     slug: "yashwardhan-soni",
@@ -124,7 +128,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for teaching us to think critically and debug deeper. Your mentorship makes every breakthrough possible.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   "yashvardhan-soni": {
     slug: "yashwardhan-soni",
@@ -146,7 +151,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for teaching us to think critically and debug deeper. Your mentorship makes every breakthrough possible.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   pooja: {
     slug: "pooja",
@@ -167,7 +173,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for always fostering curiosity in every student you mentor. We are honored to celebrate this moment with you.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   "pooja-sharma": {
     slug: "pooja",
@@ -188,7 +195,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for always fostering curiosity in every student you mentor. We are honored to celebrate this moment with you.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   monika: {
     slug: "monika",
@@ -209,7 +217,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "For every student you motivated to aim higher, thank you from all of us at Deviators Club.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   "monika-rani": {
     slug: "monika",
@@ -230,7 +239,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "For every student you motivated to aim higher, thank you from all of us at Deviators Club.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   neha: {
     slug: "neha",
@@ -251,7 +261,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for your continuous support, kindness, and enthusiasm for student initiatives.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   "neha-chauhan": {
     slug: "neha",
@@ -272,7 +283,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for your continuous support, kindness, and enthusiasm for student initiatives.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   ashwani: {
     slug: "ashwani",
@@ -293,7 +305,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for constantly inspiring us to build, innovate, and persevere through tough challenges.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   "ashwani-kumar": {
     slug: "ashwani",
@@ -314,7 +327,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for constantly inspiring us to build, innovate, and persevere through tough challenges.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   akanksha: {
     slug: "akanksha",
@@ -335,7 +349,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for championing student futures, creating career pathways, and always believing in our potential.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
   "akanksha-tpo": {
     slug: "akanksha",
@@ -356,7 +371,8 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
       "Thank you for championing student futures, creating career pathways, and always believing in our potential.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+    eventVenueText:
+      "Online Arena & Computer Labs and Seminar Hall of the College, DCE",
   },
 };
 

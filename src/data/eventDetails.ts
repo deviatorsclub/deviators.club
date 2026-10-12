@@ -73,7 +73,8 @@ export const debugDecrypt3Data: EventDetailsData = {
   bannerUrl: "/debug_decrypt_banner_1.png",
   logoUrl: "/debug_logo.png",
   location: "Dronacharya College of Engineering",
-  venueDetails: "Dronacharya College of Engineering",
+  venueDetails:
+    "Computer Labs & Seminar Hall, Dronacharya College of Engineering",
   mode: "Offline",
   startsAt: "2026-10-15T08:00:00+05:30",
   endsAt: "2026-10-15T19:00:00+05:30",
