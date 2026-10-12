@@ -6,21 +6,28 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Calendar03Icon,
-  Copy01Icon,
-  Tick01Icon,
   SparklesIcon,
   Medal01Icon,
-  ArrowRight01Icon,
-  ArrowLeft01Icon,
   Shield01Icon,
   GlobeIcon,
+  Copy01Icon,
+  Tick01Icon,
   Share01Icon,
-  UserGroupIcon,
 } from "@hugeicons/core-free-icons";
-import { LuVolume2, LuVolumeX, LuHeart, LuSparkles } from "react-icons/lu";
+import {
+  LuVolume2,
+  LuVolumeX,
+  LuHeart,
+  LuSparkles,
+  LuCheck,
+  LuAward,
+  LuCalendar,
+  LuClock,
+  LuMapPin,
+  LuBuilding2,
+  LuUserCheck,
+} from "react-icons/lu";
 import type { FacultyInvitation } from "@/data/facultyInvitations";
-import { FACULTY_INVITATIONS } from "@/data/facultyInvitations";
 import deviatorsLogoMin from "@/assets/logo/sm.svg";
 
 interface Particle {
@@ -43,10 +50,13 @@ export default function FacultyInvitationView({
   const [isOpening, setIsOpening] = useState(false);
   const [showFlight, setShowFlight] = useState(false);
   const [typedSalutation, setTypedSalutation] = useState("");
+  const [accepted, setAccepted] = useState(false);
+  const [noAttempts, setNoAttempts] = useState(0);
+  const [noPos, setNoPos] = useState({ x: 0, y: 0 });
   const [surpriseOpen, setSurpriseOpen] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [copiedStory, setCopiedStory] = useState(false);
+  const [copiedAnnouncement, setCopiedAnnouncement] = useState(false);
 
   // Audio Context ref
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -56,9 +66,10 @@ export default function FacultyInvitationView({
   const particlesRef = useRef<Particle[]>([]);
   const animFrameRef = useRef<number | null>(null);
 
-  // Envelope ref
+  // Element refs
   const envelopeRef = useRef<HTMLDivElement | null>(null);
-  const revealSectionRef = useRef<HTMLElement | null>(null);
+  const letterSectionRef = useRef<HTMLElement | null>(null);
+  const vipPassSectionRef = useRef<HTMLDivElement | null>(null);
 
   // Countdown target: Oct 13, 2026, 7:00 PM IST
   const targetDate = new Date("2026-10-13T19:00:00+05:30").getTime();
@@ -94,8 +105,14 @@ export default function FacultyInvitationView({
           osc.frequency.setValueAtTime(freq, startTime + idx * 0.12);
 
           gain.gain.setValueAtTime(0.0001, startTime + idx * 0.12);
-          gain.gain.exponentialRampToValueAtTime(0.05, startTime + idx * 0.12 + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, startTime + idx * 0.12 + 0.65);
+          gain.gain.exponentialRampToValueAtTime(
+            0.05,
+            startTime + idx * 0.12 + 0.02,
+          );
+          gain.gain.exponentialRampToValueAtTime(
+            0.0001,
+            startTime + idx * 0.12 + 0.65,
+          );
 
           osc.connect(gain);
           gain.connect(ctx.destination);
@@ -111,7 +128,7 @@ export default function FacultyInvitationView({
   );
 
   // Particle Canvas Burst
-  const burstParticles = useCallback((x: number, y: number, count = 70) => {
+  const burstParticles = useCallback((x: number, y: number, count = 75) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -120,7 +137,7 @@ export default function FacultyInvitationView({
       "#818cf8", // indigo
       "#c084fc", // purple
       "#fbbf24", // gold
-      "#f472b6", // rose
+      "#34d399", // emerald
       "#ffffff", // white
     ];
 
@@ -229,7 +246,7 @@ export default function FacultyInvitationView({
   // Handle Envelope Open Ceremony
   const handleOpenEnvelope = () => {
     if (opened) {
-      revealSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+      letterSectionRef.current?.scrollIntoView({ behavior: "smooth" });
       return;
     }
 
@@ -237,7 +254,11 @@ export default function FacultyInvitationView({
 
     if (envelopeRef.current) {
       const rect = envelopeRef.current.getBoundingClientRect();
-      burstParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 90);
+      burstParticles(
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2,
+        90,
+      );
     }
 
     playChime([392, 523.25, 659.25, 783.99]);
@@ -254,18 +275,47 @@ export default function FacultyInvitationView({
         if (i >= text.length) {
           clearInterval(typeInterval);
         }
-      }, 26);
+      }, 24);
 
-      // Stage 3: Reveal the full invitation card
+      // Stage 3: Reveal the full invitation letter
       setTimeout(() => {
         setOpened(true);
         setIsOpening(false);
         setShowFlight(false);
         setTimeout(() => {
-          revealSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          letterSectionRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
         }, 150);
-      }, 1450);
+      }, 1400);
     }, 650);
+  };
+
+  // Evasive "No" Button handler
+  const handleEvadeNo = () => {
+    setNoAttempts((prev) => prev + 1);
+    playChime([261.63, 293.66]);
+
+    // Randomize position within generous interactive range
+    const maxOffset = Math.min(180, Math.max(100, 80 + noAttempts * 20));
+    const randomX = (Math.random() - 0.5) * (maxOffset * 2);
+    const randomY = (Math.random() - 0.5) * (maxOffset * 1.4);
+    setNoPos({ x: randomX, y: randomY });
+  };
+
+  // "Yes" Button acceptance handler
+  const handleAccept = () => {
+    setAccepted(true);
+    burstParticles(window.innerWidth / 2, window.innerHeight / 2, 120);
+    playChime([523.25, 659.25, 783.99, 1046.5]);
+
+    setTimeout(() => {
+      vipPassSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 250);
   };
 
   // Handle Copy Link
@@ -278,23 +328,16 @@ export default function FacultyInvitationView({
     } catch {}
   };
 
-  // Handle Copy Share Story
-  const handleCopyStory = async () => {
+  // Handle Copy Announcement Text
+  const handleCopyAnnouncement = async () => {
     try {
-      const shareText = `✨ Honored Faculty Invitation · DEBUG DECRYPT 3.0\nCordially inviting ${invitation.formalTitle} (${invitation.department})\nOrganized by Deviators Club & CSE Department, Dronacharya College of Engineering.\nVIP Access Pass: ${invitation.vipPassCode}\nInvitation Link: ${window.location.href}`;
+      const shareText = `Honored Faculty Invitation · DEBUG DECRYPT 3.0\nCordially inviting ${invitation.formalTitle}\n${invitation.designation} · ${invitation.department}\nOrganized by Deviators Club & CSE Department, Dronacharya College of Engineering.\nVIP Access Pass: ${invitation.vipPassCode}\nInvitation Link: ${window.location.href}`;
       await navigator.clipboard.writeText(shareText);
-      setCopiedStory(true);
+      setCopiedAnnouncement(true);
       playChime([659.25, 783.99]);
-      setTimeout(() => setCopiedStory(false), 2500);
+      setTimeout(() => setCopiedAnnouncement(false), 2500);
     } catch {}
   };
-
-  // Google Calendar URL Generator
-  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-    `Debug Decrypt 3.0 - Faculty Guest: ${invitation.formalTitle}`,
-  )}&dates=20261013T133000Z/20261013T141500Z&details=${encodeURIComponent(
-    `Bespoke invitation for ${invitation.formalTitle} to grace Debug Decrypt 3.0 hosted by CSE Department & Deviators Club.\nVIP Pass: ${invitation.vipPassCode}\nInvitation Link: ${typeof window !== "undefined" ? window.location.href : ""}`,
-  )}&location=${encodeURIComponent("Dronacharya College of Engineering & Online Arena")}`;
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#07090e] font-sans text-white selection:bg-cyan-500/30 selection:text-cyan-200">
@@ -309,19 +352,8 @@ export default function FacultyInvitationView({
       <div className="pointer-events-none fixed top-[20%] right-[-15%] h-[700px] w-[700px] rounded-full bg-indigo-600/15 blur-[180px]" />
       <div className="pointer-events-none fixed bottom-[-10%] left-[30%] h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-[170px]" />
 
-      {/* Subtle Starfield Texture */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0 opacity-40"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(255, 255, 255, 0.4) 1px, transparent 1px), radial-gradient(circle, rgba(56, 189, 248, 0.3) 1px, transparent 1px)",
-          backgroundSize: "180px 180px, 320px 320px",
-          backgroundPosition: "20px 40px, 110px 150px",
-        }}
-      />
-
-      {/* Top Bar Navigation */}
-      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-5 py-6 sm:px-8">
+      {/* Dedicated Standalone Top Bar for Invitation */}
+      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-5 pt-8 pb-4 sm:px-8">
         <Link
           href="/events/debug-decrypt-3.0"
           className="group flex items-center gap-2.5 transition-transform hover:scale-[1.02]"
@@ -329,11 +361,11 @@ export default function FacultyInvitationView({
           <Image
             src={deviatorsLogoMin.src || deviatorsLogoMin}
             alt="Deviators Club"
-            width={30}
-            height={30}
-            className="h-7 w-auto brightness-110 drop-shadow-[0_0_12px_rgba(56,189,248,0.5)]"
+            width={32}
+            height={32}
+            className="h-8 w-auto brightness-110 drop-shadow-[0_0_12px_rgba(56,189,248,0.5)]"
           />
-          <div className="flex flex-col">
+          <div className="flex flex-col text-left">
             <span className="font-heading text-sm font-black tracking-tight text-white group-hover:text-cyan-300">
               Deviators Club
             </span>
@@ -371,63 +403,102 @@ export default function FacultyInvitationView({
       </header>
 
       {/* Main Experience */}
-      <main className="relative z-10 mx-auto max-w-5xl px-4 pt-6 pb-24 sm:px-6">
+      <main className="relative z-10 mx-auto max-w-5xl px-4 pt-4 pb-24 sm:px-6">
         {/* Intro Hero Section */}
         <section className="flex flex-col items-center text-center">
           {/* Eyebrow badge */}
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1.5 font-mono text-xs font-semibold text-cyan-300 backdrop-blur-md">
-            <HugeiconsIcon icon={SparklesIcon} size={13} className="text-cyan-300" />
+            <LuSparkles size={13} className="text-cyan-300" />
             <span>A NOTE CRAFTED WITH PROFOUND GRATITUDE</span>
-            <span className="text-white/30">✦</span>
           </div>
 
-          <h1 className="font-heading mt-6 max-w-3xl text-3xl font-extrabold tracking-tight text-white sm:text-5xl sm:leading-[1.15]">
+          <h1 className="font-heading mt-6 max-w-3xl text-3xl font-black tracking-tight text-white sm:text-5xl sm:leading-[1.15]">
             The best ideas begin with{" "}
             <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-300 bg-clip-text text-transparent">
               someone who believes.
             </span>
           </h1>
 
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/60 sm:text-base">
-            This personal invitation has your name on it,{" "}
-            <strong className="font-semibold text-white">
+          <div className="mt-6 flex flex-col items-center">
+            {/* Faculty Portrait Badge */}
+            <div className="relative mb-4 flex h-24 w-24 items-center justify-center rounded-2xl border-2 border-amber-400/40 bg-gradient-to-tr from-[#131b2e] via-[#0d1220] to-[#1e293b] p-1 shadow-[0_0_30px_rgba(245,158,11,0.25)] transition-transform hover:scale-105">
+              <div className="relative h-full w-full overflow-hidden rounded-xl">
+                {invitation.avatarUrl ? (
+                  <Image
+                    src={invitation.avatarUrl}
+                    alt={invitation.name}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                    priority
+                  />
+                ) : (
+                  <div className="font-heading flex h-full w-full items-center justify-center bg-amber-500/10 text-2xl font-black text-amber-300">
+                    {invitation.initials}
+                  </div>
+                )}
+              </div>
+              <div className="absolute -right-1 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full border border-amber-400/60 bg-[#0b0f19] text-amber-300 shadow-md">
+                <LuAward size={13} />
+              </div>
+            </div>
+
+            <h2 className="font-heading max-w-xl text-xl font-extrabold tracking-tight text-white sm:text-2xl">
               {invitation.formalTitle}
-            </strong>
-            . Tap the royal seal to open.
-          </p>
+            </h2>
+            <p className="mt-1 font-mono text-xs font-semibold text-amber-300/90 sm:text-sm">
+              {invitation.designation}
+            </p>
+            <p className="mt-0.5 font-sans text-xs text-white/60 sm:text-sm">
+              {invitation.department} · {invitation.institution}
+            </p>
+            <p className="mt-3 font-sans text-xs text-white/40">
+              Tap the seal to unseal your invitation.
+            </p>
+          </div>
 
           {/* Countdown Display */}
           <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-3.5 shadow-2xl backdrop-blur-xl">
             <span className="font-mono text-[10px] font-bold tracking-[0.2em] text-cyan-400 uppercase">
-              {timeLeft.finished ? "EVENT COMMENCING NOW ✦" : "UNTIL DEBUG DECRYPT 3.0 COMMENCES"}
+              {timeLeft.finished
+                ? "EVENT COMMENCING NOW"
+                : "UNTIL DEBUG DECRYPT 3.0 COMMENCES"}
             </span>
             <div className="mt-2 flex items-center justify-center gap-3 sm:gap-4">
               <div className="flex flex-col items-center">
                 <span className="font-heading text-2xl font-black text-white sm:text-3xl">
                   {timeLeft.days}
                 </span>
-                <span className="font-mono text-[9px] text-white/40 uppercase">DAYS</span>
+                <span className="font-mono text-[9px] text-white/40 uppercase">
+                  DAYS
+                </span>
               </div>
               <span className="text-lg text-cyan-400/50">:</span>
               <div className="flex flex-col items-center">
                 <span className="font-heading text-2xl font-black text-white sm:text-3xl">
                   {timeLeft.hours}
                 </span>
-                <span className="font-mono text-[9px] text-white/40 uppercase">HRS</span>
+                <span className="font-mono text-[9px] text-white/40 uppercase">
+                  HRS
+                </span>
               </div>
               <span className="text-lg text-cyan-400/50">:</span>
               <div className="flex flex-col items-center">
                 <span className="font-heading text-2xl font-black text-white sm:text-3xl">
                   {timeLeft.minutes}
                 </span>
-                <span className="font-mono text-[9px] text-white/40 uppercase">MIN</span>
+                <span className="font-mono text-[9px] text-white/40 uppercase">
+                  MIN
+                </span>
               </div>
               <span className="text-lg text-cyan-400/50">:</span>
               <div className="flex flex-col items-center">
                 <span className="font-heading text-2xl font-black text-white sm:text-3xl">
                   {timeLeft.seconds}
                 </span>
-                <span className="font-mono text-[9px] text-white/40 uppercase">SEC</span>
+                <span className="font-mono text-[9px] text-white/40 uppercase">
+                  SEC
+                </span>
               </div>
             </div>
           </div>
@@ -453,7 +524,6 @@ export default function FacultyInvitationView({
             >
               {/* Envelope Body / Base */}
               <div className="absolute inset-0 rounded-2xl border border-white/20 bg-gradient-to-br from-[#1b2236] via-[#101524] to-[#0c0f1a] shadow-[0_25px_60px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.15)] transition-transform duration-500">
-                {/* Diagonal Envelope Folds */}
                 <div
                   className="absolute inset-0 rounded-2xl opacity-40"
                   style={{
@@ -476,7 +546,7 @@ export default function FacultyInvitationView({
                   HONORED GUEST INVITATION
                 </span>
                 <span className="mt-1 font-mono text-[10px] text-gray-500">
-                  JUST FOR YOU ✦
+                  SPECIAL INVITATION
                 </span>
               </div>
 
@@ -512,14 +582,14 @@ export default function FacultyInvitationView({
                     : "group-hover:scale-110 group-hover:shadow-[0_0_35px_rgba(245,158,11,0.9)]"
                 }`}
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-200/40 bg-amber-600/40 font-serif text-lg font-bold text-amber-100 shadow-inner">
-                  <span className="drop-shadow-md">✦</span>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-200/40 bg-amber-600/40 text-amber-100 shadow-inner">
+                  <LuAward size={20} className="drop-shadow-md" />
                 </div>
               </div>
 
               {/* Teacher's Name Label on Envelope */}
               <div className="absolute right-0 bottom-4 left-0 text-center">
-                <span className="font-heading text-sm font-semibold italic tracking-wide text-cyan-200/90 drop-shadow-md">
+                <span className="font-heading text-sm font-semibold tracking-wide text-cyan-200/90 drop-shadow-md">
                   {invitation.envelopeName}
                 </span>
               </div>
@@ -528,7 +598,9 @@ export default function FacultyInvitationView({
             {/* Tap Hint */}
             <div className="pointer-events-none absolute bottom-0 flex items-center gap-1.5 font-mono text-xs text-white/50">
               <span className="text-cyan-400">↗</span>
-              <span>{opened ? "Invitation Unsealed ✓" : "Tap the royal seal to open"}</span>
+              <span>
+                {opened ? "Invitation Unsealed" : "Tap the seal to open"}
+              </span>
             </div>
           </div>
         </section>
@@ -550,10 +622,10 @@ export default function FacultyInvitationView({
                 className="relative mx-4 flex max-w-lg flex-col items-center justify-center rounded-3xl border border-cyan-400/40 bg-gradient-to-b from-[#0f172a] to-[#020617] p-8 text-center shadow-2xl"
               >
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/10 text-cyan-300">
-                  <HugeiconsIcon icon={SparklesIcon} size={24} />
+                  <LuSparkles size={24} />
                 </div>
                 <span className="font-mono text-xs font-bold tracking-widest text-cyan-400 uppercase">
-                  UNSEALING BESPOKE INVITATION
+                  UNSEALING INVITATION
                 </span>
                 <h3 className="font-heading mt-3 min-h-[48px] text-2xl font-black text-white sm:text-3xl">
                   {typedSalutation}
@@ -567,318 +639,416 @@ export default function FacultyInvitationView({
           )}
         </AnimatePresence>
 
-        {/* Revealed Invitation Section */}
-        <section
-          ref={revealSectionRef}
-          className={`mt-16 transition-opacity duration-700 ${
-            opened ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          {/* Main Invitation Parchment Card */}
-          <div className="relative mx-auto max-w-2xl overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-b from-[#111827]/95 via-[#0f172a]/95 to-[#090d16]/95 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)] backdrop-blur-2xl sm:p-10">
-            {/* Corner Decorative Star Glyphs */}
-            <span className="absolute top-4 left-5 font-serif text-lg text-cyan-400/40">✧</span>
-            <span className="absolute top-4 right-5 font-serif text-lg text-cyan-400/40">✧</span>
-            <span className="absolute bottom-4 left-5 font-serif text-lg text-cyan-400/40">✧</span>
-            <span className="absolute right-5 bottom-4 font-serif text-lg text-cyan-400/40">✧</span>
-
-            {/* Topline header */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <span className="font-mono text-[10px] font-bold tracking-widest text-cyan-400 uppercase">
-                DEBUG DECRYPT · 3.0
-              </span>
-              <span className="font-mono text-[10px] tracking-wider text-white/50 uppercase">
-                GUEST OF HONOR INVITATION
-              </span>
-            </div>
-
-            {/* Central Deviators Emblem */}
-            <div className="mx-auto mt-6 mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-500/10 text-cyan-300 shadow-[0_0_20px_rgba(56,189,248,0.25)]">
-              <HugeiconsIcon icon={SparklesIcon} size={22} />
-            </div>
-
-            {/* Salutation */}
-            <p className="font-heading text-lg font-bold italic text-cyan-200">
-              {invitation.salutation}
-            </p>
-
-            {/* Main Invitation Hook */}
-            <h2 className="font-heading mt-2 text-2xl font-black text-white sm:text-4xl sm:leading-tight">
-              Will you join us for a little{" "}
-              <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-300 bg-clip-text text-transparent">
-                magic?
-              </span>
-            </h2>
-
-            {/* Body Copy */}
-            <div className="mt-5 space-y-4 text-sm leading-relaxed text-white/80 sm:text-base">
-              <p>{invitation.personalMessage}</p>
-              <p className="text-white/60">
-                Your presence, wisdom, and blessings would make this event truly
-                unforgettable for all participating students and builders.
-              </p>
-            </div>
-
-            {/* Event Ribbon Box */}
-            <div className="mt-8 rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-indigo-950/40 p-5 shadow-inner">
-              <div className="flex flex-col items-center text-center">
-                <span className="font-heading text-xl font-black text-white sm:text-2xl">
-                  Debug Decrypt 3.0
-                </span>
-                <span className="mt-1 font-mono text-xs font-bold tracking-wider text-cyan-300">
-                  {invitation.eventDateText} · {invitation.eventTimeText}
-                </span>
-                <span className="mt-0.5 font-mono text-[11px] text-white/60">
-                  {invitation.eventVenueText}
-                </span>
-                <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/40 px-3 py-1 font-mono text-[10px] text-white/70">
-                  <span>CSE DEPARTMENT · DEVIATORS CLUB</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <a
-                href={calendarUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs font-bold text-white"
-              >
-                <HugeiconsIcon icon={Calendar03Icon} size={15} />
-                <span>Add to Google Calendar</span>
-                <span className="text-white/60">↗</span>
-              </a>
-
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                className="btn-secondary inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs font-semibold text-white/80 transition-colors hover:text-white"
-              >
-                <HugeiconsIcon
-                  icon={copiedLink ? Tick01Icon : Copy01Icon}
-                  size={15}
-                  className={copiedLink ? "text-emerald-400" : ""}
-                />
-                <span>{copiedLink ? "Link Copied ✓" : "Copy Invitation Link"}</span>
-              </button>
-            </div>
-
-            {/* Signature */}
-            <div className="mt-8 border-t border-white/10 pt-6 text-center">
-              <p className="font-heading text-sm italic text-white/60">
-                With our warmest regards & gratitude,
-              </p>
-              <p className="mt-1 font-heading text-base font-bold text-white">
-                Department of Computer Science & Engineering & Deviators Club{" "}
-                <span className="text-rose-400">♡</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Surprise Note Section */}
-          <div className="mx-auto mt-10 max-w-xl text-center">
-            <p className="font-heading text-sm italic text-white/60">
-              One more little thing from all of us...
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                const next = !surpriseOpen;
-                setSurpriseOpen(next);
-                if (next) {
-                  playChime([659.25, 783.99, 1046.5]);
-                  burstParticles(window.innerWidth / 2, window.innerHeight / 2, 70);
-                }
-              }}
-              className="mt-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-gradient-to-r from-blue-600/30 to-cyan-500/30 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-cyan-500/20 transition-all hover:scale-[1.03] hover:brightness-110"
+        {/* ========================================================================= */}
+        {/* REVEALED INVITATION LETTER & INTERACTIVE ACCEPTANCE SECTION (DYNAMIC MOUNT) */}
+        {/* ========================================================================= */}
+        <AnimatePresence>
+          {opened && (
+            <motion.section
+              key="letter-section"
+              ref={letterSectionRef}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="mt-12"
             >
-              <HugeiconsIcon icon={SparklesIcon} size={14} className="text-cyan-300" />
-              <span>{surpriseOpen ? "Close Our Note" : "A Little Note from the Team"}</span>
-              <span className="text-cyan-300">↗</span>
-            </button>
-
-            <AnimatePresence>
-              {surpriseOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 12, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.96 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-6 rounded-2xl border border-white/20 bg-gradient-to-br from-indigo-950/40 via-purple-950/30 to-[#0a0e19] p-6 text-left shadow-2xl backdrop-blur-xl"
-                >
-                  <div className="flex items-center gap-2 text-amber-300">
-                    <LuSparkles size={16} />
-                    <span className="font-mono text-xs font-bold uppercase">
-                      From Every Student You Mentor
-                    </span>
-                  </div>
-                  <p className="font-heading mt-3 text-lg leading-relaxed text-white sm:text-xl">
-                    &ldquo;{invitation.surpriseNote}&rdquo;
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* ========================================================================= */}
-          {/* THE HONORED FACULTY VIP GUEST / PROFILE CARD (DEVIATORS ROSTER STYLE)      */}
-          {/* ========================================================================= */}
-          <div className="mt-16 border-t border-white/10 pt-16">
-            <div className="mb-8 text-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3.5 py-1 text-xs font-semibold text-amber-300">
-                <HugeiconsIcon icon={Medal01Icon} size={14} />
-                <span>OFFICIAL FACULTY VIP PASS</span>
-                <span className="text-white/40">·</span>
-                <span className="font-mono text-white/80">
-                  {invitation.vipPassCode}
-                </span>
-              </div>
-              <h2 className="font-heading mt-3 text-2xl font-black text-white sm:text-3xl">
-                Honored Faculty Guest Pass
-              </h2>
-              <p className="mt-1 text-xs text-white/50 sm:text-sm">
-                Your official VIP Guest Pass for DEBUG DECRYPT 3.0 at Dronacharya
-                College of Engineering.
-              </p>
-            </div>
-
-            {/* Signature Deviators Card Frame */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="group relative mx-auto max-w-xl overflow-hidden rounded-3xl border border-cyan-500/30 bg-[#0a0e19]/90 p-6 shadow-2xl backdrop-blur-xl sm:p-8"
-            >
-              {/* Subtle Ambient Glow */}
-              <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-cyan-500/15 blur-2xl transition-all duration-500 group-hover:bg-cyan-500/25" />
-              <div className="pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-blue-500/15 blur-2xl" />
-
-              <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-                {/* Faculty Portrait / Avatar Frame */}
-                <div className="relative mx-auto h-32 w-32 shrink-0 overflow-hidden rounded-2xl border-2 border-amber-400/40 bg-gradient-to-tr from-[#131b2e] via-[#0d1220] to-[#1e293b] shadow-xl sm:mx-0 sm:h-36 sm:w-36">
-                  {invitation.avatarUrl ? (
-                    <Image
-                      src={invitation.avatarUrl}
-                      alt={invitation.name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-500/10 text-2xl font-black text-amber-300 shadow-inner">
-                        {invitation.initials}
-                      </div>
-                      <span className="mt-1 font-mono text-[9px] font-bold text-amber-300/80 uppercase">
-                        FACULTY MENTOR
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Gold Medal Badge */}
-                  <div className="absolute top-2 right-2 rounded-full border border-amber-400/40 bg-black/70 p-1 text-amber-300 shadow-md backdrop-blur-md">
-                    <HugeiconsIcon icon={Medal01Icon} size={14} />
-                  </div>
+              {/* Main Invitation Letter */}
+              <div className="relative mx-auto max-w-2xl overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-b from-[#111827]/95 via-[#0f172a]/95 to-[#090d16]/95 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)] backdrop-blur-2xl sm:p-10">
+                {/* Topline header */}
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <span className="font-mono text-[10px] font-bold tracking-widest text-cyan-400 uppercase">
+                    DEBUG DECRYPT 3.0
+                  </span>
+                  <span className="font-mono text-[10px] tracking-wider text-white/50 uppercase">
+                    GUEST OF HONOR INVITATION
+                  </span>
                 </div>
 
-                {/* Faculty Details */}
-                <div className="flex min-w-0 flex-1 flex-col justify-between text-center sm:text-left">
-                  <div>
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-0.5 font-mono text-[10px] font-bold text-cyan-300 uppercase">
-                      <HugeiconsIcon icon={Shield01Icon} size={11} />
-                      <span>Chief Faculty Guest</span>
+                {/* Salutation & Faculty Profile Block */}
+                <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-amber-400/40 bg-gradient-to-tr from-[#131b2e] via-[#0d1220] to-[#1e293b] p-0.5 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                    <div className="relative h-full w-full overflow-hidden rounded-[14px]">
+                      {invitation.avatarUrl ? (
+                        <Image
+                          src={invitation.avatarUrl}
+                          alt={invitation.name}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="font-heading flex h-full w-full items-center justify-center bg-amber-500/10 text-xl font-black text-amber-300">
+                          {invitation.initials}
+                        </div>
+                      )}
                     </div>
+                  </div>
 
-                    <h3 className="font-heading mt-2 truncate text-xl font-black text-white sm:text-2xl">
-                      {invitation.formalTitle}
-                    </h3>
-
-                    <p className="mt-0.5 font-mono text-xs font-semibold text-amber-300/90">
+                  <div className="text-left">
+                    <p className="font-heading text-xl font-black tracking-tight text-cyan-200 sm:text-2xl">
+                      {invitation.salutation}
+                    </p>
+                    <p className="mt-1 font-mono text-xs font-semibold text-amber-300/90 sm:text-sm">
                       {invitation.designation}
                     </p>
-
-                    <p className="mt-1 text-xs text-white/60">
-                      {invitation.department}
-                    </p>
-
-                    <p className="mt-0.5 font-mono text-[11px] text-white/40">
-                      {invitation.institution}
+                    <p className="mt-0.5 font-sans text-xs text-white/60">
+                      {invitation.department} · {invitation.institution}
                     </p>
                   </div>
+                </div>
 
-                  {/* Pass Security Strip */}
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2 border-t border-white/[0.08] pt-3 sm:justify-start">
-                    <span className="font-mono text-[10px] text-white/40">
-                      PASS ID:
-                    </span>
-                    <span className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold text-cyan-300">
-                      {invitation.vipPassCode}
-                    </span>
-                    <span className="text-white/20">·</span>
-                    <span className="font-mono text-[10px] text-emerald-400">
-                      STATUS: CONFIRMED GUEST
-                    </span>
+                {/* Main Headline */}
+                <h2 className="font-heading mt-6 text-2xl font-black tracking-tight text-white sm:text-3xl sm:leading-tight">
+                  Will you grace Debug Decrypt 3.0 as our{" "}
+                  <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-300 bg-clip-text text-transparent">
+                    Honored Faculty Guest?
+                  </span>
+                </h2>
+
+                {/* Body Copy */}
+                <div className="mt-5 space-y-3 font-sans text-sm leading-relaxed text-white/80 sm:text-base">
+                  <p>{invitation.personalMessage}</p>
+                  <p className="text-white/60">
+                    Your presence, insights, and encouragement would mean the
+                    world to all our participating engineering and coding
+                    students.
+                  </p>
+                </div>
+
+                {/* Event Details Box */}
+                <div className="mt-6 rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-indigo-950/40 p-5 shadow-inner">
+                  <div className="flex flex-col gap-2.5 text-left sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <LuCalendar size={15} className="text-cyan-400" />
+                        <span className="font-mono text-xs font-bold text-white">
+                          {invitation.eventDateText}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center gap-2">
+                        <LuClock size={15} className="text-cyan-400" />
+                        <span className="font-mono text-xs text-white/70">
+                          {invitation.eventTimeText}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-white/10 pt-2 sm:border-t-0 sm:pt-0 sm:text-right">
+                      <div className="flex items-center gap-1.5 sm:justify-end">
+                        <LuMapPin size={15} className="text-cyan-400" />
+                        <span className="font-mono text-xs text-white/80">
+                          Campus Auditorium, DCE
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center gap-1.5 sm:justify-end">
+                        <LuBuilding2 size={14} className="text-cyan-400" />
+                        <span className="font-mono text-[11px] text-cyan-300/80">
+                          CSE Dept & Deviators Club
+                        </span>
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                {/* Signature */}
+                <div className="mt-6 border-t border-white/10 pt-5 text-center">
+                  <p className="font-sans text-xs text-white/60 sm:text-sm">
+                    With our warmest regards & respect,
+                  </p>
+                  <p className="font-heading mt-1 text-sm font-extrabold tracking-tight text-white sm:text-base">
+                    Department of Computer Science & Engineering & Deviators
+                    Club
+                  </p>
+                </div>
+
+                {/* ================================================================= */}
+                {/* INTERACTIVE ACCEPTANCE (YES / NO EVASIVE BUTTONS)                */}
+                {/* ================================================================= */}
+                <div className="relative mt-8 rounded-2xl border border-cyan-500/30 bg-black/40 p-6 text-center">
+                  {!accepted ? (
+                    <>
+                      <p className="font-heading text-base font-extrabold tracking-tight text-white sm:text-lg">
+                        Do you accept our heartfelt invitation?
+                      </p>
+                      <p className="mt-1 font-sans text-xs text-white/50">
+                        {noAttempts > 0
+                          ? "The students would be deeply honored if you said yes!"
+                          : "Please confirm your presence to receive your official VIP Pass."}
+                      </p>
+
+                      <div className="relative mt-6 flex min-h-[90px] items-center justify-center gap-4">
+                        {/* YES BUTTON (GROWS BIGGER WITH EACH "NO" ATTEMPT) */}
+                        <button
+                          type="button"
+                          onClick={handleAccept}
+                          style={{
+                            transform: `scale(${Math.min(1 + noAttempts * 0.16, 2.3)})`,
+                            zIndex: 20,
+                          }}
+                          className="btn-primary font-heading flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-black tracking-wide text-white shadow-xl shadow-cyan-500/30 transition-transform duration-200 hover:brightness-110"
+                        >
+                          <LuCheck size={16} />
+                          <span>Yes, I accept!</span>
+                        </button>
+
+                        {/* NO BUTTON (EVADES AND JUMPS TO RANDOM POSITIONS) */}
+                        <button
+                          type="button"
+                          onMouseEnter={handleEvadeNo}
+                          onClick={handleEvadeNo}
+                          style={{
+                            transform: `translate(${noPos.x}px, ${noPos.y}px)`,
+                            transition: "transform 0.15s ease-out",
+                            zIndex: 10,
+                          }}
+                          className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 font-sans text-xs font-semibold text-white/50 transition-colors hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-300"
+                        >
+                          <span>No</span>
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    /* ACCEPTED CONFIRMATION BANNER */
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex flex-col items-center gap-2"
+                    >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/20 text-emerald-400">
+                        <LuCheck size={24} />
+                      </div>
+                      <h3 className="font-heading text-xl font-black tracking-tight text-white">
+                        Thank You! Invitation Accepted
+                      </h3>
+                      <p className="font-sans text-xs text-emerald-300/90 sm:text-sm">
+                        We are thrilled to welcome you. Your official VIP Guest
+                        Pass is ready below!
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Quick Link Share & Copy */}
+                <div className="mt-6 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="btn-secondary inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold text-white/70 transition-colors hover:text-white"
+                  >
+                    <HugeiconsIcon
+                      icon={copiedLink ? Tick01Icon : Copy01Icon}
+                      size={14}
+                      className={copiedLink ? "text-emerald-400" : ""}
+                    />
+                    <span>
+                      {copiedLink
+                        ? "Invitation Link Copied"
+                        : "Copy Invitation Link"}
+                    </span>
+                  </button>
                 </div>
               </div>
 
-              {/* Pass Actions Hub */}
-              <div className="mt-6 flex flex-col gap-2.5 border-t border-white/[0.08] pt-5 sm:flex-row">
+              {/* Surprise Note Section */}
+              <div className="mx-auto mt-10 max-w-xl text-center">
+                <p className="font-sans text-xs text-white/60 sm:text-sm">
+                  One more note from the students...
+                </p>
                 <button
                   type="button"
-                  onClick={handleCopyStory}
-                  className="btn-primary flex-1 justify-center py-2.5 text-xs font-bold text-white"
+                  onClick={() => {
+                    const next = !surpriseOpen;
+                    setSurpriseOpen(next);
+                    if (next) {
+                      playChime([659.25, 783.99, 1046.5]);
+                      burstParticles(
+                        window.innerWidth / 2,
+                        window.innerHeight / 2,
+                        70,
+                      );
+                    }
+                  }}
+                  className="font-heading mt-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-gradient-to-r from-blue-600/30 to-cyan-500/30 px-5 py-2.5 text-xs font-bold tracking-tight text-white shadow-lg shadow-cyan-500/20 transition-all hover:scale-[1.03] hover:brightness-110"
                 >
-                  <HugeiconsIcon
-                    icon={copiedStory ? Tick01Icon : Share01Icon}
-                    size={14}
-                  />
+                  <LuSparkles size={14} className="text-cyan-300" />
                   <span>
-                    {copiedStory ? "Guest Card Copied ✓" : "Share Guest Card Announcement"}
+                    {surpriseOpen
+                      ? "Close Note"
+                      : "A Little Note from the Team"}
                   </span>
                 </button>
 
-                <Link
-                  href="/events/debug-decrypt-3.0"
-                  className="btn-secondary flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-medium text-white/80 transition-colors hover:text-white"
-                >
-                  <HugeiconsIcon icon={GlobeIcon} size={14} />
-                  <span>Event Overview</span>
-                </Link>
+                <AnimatePresence>
+                  {surpriseOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.96 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-6 rounded-2xl border border-white/20 bg-gradient-to-br from-indigo-950/40 via-purple-950/30 to-[#0a0e19] p-6 text-left shadow-2xl backdrop-blur-xl"
+                    >
+                      <div className="flex items-center gap-2 text-amber-300">
+                        <LuSparkles size={16} />
+                        <span className="font-mono text-xs font-bold uppercase">
+                          From Every Student You Mentor
+                        </span>
+                      </div>
+                      <p className="mt-3 font-sans text-base leading-relaxed font-medium text-white sm:text-lg">
+                        &ldquo;{invitation.surpriseNote}&rdquo;
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </motion.div>
 
-            {/* Quick Switcher for Club Organizers */}
-            <div className="mx-auto mt-12 max-w-2xl rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-center">
-              <p className="font-mono text-[10px] tracking-wider text-white/40 uppercase">
-                ORGANIZER DIRECTORY · ALL FACULTY INVITATIONS
-              </p>
-              <div className="mt-3 flex flex-wrap justify-center gap-2">
-                {Object.values(FACULTY_INVITATIONS).map((fac) => (
-                  <Link
-                    key={fac.slug}
-                    href={`/event/debug-decrypt-3.0/invitation-${fac.slug}`}
-                    className={`rounded-xl px-3 py-1 font-mono text-[11px] transition-all ${
-                      fac.slug === invitation.slug
-                        ? "border border-cyan-400/50 bg-cyan-500/20 font-bold text-cyan-300 shadow-sm"
-                        : "border border-white/10 bg-white/[0.04] text-white/60 hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
-                    }`}
+              {/* ========================================================================= */}
+              {/* THE HONORED FACULTY VIP GUEST PASS (POPS UP ONLY ON ACCEPTANCE)           */}
+              {/* ========================================================================= */}
+              <AnimatePresence>
+                {accepted && (
+                  <motion.div
+                    ref={vipPassSectionRef}
+                    initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="mt-16 border-t border-white/10 pt-16"
                   >
-                    {fac.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+                    <div className="mb-8 text-center">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3.5 py-1 text-xs font-semibold text-amber-300">
+                        <LuAward size={14} />
+                        <span>OFFICIAL FACULTY VIP PASS</span>
+                        <span className="text-white/40">·</span>
+                        <span className="font-mono text-white/80">
+                          {invitation.vipPassCode}
+                        </span>
+                      </div>
+                      <h2 className="font-heading mt-3 text-2xl font-black tracking-tight text-white sm:text-3xl">
+                        Honored Faculty Guest Pass
+                      </h2>
+                      <p className="mt-1 font-sans text-xs text-white/50 sm:text-sm">
+                        Your official VIP Guest Pass for DEBUG DECRYPT 3.0 at
+                        Dronacharya College of Engineering.
+                      </p>
+                    </div>
+
+                    {/* Signature Deviators Card Frame */}
+                    <div className="group relative mx-auto max-w-xl overflow-hidden rounded-3xl border border-cyan-500/30 bg-[#0a0e19]/90 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+                      {/* Subtle Ambient Glow */}
+                      <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-cyan-500/15 blur-2xl transition-all duration-500 group-hover:bg-cyan-500/25" />
+                      <div className="pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-blue-500/15 blur-2xl" />
+
+                      <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+                        {/* Faculty Portrait / Avatar Frame */}
+                        <div className="relative mx-auto h-32 w-32 shrink-0 overflow-hidden rounded-2xl border-2 border-amber-400/40 bg-gradient-to-tr from-[#131b2e] via-[#0d1220] to-[#1e293b] shadow-xl sm:mx-0 sm:h-36 sm:w-36">
+                          {invitation.avatarUrl ? (
+                            <Image
+                              src={invitation.avatarUrl}
+                              alt={invitation.name}
+                              fill
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center">
+                              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-500/10 text-2xl font-black text-amber-300 shadow-inner">
+                                {invitation.initials}
+                              </div>
+                              <span className="mt-1 font-mono text-[9px] font-bold text-amber-300/80 uppercase">
+                                FACULTY MENTOR
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Gold Badge */}
+                          <div className="absolute top-2 right-2 rounded-full border border-amber-400/40 bg-black/70 p-1 text-amber-300 shadow-md backdrop-blur-md">
+                            <LuAward size={14} />
+                          </div>
+                        </div>
+
+                        {/* Faculty Details */}
+                        <div className="flex min-w-0 flex-1 flex-col justify-between text-center sm:text-left">
+                          <div>
+                            <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-0.5 font-mono text-[10px] font-bold text-cyan-300 uppercase">
+                              <LuUserCheck size={11} />
+                              <span>Chief Faculty Guest</span>
+                            </div>
+
+                            <h3 className="font-heading mt-2 truncate text-xl font-black tracking-tight text-white sm:text-2xl">
+                              {invitation.formalTitle}
+                            </h3>
+
+                            <p className="mt-0.5 font-mono text-xs font-semibold text-amber-300/90">
+                              {invitation.designation}
+                            </p>
+
+                            <p className="mt-1 font-sans text-xs text-white/60">
+                              {invitation.department}
+                            </p>
+
+                            <p className="mt-0.5 font-mono text-[11px] text-white/40">
+                              {invitation.institution}
+                            </p>
+                          </div>
+
+                          {/* Pass Security Strip */}
+                          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 border-t border-white/[0.08] pt-3 sm:justify-start">
+                            <span className="font-mono text-[10px] text-white/40">
+                              PASS ID:
+                            </span>
+                            <span className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold text-cyan-300">
+                              {invitation.vipPassCode}
+                            </span>
+                            <span className="text-white/20">·</span>
+                            <span className="font-mono text-[10px] text-emerald-400">
+                              STATUS: ATTENDING GUEST
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Pass Actions Hub */}
+                      <div className="mt-6 flex flex-col gap-2.5 border-t border-white/[0.08] pt-5 sm:flex-row">
+                        <button
+                          type="button"
+                          onClick={handleCopyAnnouncement}
+                          className="btn-primary font-heading flex-1 justify-center py-2.5 text-xs font-bold tracking-tight text-white"
+                        >
+                          <HugeiconsIcon
+                            icon={copiedAnnouncement ? Tick01Icon : Share01Icon}
+                            size={14}
+                          />
+                          <span>
+                            {copiedAnnouncement
+                              ? "Announcement Copied"
+                              : "Share Guest Card Announcement"}
+                          </span>
+                        </button>
+
+                        <Link
+                          href="/events/debug-decrypt-3.0"
+                          className="btn-secondary flex items-center justify-center gap-1.5 px-4 py-2.5 font-sans text-xs font-medium text-white/80 transition-colors hover:text-white"
+                        >
+                          <HugeiconsIcon icon={GlobeIcon} size={14} />
+                          <span>Event Overview</span>
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.section>
+          )}
+        </AnimatePresence>
       </main>
 
-      {/* Global Footer */}
-      <footer className="relative z-10 border-t border-white/10 py-8 text-center text-xs text-white/40">
-        <p>CRAFTED WITH ♥ FOR OUR RESPECTED FACULTY BY DEVIATORS CLUB</p>
-        <p className="mt-1 font-mono text-[10px] text-white/30">
+      {/* Global Minimal Footer for Invitation Page */}
+      <footer className="relative z-10 border-t border-white/10 py-8 text-center">
+        <p className="font-mono text-[10px] tracking-wider text-white/40 uppercase">
+          CRAFTED WITH RESPECT FOR OUR FACULTY BY DEVIATORS CLUB
+        </p>
+        <p className="mt-1 font-mono text-[10px] tracking-wider text-white/30">
           DEBUG DECRYPT 3.0 · DRONACHARYA COLLEGE OF ENGINEERING · 2026
         </p>
       </footer>

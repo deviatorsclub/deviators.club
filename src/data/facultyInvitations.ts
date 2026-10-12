@@ -1,7 +1,6 @@
 export interface FacultyInvitation {
   slug: string;
   name: string;
-  honorific: "Ma'am" | "Sir";
   formalTitle: string;
   salutation: string;
   envelopeName: string;
@@ -23,21 +22,20 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
   "ashima-mehta": {
     slug: "ashima-mehta",
     name: "Prof. Ashima Mehta",
-    honorific: "Ma'am",
-    formalTitle: "Prof. Ashima Mehta Ma'am",
-    salutation: "Dear Prof. Ashima Mehta Ma'am,",
-    envelopeName: "For Prof. Ashima Mehta Ma'am",
-    pageTitle: "An Invitation for Prof. Ashima Mehta Ma'am • Debug Decrypt 3.0",
+    formalTitle: "Prof. Ashima Mehta",
+    salutation: "Dear Prof. Ashima Mehta,",
+    envelopeName: "For Prof. Ashima Mehta",
+    pageTitle: "An Invitation for Prof. Ashima Mehta • Debug Decrypt 3.0",
     department: "Department of Computer Science & Engineering",
     designation: "Head of Department & Professor",
     institution: "Dronacharya College of Engineering",
     vipPassCode: "VIP-DD3-FACULTY-01",
-    avatarUrl: null, // Will be populated with image URL
+    avatarUrl: "/Ashima-Mehta.jpg",
     initials: "AM",
     personalMessage:
-      "Some of our best ideas started with a question you encouraged us to ask. We would be deeply honored and delighted to have you grace Debug Decrypt 3.0 — a celebration of curiosity, algorithms, and the spirit of innovation at Deviators Club.",
+      "Some of our best ideas started with a question you encouraged us to ask. We would be deeply honored to have you grace Debug Decrypt 3.0 — a celebration of curiosity, algorithms, and the spirit of innovation at Deviators Club.",
     surpriseNote:
-      "For every question you welcomed, every milestone you inspired, and every student you believed in — thank you. Tonight, a little of that courage becomes code. ♡",
+      "For every question you welcomed, every milestone you inspired, and every student you believed in — thank you. Tonight, a little of that courage becomes code.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
     eventVenueText: "Online Arena & Campus Auditorium, DCE",
@@ -45,21 +43,20 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
   "isha-malhotra": {
     slug: "isha-malhotra",
     name: "Prof. Isha Malhotra",
-    honorific: "Ma'am",
-    formalTitle: "Prof. Isha Malhotra Ma'am",
-    salutation: "Dear Prof. Isha Malhotra Ma'am,",
-    envelopeName: "For Prof. Isha Malhotra Ma'am",
-    pageTitle: "An Invitation for Prof. Isha Malhotra Ma'am • Debug Decrypt 3.0",
+    formalTitle: "Prof. Isha Malhotra",
+    salutation: "Dear Prof. Isha Malhotra,",
+    envelopeName: "For Prof. Isha Malhotra",
+    pageTitle: "An Invitation for Prof. Isha Malhotra • Debug Decrypt 3.0",
     department: "Department of Computer Science & Engineering",
-    designation: "Professor & Academic Mentor",
+    designation: "Associate Professor & Academic Mentor",
     institution: "Dronacharya College of Engineering",
     vipPassCode: "VIP-DD3-FACULTY-02",
-    avatarUrl: null,
+    avatarUrl: "/Isha-Malhotra.jpg",
     initials: "IM",
     personalMessage:
-      "Your unwavering encouragement fuels our pursuit of excellence. We warmly invite you to join us as our Guest of Honor at Debug Decrypt 3.0 to witness our students take on challenging computational problems.",
+      "Your unwavering encouragement fuels our pursuit of excellence. We warmly invite you to join us as our Honored Guest at Debug Decrypt 3.0 to witness our students tackle challenging computational problems.",
     surpriseNote:
-      "Your guidance has always shown us that no problem is too hard to solve. Thank you for always standing behind us! ♡",
+      "Your guidance has always shown us that no problem is too difficult to solve with structured thinking. Thank you for your continued mentorship.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
     eventVenueText: "Online Arena & Campus Auditorium, DCE",
@@ -67,109 +64,251 @@ export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
   "yashwardhan-soni": {
     slug: "yashwardhan-soni",
     name: "Prof. Yashwardhan Soni",
-    honorific: "Sir",
-    formalTitle: "Prof. Yashwardhan Soni Sir",
-    salutation: "Dear Prof. Yashwardhan Soni Sir,",
-    envelopeName: "For Prof. Yashwardhan Soni Sir",
-    pageTitle: "An Invitation for Prof. Yashwardhan Soni Sir • Debug Decrypt 3.0",
+    formalTitle: "Prof. Yashwardhan Soni",
+    salutation: "Dear Prof. Yashwardhan Soni,",
+    envelopeName: "For Prof. Yashwardhan Soni",
+    pageTitle: "An Invitation for Prof. Yashwardhan Soni • Debug Decrypt 3.0",
     department: "Department of Computer Science & Engineering",
     designation: "Associate Professor & Tech Mentor",
     institution: "Dronacharya College of Engineering",
     vipPassCode: "VIP-DD3-FACULTY-03",
-    avatarUrl: null,
+    avatarUrl: "/Yashvardhan-Soni.jpg",
     initials: "YS",
     personalMessage:
       "Your technical insights and passion for computing have continually inspired our community. We would be privileged to have you with us at Debug Decrypt 3.0 as we challenge the brightest minds across departments.",
     surpriseNote:
-      "Thank you for teaching us to think critically and debug deeper. Your mentorship makes every breakthrough possible! ♡",
+      "Thank you for teaching us to think critically and debug deeper. Your mentorship makes every breakthrough possible.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
     eventVenueText: "Online Arena & Campus Auditorium, DCE",
   },
-  "pooja": {
+  "yashvardhan-soni": {
+    slug: "yashwardhan-soni",
+    name: "Prof. Yashwardhan Soni",
+    formalTitle: "Prof. Yashwardhan Soni",
+    salutation: "Dear Prof. Yashwardhan Soni,",
+    envelopeName: "For Prof. Yashwardhan Soni",
+    pageTitle: "An Invitation for Prof. Yashwardhan Soni • Debug Decrypt 3.0",
+    department: "Department of Computer Science & Engineering",
+    designation: "Associate Professor & Tech Mentor",
+    institution: "Dronacharya College of Engineering",
+    vipPassCode: "VIP-DD3-FACULTY-03",
+    avatarUrl: "/Yashvardhan-Soni.jpg",
+    initials: "YS",
+    personalMessage:
+      "Your technical insights and passion for computing have continually inspired our community. We would be privileged to have you with us at Debug Decrypt 3.0 as we challenge the brightest minds across departments.",
+    surpriseNote:
+      "Thank you for teaching us to think critically and debug deeper. Your mentorship makes every breakthrough possible.",
+    eventDateText: "13 & 15 October 2026",
+    eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
+    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+  },
+  pooja: {
     slug: "pooja",
-    name: "Prof. Pooja",
-    honorific: "Ma'am",
-    formalTitle: "Prof. Pooja Ma'am",
-    salutation: "Dear Prof. Pooja Ma'am,",
-    envelopeName: "For Prof. Pooja Ma'am",
-    pageTitle: "An Invitation for Prof. Pooja Ma'am • Debug Decrypt 3.0",
+    name: "Prof. Pooja Sharma",
+    formalTitle: "Prof. Pooja Sharma",
+    salutation: "Dear Prof. Pooja Sharma,",
+    envelopeName: "For Prof. Pooja Sharma",
+    pageTitle: "An Invitation for Prof. Pooja Sharma • Debug Decrypt 3.0",
     department: "Department of Computer Science & Engineering",
     designation: "Assistant Professor & Faculty Coordinator",
     institution: "Dronacharya College of Engineering",
     vipPassCode: "VIP-DD3-FACULTY-04",
-    avatarUrl: null,
-    initials: "PM",
+    avatarUrl: "/Pooja-Sharma.jpg",
+    initials: "PS",
     personalMessage:
       "Your support and encouragement inspire our students every day. We are delighted to invite you to Debug Decrypt 3.0 to celebrate innovation, teamwork, and code with the Deviators Club.",
     surpriseNote:
-      "Thank you for always fostering curiosity in every student you mentor. We are honored to celebrate this moment with you! ♡",
+      "Thank you for always fostering curiosity in every student you mentor. We are honored to celebrate this moment with you.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
     eventVenueText: "Online Arena & Campus Auditorium, DCE",
   },
-  "monika": {
+  "pooja-sharma": {
+    slug: "pooja",
+    name: "Prof. Pooja Sharma",
+    formalTitle: "Prof. Pooja Sharma",
+    salutation: "Dear Prof. Pooja Sharma,",
+    envelopeName: "For Prof. Pooja Sharma",
+    pageTitle: "An Invitation for Prof. Pooja Sharma • Debug Decrypt 3.0",
+    department: "Department of Computer Science & Engineering",
+    designation: "Assistant Professor & Faculty Coordinator",
+    institution: "Dronacharya College of Engineering",
+    vipPassCode: "VIP-DD3-FACULTY-04",
+    avatarUrl: "/Pooja-Sharma.jpg",
+    initials: "PS",
+    personalMessage:
+      "Your support and encouragement inspire our students every day. We are delighted to invite you to Debug Decrypt 3.0 to celebrate innovation, teamwork, and code with the Deviators Club.",
+    surpriseNote:
+      "Thank you for always fostering curiosity in every student you mentor. We are honored to celebrate this moment with you.",
+    eventDateText: "13 & 15 October 2026",
+    eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
+    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+  },
+  monika: {
     slug: "monika",
-    name: "Prof. Monika",
-    honorific: "Ma'am",
-    formalTitle: "Prof. Monika Ma'am",
-    salutation: "Dear Prof. Monika Ma'am,",
-    envelopeName: "For Prof. Monika Ma'am",
-    pageTitle: "An Invitation for Prof. Monika Ma'am • Debug Decrypt 3.0",
+    name: "Prof. Monika Rani",
+    formalTitle: "Prof. Monika Rani",
+    salutation: "Dear Prof. Monika Rani,",
+    envelopeName: "For Prof. Monika Rani",
+    pageTitle: "An Invitation for Prof. Monika Rani • Debug Decrypt 3.0",
     department: "Department of Computer Science & Engineering",
     designation: "Assistant Professor & Faculty Mentor",
     institution: "Dronacharya College of Engineering",
     vipPassCode: "VIP-DD3-FACULTY-05",
-    avatarUrl: null,
-    initials: "MM",
+    avatarUrl: "/Monika-Rani.jpg",
+    initials: "MR",
     personalMessage:
       "Your dedicated mentorship has been a pillar for our learners. We would love for you to join us at Debug Decrypt 3.0 and witness the passion and skill of our participants.",
     surpriseNote:
-      "For every student you motivated to aim higher, thank you from all of us at Deviators Club. ♡",
+      "For every student you motivated to aim higher, thank you from all of us at Deviators Club.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
     eventVenueText: "Online Arena & Campus Auditorium, DCE",
   },
-  "neha": {
+  "monika-rani": {
+    slug: "monika",
+    name: "Prof. Monika Rani",
+    formalTitle: "Prof. Monika Rani",
+    salutation: "Dear Prof. Monika Rani,",
+    envelopeName: "For Prof. Monika Rani",
+    pageTitle: "An Invitation for Prof. Monika Rani • Debug Decrypt 3.0",
+    department: "Department of Computer Science & Engineering",
+    designation: "Assistant Professor & Faculty Mentor",
+    institution: "Dronacharya College of Engineering",
+    vipPassCode: "VIP-DD3-FACULTY-05",
+    avatarUrl: "/Monika-Rani.jpg",
+    initials: "MR",
+    personalMessage:
+      "Your dedicated mentorship has been a pillar for our learners. We would love for you to join us at Debug Decrypt 3.0 and witness the passion and skill of our participants.",
+    surpriseNote:
+      "For every student you motivated to aim higher, thank you from all of us at Deviators Club.",
+    eventDateText: "13 & 15 October 2026",
+    eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
+    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+  },
+  neha: {
     slug: "neha",
-    name: "Prof. Neha",
-    honorific: "Ma'am",
-    formalTitle: "Prof. Neha Ma'am",
-    salutation: "Dear Prof. Neha Ma'am,",
-    envelopeName: "For Prof. Neha Ma'am",
-    pageTitle: "An Invitation for Prof. Neha Ma'am • Debug Decrypt 3.0",
+    name: "Prof. Neha Chauhan",
+    formalTitle: "Prof. Neha Chauhan",
+    salutation: "Dear Prof. Neha Chauhan,",
+    envelopeName: "For Prof. Neha Chauhan",
+    pageTitle: "An Invitation for Prof. Neha Chauhan • Debug Decrypt 3.0",
     department: "Department of Computer Science & Engineering",
     designation: "Assistant Professor & Faculty Mentor",
     institution: "Dronacharya College of Engineering",
     vipPassCode: "VIP-DD3-FACULTY-06",
-    avatarUrl: null,
-    initials: "NM",
+    avatarUrl: "/Neha-Chauhan.jpg",
+    initials: "NC",
     personalMessage:
       "We warmly invite you to Debug Decrypt 3.0. Your presence will inspire our students as they take on intense rounds of debugging and problem-solving.",
     surpriseNote:
-      "Thank you for your continuous support, kindness, and enthusiasm for student initiatives! ♡",
+      "Thank you for your continuous support, kindness, and enthusiasm for student initiatives.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
     eventVenueText: "Online Arena & Campus Auditorium, DCE",
   },
-  "ashwani": {
+  "neha-chauhan": {
+    slug: "neha",
+    name: "Prof. Neha Chauhan",
+    formalTitle: "Prof. Neha Chauhan",
+    salutation: "Dear Prof. Neha Chauhan,",
+    envelopeName: "For Prof. Neha Chauhan",
+    pageTitle: "An Invitation for Prof. Neha Chauhan • Debug Decrypt 3.0",
+    department: "Department of Computer Science & Engineering",
+    designation: "Assistant Professor & Faculty Mentor",
+    institution: "Dronacharya College of Engineering",
+    vipPassCode: "VIP-DD3-FACULTY-06",
+    avatarUrl: "/Neha-Chauhan.jpg",
+    initials: "NC",
+    personalMessage:
+      "We warmly invite you to Debug Decrypt 3.0. Your presence will inspire our students as they take on intense rounds of debugging and problem-solving.",
+    surpriseNote:
+      "Thank you for your continuous support, kindness, and enthusiasm for student initiatives.",
+    eventDateText: "13 & 15 October 2026",
+    eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
+    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+  },
+  ashwani: {
     slug: "ashwani",
-    name: "Prof. Ashwani",
-    honorific: "Sir",
-    formalTitle: "Prof. Ashwani Sir",
-    salutation: "Dear Prof. Ashwani Sir,",
-    envelopeName: "For Prof. Ashwani Sir",
-    pageTitle: "An Invitation for Prof. Ashwani Sir • Debug Decrypt 3.0",
+    name: "Prof. Ashwani Kumar",
+    formalTitle: "Prof. Ashwani Kumar",
+    salutation: "Dear Prof. Ashwani Kumar,",
+    envelopeName: "For Prof. Ashwani Kumar",
+    pageTitle: "An Invitation for Prof. Ashwani Kumar • Debug Decrypt 3.0",
     department: "Department of Computer Science & Engineering",
     designation: "Assistant Professor & Tech Mentor",
     institution: "Dronacharya College of Engineering",
     vipPassCode: "VIP-DD3-FACULTY-07",
-    avatarUrl: null,
-    initials: "AS",
+    avatarUrl: "/Ashwani-Kumar.jpg",
+    initials: "AK",
     personalMessage:
       "We cordially invite you to join us as our Honored Guest at Debug Decrypt 3.0. Your encouragement means the world to our engineering and coding enthusiasts.",
     surpriseNote:
-      "Thank you for constantly inspiring us to build, innovate, and persevere through tough challenges. ♡",
+      "Thank you for constantly inspiring us to build, innovate, and persevere through tough challenges.",
+    eventDateText: "13 & 15 October 2026",
+    eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
+    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+  },
+  "ashwani-kumar": {
+    slug: "ashwani",
+    name: "Prof. Ashwani Kumar",
+    formalTitle: "Prof. Ashwani Kumar",
+    salutation: "Dear Prof. Ashwani Kumar,",
+    envelopeName: "For Prof. Ashwani Kumar",
+    pageTitle: "An Invitation for Prof. Ashwani Kumar • Debug Decrypt 3.0",
+    department: "Department of Computer Science & Engineering",
+    designation: "Assistant Professor & Tech Mentor",
+    institution: "Dronacharya College of Engineering",
+    vipPassCode: "VIP-DD3-FACULTY-07",
+    avatarUrl: "/Ashwani-Kumar.jpg",
+    initials: "AK",
+    personalMessage:
+      "We cordially invite you to join us as our Honored Guest at Debug Decrypt 3.0. Your encouragement means the world to our engineering and coding enthusiasts.",
+    surpriseNote:
+      "Thank you for constantly inspiring us to build, innovate, and persevere through tough challenges.",
+    eventDateText: "13 & 15 October 2026",
+    eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
+    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+  },
+  akanksha: {
+    slug: "akanksha",
+    name: "Prof. Akanksha",
+    formalTitle: "Prof. Akanksha",
+    salutation: "Dear Prof. Akanksha,",
+    envelopeName: "For Prof. Akanksha",
+    pageTitle: "An Invitation for Prof. Akanksha • Debug Decrypt 3.0",
+    department: "Training & Placement Cell",
+    designation: "Training & Placement Officer (TPO)",
+    institution: "Dronacharya College of Engineering",
+    vipPassCode: "VIP-DD3-TPO-01",
+    avatarUrl: null,
+    initials: "AK",
+    personalMessage:
+      "Your relentless dedication to connecting student talent with industry opportunities inspires us all. We would be deeply honored to have you grace Debug Decrypt 3.0 as our Honored Guest to witness the algorithmic skill and passion of our participants.",
+    surpriseNote:
+      "Thank you for championing student futures, creating career pathways, and always believing in our potential.",
+    eventDateText: "13 & 15 October 2026",
+    eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
+    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+  },
+  "akanksha-tpo": {
+    slug: "akanksha",
+    name: "Prof. Akanksha",
+    formalTitle: "Prof. Akanksha",
+    salutation: "Dear Prof. Akanksha,",
+    envelopeName: "For Prof. Akanksha",
+    pageTitle: "An Invitation for Prof. Akanksha • Debug Decrypt 3.0",
+    department: "Training & Placement Cell",
+    designation: "Training & Placement Officer (TPO)",
+    institution: "Dronacharya College of Engineering",
+    vipPassCode: "VIP-DD3-TPO-01",
+    avatarUrl: null,
+    initials: "AK",
+    personalMessage:
+      "Your relentless dedication to connecting student talent with industry opportunities inspires us all. We would be deeply honored to have you grace Debug Decrypt 3.0 as our Honored Guest to witness the algorithmic skill and passion of our participants.",
+    surpriseNote:
+      "Thank you for championing student futures, creating career pathways, and always believing in our potential.",
     eventDateText: "13 & 15 October 2026",
     eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
     eventVenueText: "Online Arena & Campus Auditorium, DCE",
@@ -192,45 +331,12 @@ export function normalizeFacultySlug(rawSlug: string): string {
 }
 
 /**
- * Retrieves faculty invitation by slug, with dynamic fallback creation
- * for any unlisted faculty so custom invite links work seamlessly.
+ * Retrieves faculty invitation by slug.
+ * Returns null if the slug is not one of the approved faculty members.
  */
-export function getFacultyInvitation(rawSlug: string): FacultyInvitation {
+export function getFacultyInvitation(
+  rawSlug: string,
+): FacultyInvitation | null {
   const normalized = normalizeFacultySlug(rawSlug);
-
-  if (FACULTY_INVITATIONS[normalized]) {
-    return FACULTY_INVITATIONS[normalized];
-  }
-
-  // Format a dynamic faculty member if slug doesn't match registry
-  const words = normalized
-    .split(/[-_]+/)
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1));
-
-  const teacherName = words.length > 0 ? words.join(" ") : "Respected Faculty";
-  const initials = words.length > 0 ? words.map((w) => w[0]).slice(0, 2).join("").toUpperCase() : "FC";
-
-  return {
-    slug: normalized || "honored-faculty",
-    name: `Prof. ${teacherName}`,
-    honorific: "Ma'am",
-    formalTitle: `Prof. ${teacherName}`,
-    salutation: `Dear Prof. ${teacherName},`,
-    envelopeName: `For Prof. ${teacherName}`,
-    pageTitle: `An Invitation for Prof. ${teacherName} • Debug Decrypt 3.0`,
-    department: "Department of Computer Science & Engineering",
-    designation: "Honored Faculty Mentor",
-    institution: "Dronacharya College of Engineering",
-    vipPassCode: `VIP-DD3-${initials}-${Math.floor(100 + Math.random() * 900)}`,
-    avatarUrl: null,
-    initials,
-    personalMessage:
-      "Some of our best ideas started with a question you encouraged us to ask. We would be delighted to have you with us at Debug Decrypt 3.0 — a celebration of curiosity, creativity, and the joy of figuring things out together.",
-    surpriseNote:
-      "For every question you welcomed, every attempt you encouraged, and every student you believed in — thank you. Tonight, a little of that courage becomes code. ♡",
-    eventDateText: "13 & 15 October 2026",
-    eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
-    eventVenueText: "Online Arena & Campus Auditorium, DCE",
-  };
+  return FACULTY_INVITATIONS[normalized] || null;
 }

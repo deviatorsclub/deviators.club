@@ -93,7 +93,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen antialiased" suppressHydrationWarning>
         <AnimatedBackground />
         <Navbar />
         {children}

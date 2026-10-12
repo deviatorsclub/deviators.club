@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 import { Mail01Icon } from "@hugeicons/core-free-icons";
@@ -6,6 +9,12 @@ import socials from "@/data/socials";
 import type { IconType } from "react-icons";
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  if (pathname?.includes("/round-1") || pathname?.includes("/invitation")) {
+    return null;
+  }
+
   return (
     <footer id="contact" className="mt-auto pt-16 pb-6 sm:pt-20 sm:pb-8">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">

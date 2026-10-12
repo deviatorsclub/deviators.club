@@ -86,7 +86,7 @@ const Navigation = memo(() => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (pathname?.includes("/round-1")) {
+  if (pathname?.includes("/round-1") || pathname?.includes("/invitation")) {
     return null;
   }
 
