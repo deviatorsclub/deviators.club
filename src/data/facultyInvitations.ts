@@ -22,15 +22,57 @@ export interface FacultyInvitation {
 export const FACULTY_INVITATIONS: Record<string, FacultyInvitation> = {
   "ashima-mehta": {
     slug: "ashima-mehta",
-    name: "Prof. Ashima Mehta",
-    formalTitle: "Prof. Ashima Mehta",
-    salutation: "Dear Prof. Ashima Mehta,",
-    envelopeName: "For Prof. Ashima Mehta",
-    pageTitle: "An Invitation for Prof. Ashima Mehta • Debug Decrypt 3.0",
+    name: "Dr. Ashima Mehta",
+    formalTitle: "Dr. Ashima Mehta",
+    salutation: "Dear Dr. Ashima Mehta,",
+    envelopeName: "For Dr. Ashima Mehta",
+    pageTitle: "An Invitation for Dr. Ashima Mehta • Debug Decrypt 3.0",
     department: "Department of Computer Science & Engineering",
     designation: "Head of Department & Professor",
     institution: "Dronacharya College of Engineering",
-    vipPassCode: "VIP-DD3-FACULTY-01",
+    vipPassCode: "VIP-DD3-HOD-CSE",
+    avatarUrl: "/Ashima-Mehta.jpg",
+    initials: "AM",
+    personalMessage:
+      "Some of our best ideas started with a question you encouraged us to ask. We would be deeply honored to have you grace Debug Decrypt 3.0 — a celebration of curiosity, algorithms, and the spirit of innovation at Deviators Club.",
+    surpriseNote:
+      "For every question you welcomed, every milestone you inspired, and every student you believed in — thank you. Tonight, a little of that courage becomes code.",
+    eventDateText: "13 & 15 October 2026",
+    eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
+    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+  },
+  ashima: {
+    slug: "ashima-mehta",
+    name: "Dr. Ashima Mehta",
+    formalTitle: "Dr. Ashima Mehta",
+    salutation: "Dear Dr. Ashima Mehta,",
+    envelopeName: "For Dr. Ashima Mehta",
+    pageTitle: "An Invitation for Dr. Ashima Mehta • Debug Decrypt 3.0",
+    department: "Department of Computer Science & Engineering",
+    designation: "Head of Department & Professor",
+    institution: "Dronacharya College of Engineering",
+    vipPassCode: "VIP-DD3-HOD-CSE",
+    avatarUrl: "/Ashima-Mehta.jpg",
+    initials: "AM",
+    personalMessage:
+      "Some of our best ideas started with a question you encouraged us to ask. We would be deeply honored to have you grace Debug Decrypt 3.0 — a celebration of curiosity, algorithms, and the spirit of innovation at Deviators Club.",
+    surpriseNote:
+      "For every question you welcomed, every milestone you inspired, and every student you believed in — thank you. Tonight, a little of that courage becomes code.",
+    eventDateText: "13 & 15 October 2026",
+    eventTimeText: "7:00 PM IST (Prelims) · 10:00 AM IST (Grand Finale)",
+    eventVenueText: "Online Arena & Campus Auditorium, DCE",
+  },
+  "dr-ashima-mehta": {
+    slug: "ashima-mehta",
+    name: "Dr. Ashima Mehta",
+    formalTitle: "Dr. Ashima Mehta",
+    salutation: "Dear Dr. Ashima Mehta,",
+    envelopeName: "For Dr. Ashima Mehta",
+    pageTitle: "An Invitation for Dr. Ashima Mehta • Debug Decrypt 3.0",
+    department: "Department of Computer Science & Engineering",
+    designation: "Head of Department & Professor",
+    institution: "Dronacharya College of Engineering",
+    vipPassCode: "VIP-DD3-HOD-CSE",
     avatarUrl: "/Ashima-Mehta.jpg",
     initials: "AM",
     personalMessage:
@@ -329,7 +371,7 @@ export function normalizeFacultySlug(rawSlug: string): string {
   if (!rawSlug) return "";
   let clean = decodeURIComponent(rawSlug).trim().toLowerCase();
   clean = clean.replace(/^(invitation|invite)[-_]/, "");
-  clean = clean.replace(/^prof[-_]/, "");
+  clean = clean.replace(/^(prof|dr)[-_]/, "");
   return clean;
 }
 

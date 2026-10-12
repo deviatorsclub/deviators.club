@@ -57,6 +57,15 @@ export default function FacultyInvitationView({
   const [soundOn, setSoundOn] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedAnnouncement, setCopiedAnnouncement] = useState(false);
+  const [showDelayedTooltip, setShowDelayedTooltip] = useState(false);
+
+  // Delayed Tooltip Timer (appears after a few seconds if unopened)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowDelayedTooltip(true);
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Audio Context ref
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -504,14 +513,44 @@ export default function FacultyInvitationView({
           </div>
 
           {/* Interactive Envelope & Wax Seal Scene */}
-          <div className="relative mt-12 flex h-[360px] w-full max-w-[500px] items-center justify-center">
+          <div className="relative mt-8 flex h-[430px] w-full max-w-[500px] flex-col items-center justify-center">
             {/* Halo Backdrop Ring */}
             <div className="pointer-events-none absolute h-72 w-72 rounded-full bg-gradient-to-tr from-cyan-500/20 via-blue-500/10 to-indigo-500/20 blur-3xl" />
+
+            {/* Delayed Speech Bubble Tooltip (floating above seal after a few seconds) */}
+            <AnimatePresence>
+              {!opened && !isOpening && showDelayedTooltip && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12, scale: 0.85 }}
+                  animate={{
+                    opacity: 1,
+                    y: [0, -6, 0],
+                    scale: 1,
+                  }}
+                  exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    y: { duration: 2.2, repeat: Infinity, ease: "easeInOut" },
+                  }}
+                  className="pointer-events-none absolute top-4 z-30 select-none"
+                >
+                  <div className="relative rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-[#fef9c3] to-[#fef08a] px-5 py-2.5 text-center shadow-[0_12px_30px_rgba(245,158,11,0.45)]">
+                    <p className="font-heading text-xs font-black tracking-tight text-amber-950 sm:text-sm">
+                      Tap here to reveal
+                      <br />
+                      your surprise!
+                    </p>
+                    {/* Downward pointing speech bubble tail */}
+                    <div className="absolute -bottom-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-[8px] border-t-[8px] border-x-transparent border-t-[#fef08a]" />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div
               ref={envelopeRef}
               onClick={handleOpenEnvelope}
-              className={`group relative h-[220px] w-[340px] cursor-pointer transition-all duration-700 ease-out sm:h-[240px] sm:w-[380px] ${
+              className={`group relative mt-6 h-[220px] w-[340px] cursor-pointer transition-all duration-700 ease-out sm:h-[240px] sm:w-[380px] ${
                 opened
                   ? "scale-95 opacity-80"
                   : isOpening
@@ -574,14 +613,25 @@ export default function FacultyInvitationView({
                 }}
               />
 
-              {/* Custom Deviators Wax Seal */}
+              {/* Custom Deviators Wax Seal with Radiating Glow Rays */}
               <div
-                className={`absolute top-[40%] left-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-amber-300/80 bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 shadow-[0_0_25px_rgba(245,158,11,0.6),inset_0_2px_4px_rgba(255,255,255,0.6)] transition-all duration-500 ${
+                className={`absolute top-[40%] left-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-amber-300/90 bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 shadow-[0_0_28px_rgba(245,158,11,0.7),inset_0_2px_4px_rgba(255,255,255,0.6)] transition-all duration-500 ${
                   isOpening || opened
                     ? "scale-50 opacity-0"
-                    : "group-hover:scale-110 group-hover:shadow-[0_0_35px_rgba(245,158,11,0.9)]"
+                    : "group-hover:scale-110 group-hover:shadow-[0_0_38px_rgba(245,158,11,0.95)]"
                 }`}
               >
+                {/* Radiating Accent Rays (from design) */}
+                {!opened && !isOpening && (
+                  <>
+                    <span className="pointer-events-none absolute -top-3.5 left-1/2 h-2.5 w-0.5 -translate-x-1/2 rounded-full bg-amber-300 shadow-[0_0_6px_#f59e0b]" />
+                    <span className="pointer-events-none absolute -top-2.5 -left-2.5 h-2.5 w-0.5 -rotate-45 rounded-full bg-amber-300 shadow-[0_0_6px_#f59e0b]" />
+                    <span className="pointer-events-none absolute -top-2.5 -right-2.5 h-2.5 w-0.5 rotate-45 rounded-full bg-amber-300 shadow-[0_0_6px_#f59e0b]" />
+                    <span className="pointer-events-none absolute top-1/2 -left-3.5 h-0.5 w-2.5 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_6px_#f59e0b]" />
+                    <span className="pointer-events-none absolute top-1/2 -right-3.5 h-0.5 w-2.5 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_6px_#f59e0b]" />
+                  </>
+                )}
+
                 <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-200/40 bg-amber-600/40 text-amber-100 shadow-inner">
                   <LuAward size={20} className="drop-shadow-md" />
                 </div>
@@ -595,12 +645,14 @@ export default function FacultyInvitationView({
               </div>
             </div>
 
-            {/* Tap Hint */}
-            <div className="pointer-events-none absolute bottom-0 flex items-center gap-1.5 font-mono text-xs text-white/50">
-              <span className="text-cyan-400">↗</span>
-              <span>
-                {opened ? "Invitation Unsealed" : "Tap the seal to open"}
-              </span>
+            {/* Tap Hint Matching Provided Design */}
+            <div className="pointer-events-none mt-6 flex flex-col items-center text-center">
+              <p className="font-heading text-base font-black tracking-tight text-white sm:text-lg">
+                <span className="text-cyan-400">Tap the Seal</span> to Open
+              </p>
+              <p className="mt-0.5 font-sans text-xs text-white/60">
+                A special message awaits you
+              </p>
             </div>
           </div>
         </section>
