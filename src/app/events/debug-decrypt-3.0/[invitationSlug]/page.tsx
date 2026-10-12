@@ -26,7 +26,7 @@ export async function generateMetadata({
   }
 
   const title = `${invitation.pageTitle} | Deviators Club`;
-  const description = `A bespoke invitation from the students of Deviators Club & CSE Department for ${invitation.formalTitle} to grace Debug Decrypt 3.0 at Dronacharya College of Engineering.`;
+  const description = `A bespoke invitation from the students of Deviators Club for ${invitation.formalTitle} (${invitation.designation}, ${invitation.department}) to grace Debug Decrypt 3.0 at Dronacharya College of Engineering.`;
 
   return {
     title,
