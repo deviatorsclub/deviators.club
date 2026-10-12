@@ -1,3 +1,4 @@
+// Deviators Club - Debug Decrypt 3.0 Honored Faculty Invitations Registry
 export interface FacultyInvitation {
   slug: string;
   name: string;
