@@ -84,6 +84,22 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: "/event/:slug(debug-decrypt-3\\.0|debug-decrypt-3)/round-1",
+        destination: "/debug-decrypt-3.0/round-1",
+      },
+      {
+        source: "/events/:slug(debug-decrypt-3\\.0|debug-decrypt-3)/round-1",
+        destination: "/debug-decrypt-3.0/round-1",
+      },
+      {
+        source: "/event/:slug(debug-decrypt-3\\.0|debug-decrypt-3)/round-1/leaderboard",
+        destination: "/debug-decrypt-3.0/round-1/leaderboard",
+      },
+      {
+        source: "/events/:slug(debug-decrypt-3\\.0|debug-decrypt-3)/round-1/leaderboard",
+        destination: "/debug-decrypt-3.0/round-1/leaderboard",
+      },
+      {
         source: "/:slug(debug-decrypt-3\\.0|debug-decrypt-3)/registration",
         destination: "/events/:slug/registration",
       },
@@ -95,15 +111,9 @@ const nextConfig = {
         source: "/:slug(debug-decrypt-3\\.0|debug-decrypt-3)",
         destination: "/events/:slug",
       },
-    ];
-  },
-
-  async redirects() {
-    return [
       {
-        source: "/event/:slug*",
-        destination: "/events/:slug*",
-        permanent: true,
+        source: "/event/:path*",
+        destination: "/events/:path*",
       },
     ];
   },

@@ -250,7 +250,7 @@ export default function PresidentTeamsView() {
 
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
-            href="/debug-decrypt-3.0/round-1"
+            href="/event/debug-decrypt-3.0/round-1"
             className="flex items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/15 px-3.5 py-2 text-xs font-bold text-cyan-300 transition-colors hover:bg-cyan-500/25"
           >
             <span>⚡ Test Sandbox (Round 1)</span>

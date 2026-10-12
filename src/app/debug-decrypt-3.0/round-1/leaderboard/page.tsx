@@ -187,7 +187,7 @@ export default function Round1LeaderboardPage() {
 
         <div className="flex items-center gap-2.5">
           <Link
-            href="/debug-decrypt-3.0/round-1"
+            href="/event/debug-decrypt-3.0/round-1"
             className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-xs"
           >
             <LuArrowLeft size={13} />

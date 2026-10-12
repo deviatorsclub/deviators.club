@@ -313,7 +313,7 @@ export default function TeamShowcasePage({
               <div className="mt-4 flex justify-center">
                 {round1Timer.expired ? (
                   <Link
-                    href="/debug-decrypt-3.0/round-1"
+                    href="/event/debug-decrypt-3.0/round-1"
                     className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/50 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 px-5 py-2.5 text-xs font-bold text-white shadow-xl shadow-cyan-500/25 transition-all hover:scale-[1.03] hover:brightness-110"
                   >
                     <span>⚡ Attempt Round 1 (Assessment Live)</span>

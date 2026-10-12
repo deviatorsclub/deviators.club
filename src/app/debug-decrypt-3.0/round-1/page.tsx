@@ -774,7 +774,7 @@ export default function DebugDecryptRound1Page() {
               "You must be signed in to your Deviators Club account to access Round 1."}
           </p>
           <Link
-            href="/login?next=/debug-decrypt-3.0/round-1"
+            href="/login?next=/event/debug-decrypt-3.0/round-1"
             className="btn-primary w-full text-xs"
           >
             Sign In with Deviators Club
@@ -913,7 +913,7 @@ export default function DebugDecryptRound1Page() {
               </button>
             )}
             <Link
-              href="/debug-decrypt-3.0/round-1/leaderboard"
+              href="/event/debug-decrypt-3.0/round-1/leaderboard"
               className="btn-primary text-xs"
             >
               View Standings
@@ -955,7 +955,7 @@ export default function DebugDecryptRound1Page() {
 
         <div className="flex items-center gap-2.5">
           <Link
-            href="/debug-decrypt-3.0/round-1/leaderboard"
+            href="/event/debug-decrypt-3.0/round-1/leaderboard"
             className="btn-secondary px-3 py-1.5 text-xs"
           >
             Standings
@@ -1075,7 +1075,7 @@ export default function DebugDecryptRound1Page() {
             </p>
             <div className="mt-6">
               <Link
-                href="/debug-decrypt-3.0/round-1/leaderboard"
+                href="/event/debug-decrypt-3.0/round-1/leaderboard"
                 className="btn-primary px-5 py-2.5 text-xs"
               >
                 View Official Standings

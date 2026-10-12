@@ -793,7 +793,7 @@ export default function EventTeamManager({
               {slug === "debug-decrypt-3.0" &&
                 (round1Timer.expired ? (
                   <Link
-                    href="/debug-decrypt-3.0/round-1"
+                    href="/event/debug-decrypt-3.0/round-1"
                     className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-gradient-to-r from-blue-600 to-cyan-500 px-3.5 py-2 text-xs font-bold text-white shadow-lg shadow-cyan-500/25 transition-all hover:scale-[1.02] hover:brightness-110"
                   >
                     <span>⚡ Attempt Round 1</span>
