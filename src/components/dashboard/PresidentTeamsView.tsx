@@ -146,7 +146,16 @@ export default function PresidentTeamsView() {
   // Export to CSV
   const exportCsv = () => {
     if (teams.length === 0) return;
+
+    const escapeCsv = (val: string | number | null | undefined) => {
+      if (val === null || val === undefined) return '""';
+      const s = String(val).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+
     const headers = [
+      "S.No",
+      "Team ID",
       "Team Name",
       "Created Date",
       "Total Members",
@@ -159,13 +168,40 @@ export default function PresidentTeamsView() {
       "Leader Roll No",
       "Leader Branch",
       "Leader Section",
+      "Leader Year",
+      "Teammate 2 Name",
+      "Teammate 2 Handle",
+      "Teammate 2 Email",
+      "Teammate 2 Phone",
+      "Teammate 2 Roll No",
+      "Teammate 2 Branch",
+      "Teammate 2 Section",
+      "Teammate 2 Status",
+      "Teammate 3 Name",
+      "Teammate 3 Handle",
+      "Teammate 3 Email",
+      "Teammate 3 Phone",
+      "Teammate 3 Roll No",
+      "Teammate 3 Branch",
+      "Teammate 3 Section",
+      "Teammate 3 Status",
       "Round 1 Status",
       "Round 1 Score",
-      "Members Details",
+      "Round 1 Max Score",
+      "Round 1 Submitted At",
+      "Round 1 Strikes",
+      "All Members Summary",
     ];
 
-    const rows = teams.map((t) => {
-      const membersStr = t.members
+    const rows = teams.map((t, idx) => {
+      // Find teammates (non-leaders)
+      const teammates = t.members.filter(
+        (m) => m.profileId !== t.leader.profileId && !m.isLeader,
+      );
+      const m2 = teammates[0];
+      const m3 = teammates[1];
+
+      const membersSummary = t.members
         .map(
           (m) =>
             `${m.displayName} (@${m.username}, ${m.status}, Roll: ${m.collegeId || "N/A"}, Phone: ${m.phone || "N/A"}, Branch: ${m.branch || "N/A"})`,
@@ -177,40 +213,75 @@ export default function PresidentTeamsView() {
         : "Not Attempted";
       const r1Score =
         t.round1?.score !== null && t.round1?.score !== undefined
-          ? `${t.round1.score}/${t.round1.maxScore ?? 30}`
+          ? t.round1.score
           : "N/A";
+      const r1Max = t.round1?.maxScore ?? 30;
+      const r1SubmittedAt = t.round1?.submittedAt
+        ? new Date(t.round1.submittedAt).toLocaleString()
+        : "N/A";
+      const r1Strikes = t.round1?.strikes ?? 0;
 
       return [
-        `"${t.name.replace(/"/g, '""')}"`,
-        `"${new Date(t.createdAt).toLocaleDateString()}"`,
+        idx + 1,
+        escapeCsv(t.id),
+        escapeCsv(t.name),
+        escapeCsv(new Date(t.createdAt).toLocaleString()),
         t.memberCount,
         t.acceptedCount,
         t.pendingCount,
-        `"${t.leader.displayName.replace(/"/g, '""')}"`,
-        `"@${t.leader.username}"`,
-        `"${t.leader.email}"`,
-        `"${t.leader.phone}"`,
-        `"${t.leader.collegeId}"`,
-        `"${t.leader.branch}"`,
-        `"${t.leader.section}"`,
-        `"${r1Status}"`,
-        `"${r1Score}"`,
-        `"${membersStr.replace(/"/g, '""')}"`,
+        // Leader
+        escapeCsv(t.leader.displayName),
+        escapeCsv(`@${t.leader.username}`),
+        escapeCsv(t.leader.email),
+        escapeCsv(t.leader.phone),
+        escapeCsv(t.leader.collegeId),
+        escapeCsv(t.leader.branch),
+        escapeCsv(t.leader.section),
+        escapeCsv(t.leader.year),
+        // Teammate 2
+        escapeCsv(m2?.displayName || ""),
+        escapeCsv(m2 ? `@${m2.username}` : ""),
+        escapeCsv(m2?.email || ""),
+        escapeCsv(m2?.phone || ""),
+        escapeCsv(m2?.collegeId || ""),
+        escapeCsv(m2?.branch || ""),
+        escapeCsv(m2?.section || ""),
+        escapeCsv(m2?.status || ""),
+        // Teammate 3
+        escapeCsv(m3?.displayName || ""),
+        escapeCsv(m3 ? `@${m3.username}` : ""),
+        escapeCsv(m3?.email || ""),
+        escapeCsv(m3?.phone || ""),
+        escapeCsv(m3?.collegeId || ""),
+        escapeCsv(m3?.branch || ""),
+        escapeCsv(m3?.section || ""),
+        escapeCsv(m3?.status || ""),
+        // Round 1
+        escapeCsv(r1Status),
+        escapeCsv(r1Score),
+        escapeCsv(r1Max),
+        escapeCsv(r1SubmittedAt),
+        escapeCsv(r1Strikes),
+        // Full summary
+        escapeCsv(membersSummary),
       ].join(",");
     });
 
-    const csvContent =
-      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.href = url;
     link.setAttribute(
       "download",
-      `debug_decrypt_teams_${new Date().toISOString().slice(0, 10)}.csv`,
+      `debug_decrypt_teams_all_${teams.length}_${new Date().toISOString().slice(0, 10)}.csv`,
     );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   if (error) {
@@ -275,7 +346,7 @@ export default function PresidentTeamsView() {
             className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-3.5 py-2 text-xs font-bold text-emerald-300 transition-colors hover:bg-emerald-500/25"
           >
             <HugeiconsIcon icon={Download01Icon} size={14} />
-            <span>Export CSV</span>
+            <span>Export CSV ({teams.length})</span>
           </button>
         </div>
       </div>

@@ -206,6 +206,13 @@ export async function GET(req: NextRequest) {
             isLeader,
           };
         });
+      // Check if leader or any teammate has attempted Round 1
+      const teamMemberIds = teamMembers.map((m) => m.profileId);
+      if (!teamMemberIds.includes(t.leader_id)) teamMemberIds.push(t.leader_id);
+
+      const r1Session =
+        round1Map.get(t.leader_id) ||
+        teamMemberIds.map((id) => round1Map.get(id)).find(Boolean);
 
       return {
         id: t.id,
@@ -213,9 +220,11 @@ export async function GET(req: NextRequest) {
         createdAt: t.created_at,
         leader: {
           profileId: t.leader_id,
-          username: leaderProfile?.username || "leader",
+          username: leaderProfile?.username || "unknown",
           displayName:
-            leaderProfile?.display_name || leaderProfile?.username || "Leader",
+            leaderProfile?.display_name ||
+            leaderProfile?.username ||
+            "Unknown Leader",
           avatarUrl: leaderProfile?.avatar_url || "",
           email: leaderEmail,
           phone: leaderReg?.phone || "",
@@ -229,14 +238,14 @@ export async function GET(req: NextRequest) {
         acceptedCount: teamMembers.filter((m) => m.status === "accepted")
           .length,
         pendingCount: teamMembers.filter((m) => m.status === "pending").length,
-        round1: round1Map.has(t.leader_id)
+        round1: r1Session
           ? {
               hasAttempted: true,
-              status: round1Map.get(t.leader_id)!.status,
-              score: round1Map.get(t.leader_id)!.score,
-              maxScore: round1Map.get(t.leader_id)!.max_score,
-              submittedAt: round1Map.get(t.leader_id)!.submitted_at,
-              strikes: round1Map.get(t.leader_id)!.strike_count || 0,
+              status: r1Session.status,
+              score: r1Session.score,
+              maxScore: r1Session.max_score,
+              submittedAt: r1Session.submitted_at,
+              strikes: r1Session.strike_count || 0,
             }
           : {
               hasAttempted: false,
@@ -248,6 +257,143 @@ export async function GET(req: NextRequest) {
             },
       };
     });
+
+    // Support direct CSV download from API
+    if (searchParams.get("format") === "csv") {
+      const escapeCsv = (val: any) => {
+        if (val === null || val === undefined) return '""';
+        return `"${String(val).replace(/"/g, '""')}"`;
+      };
+
+      const headers = [
+        "S.No",
+        "Team Name",
+        "Created Date",
+        "Total Members",
+        "Accepted Members",
+        "Pending Invites",
+        "Team Status",
+        "Leader Name",
+        "Leader Handle",
+        "Leader Email",
+        "Leader Phone",
+        "Leader Roll No",
+        "Leader Branch",
+        "Leader Section",
+        "Leader Year",
+        "Teammate 2 Name",
+        "Teammate 2 Handle",
+        "Teammate 2 Email",
+        "Teammate 2 Phone",
+        "Teammate 2 Roll No",
+        "Teammate 2 Branch",
+        "Teammate 2 Section",
+        "Teammate 2 Status",
+        "Teammate 3 Name",
+        "Teammate 3 Handle",
+        "Teammate 3 Email",
+        "Teammate 3 Phone",
+        "Teammate 3 Roll No",
+        "Teammate 3 Branch",
+        "Teammate 3 Section",
+        "Teammate 3 Status",
+        "Round 1 Status",
+        "Round 1 Score",
+        "Round 1 Max Score",
+        "Round 1 Submitted At",
+        "Round 1 Strikes",
+        "All Members Summary",
+      ];
+
+      const csvRows = enrichedTeams.map((t, idx) => {
+        const nonLeaderMembers = t.members.filter(
+          (m: any) => m.profileId !== t.leader.profileId,
+        );
+        const m2 = nonLeaderMembers[0];
+        const m3 = nonLeaderMembers[1];
+
+        const r1Status = t.round1?.hasAttempted
+          ? t.round1.status
+          : "Not Attempted";
+        const r1Score =
+          t.round1?.score !== null && t.round1?.score !== undefined
+            ? t.round1.score
+            : "N/A";
+        const r1Max =
+          t.round1?.maxScore !== null && t.round1?.maxScore !== undefined
+            ? t.round1.maxScore
+            : "N/A";
+        const r1SubmittedAt = t.round1?.submittedAt
+          ? new Date(t.round1.submittedAt).toLocaleString()
+          : "N/A";
+        const r1Strikes = t.round1?.strikes ?? 0;
+
+        const teamStatusStr =
+          t.acceptedCount === 3
+            ? "Complete (3/3)"
+            : t.acceptedCount === 2
+              ? "Two Members (2/3)"
+              : "Solo Leader (1/3)";
+
+        const membersSummary = t.members
+          .map(
+            (m: any) =>
+              `${m.displayName} (@${m.username}, ${m.status}, Roll: ${m.collegeId || "N/A"}, Phone: ${m.phone || "N/A"}, Branch: ${m.branch || "N/A"})`,
+          )
+          .join(" | ");
+
+        return [
+          idx + 1,
+          escapeCsv(t.name),
+          escapeCsv(new Date(t.createdAt).toLocaleDateString()),
+          t.memberCount,
+          t.acceptedCount,
+          t.pendingCount,
+          escapeCsv(teamStatusStr),
+          escapeCsv(t.leader.displayName),
+          escapeCsv(`@${t.leader.username}`),
+          escapeCsv(t.leader.email),
+          escapeCsv(t.leader.phone),
+          escapeCsv(t.leader.collegeId),
+          escapeCsv(t.leader.branch),
+          escapeCsv(t.leader.section),
+          escapeCsv(t.leader.year),
+          escapeCsv(m2?.displayName || ""),
+          escapeCsv(m2 ? `@${m2.username}` : ""),
+          escapeCsv(m2?.email || ""),
+          escapeCsv(m2?.phone || ""),
+          escapeCsv(m2?.collegeId || ""),
+          escapeCsv(m2?.branch || ""),
+          escapeCsv(m2?.section || ""),
+          escapeCsv(m2?.status || ""),
+          escapeCsv(m3?.displayName || ""),
+          escapeCsv(m3 ? `@${m3.username}` : ""),
+          escapeCsv(m3?.email || ""),
+          escapeCsv(m3?.phone || ""),
+          escapeCsv(m3?.collegeId || ""),
+          escapeCsv(m3?.branch || ""),
+          escapeCsv(m3?.section || ""),
+          escapeCsv(m3?.status || ""),
+          escapeCsv(r1Status),
+          escapeCsv(r1Score),
+          escapeCsv(r1Max),
+          escapeCsv(r1SubmittedAt),
+          r1Strikes,
+          escapeCsv(membersSummary),
+        ].join(",");
+      });
+
+      const csvContent =
+        "\uFEFF" + [headers.join(","), ...csvRows].join("\r\n");
+
+      return new NextResponse(csvContent, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="debug_decrypt_teams_all_${enrichedTeams.length}.csv"`,
+        },
+      });
+    }
 
     return NextResponse.json({
       event: { id: event.id, title: event.title, slug: event.slug },
