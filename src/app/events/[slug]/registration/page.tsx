@@ -534,6 +534,49 @@ export default function EventRegistrationPage({
     );
   }
 
+  // If user is not in a team, registrations have officially closed
+  if (true) {
+    return (
+      <main className="mx-auto min-h-screen w-full max-w-2xl px-4 pt-28 pb-20">
+        <div className="glass-card rounded-3xl border border-red-500/30 bg-[#0a0f1d] p-8 text-center shadow-2xl sm:p-12">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-red-400/40 bg-red-500/10 text-red-400">
+            <HugeiconsIcon icon={Time02Icon} size={32} />
+          </div>
+
+          <span className="inline-block rounded-full border border-red-400/30 bg-red-500/15 px-3.5 py-1 text-xs font-bold tracking-wider text-red-300 uppercase">
+            Registrations Closed
+          </span>
+
+          <h1 className="font-heading mt-4 text-2xl font-black text-white sm:text-3xl">
+            Registration Window Has Concluded
+          </h1>
+
+          <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-white/60 sm:text-sm">
+            Registrations for {event.title} are officially closed. All team
+            rosters and invitations have been locked and finalized for Round 1.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href={`/events/${slug}`}
+              className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-xs font-bold"
+            >
+              <span>View Event Details</span>
+              <HugeiconsIcon icon={ArrowRight01Icon} size={15} />
+            </Link>
+
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-semibold text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <span>Return to Dashboard</span>
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   // If user is not logged in
   if (!currentUser) {
     return (
@@ -861,17 +904,17 @@ export default function EventRegistrationPage({
                 <div className="flex items-center justify-between rounded-xl border border-cyan-400/30 bg-cyan-500/10 p-3">
                   <div className="flex min-w-0 items-center gap-2.5">
                     <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/5">
-                      {member1.profile.avatarUrl ? (
+                      {member1.profile?.avatarUrl ? (
                         <Image
-                          src={member1.profile.avatarUrl}
-                          alt={member1.profile.displayName}
+                          src={member1.profile?.avatarUrl || ""}
+                          alt={member1.profile?.displayName || "Teammate"}
                           fill
                           className="object-cover"
                           unoptimized
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white/60">
-                          {member1.profile.displayName
+                          {(member1.profile?.displayName || "TM")
                             .slice(0, 2)
                             .toUpperCase()}
                         </div>
@@ -879,10 +922,10 @@ export default function EventRegistrationPage({
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-xs font-bold text-white">
-                        {member1.profile.displayName}
+                        {member1.profile?.displayName}
                       </p>
                       <p className="truncate font-mono text-[10px] text-cyan-300">
-                        @{member1.profile.username}
+                        @{member1.profile?.username}
                       </p>
                     </div>
                   </div>
@@ -1119,17 +1162,17 @@ export default function EventRegistrationPage({
                     <div className="flex items-center justify-between rounded-xl border border-purple-400/30 bg-purple-500/10 p-3">
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/5">
-                          {member2.profile.avatarUrl ? (
+                          {member2.profile?.avatarUrl ? (
                             <Image
-                              src={member2.profile.avatarUrl}
-                              alt={member2.profile.displayName}
+                              src={member2.profile?.avatarUrl || ""}
+                              alt={member2.profile?.displayName || "Teammate"}
                               fill
                               className="object-cover"
                               unoptimized
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white/60">
-                              {member2.profile.displayName
+                              {(member2.profile?.displayName || "TM")
                                 .slice(0, 2)
                                 .toUpperCase()}
                             </div>
@@ -1137,10 +1180,10 @@ export default function EventRegistrationPage({
                         </div>
                         <div className="min-w-0">
                           <p className="truncate text-xs font-bold text-white">
-                            {member2.profile.displayName}
+                            {member2.profile?.displayName}
                           </p>
                           <p className="truncate font-mono text-[10px] text-purple-300">
-                            @{member2.profile.username}
+                            @{member2.profile?.username}
                           </p>
                         </div>
                       </div>

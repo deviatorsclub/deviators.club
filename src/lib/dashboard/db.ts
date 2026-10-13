@@ -330,8 +330,8 @@ export async function fetchRegistrationsDb(
       const mates = (tm ?? [])
         .map(
           (x) =>
-            (x.profiles as unknown as { username: string } | null)
-              ?.username ?? "",
+            (x.profiles as unknown as { username: string } | null)?.username ??
+            "",
         )
         .filter(Boolean);
 
@@ -524,6 +524,7 @@ export type CommunityMember = {
   branch: string;
   year: string;
   bio?: string;
+  linkedinUrl?: string;
   tags: {
     tag: string;
     label: string;
@@ -544,6 +545,7 @@ export async function fetchCommunityMembersDb(): Promise<CommunityMember[]> {
       branch,
       year,
       bio,
+      linkedin_url,
       profile_roles(
         tag,
         roles(
@@ -574,6 +576,7 @@ export async function fetchCommunityMembersDb(): Promise<CommunityMember[]> {
       branch: p.branch || "",
       year: p.year || "",
       bio: p.bio || "",
+      linkedinUrl: (p as any).linkedin_url || "",
       tags,
     };
   });

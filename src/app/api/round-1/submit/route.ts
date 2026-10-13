@@ -34,9 +34,16 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Fetch responses to grade on the server
-    const { savedResponses } = await getQuizResponses(session.id);
+    const { savedResponses, questionTimes } = await getQuizResponses(
+      session.id,
+    );
     const grading = gradeSubmission(savedResponses);
     const submittedAt = new Date().toISOString();
+    const totalTimeSeconds = Math.round(
+      (new Date(submittedAt).getTime() -
+        new Date(session.started_at).getTime()) /
+        1000,
+    );
 
     await updateQuizSession(user.id, "round-1", {
       status: "submitted",
@@ -44,6 +51,8 @@ export async function POST(req: NextRequest) {
       submitted_at: submittedAt,
       score: grading.score,
       max_score: grading.maxScore,
+      total_time_seconds: totalTimeSeconds,
+      question_times: questionTimes,
     });
 
     return NextResponse.json({

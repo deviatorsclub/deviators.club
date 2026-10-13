@@ -47,24 +47,42 @@ export async function GET(req: NextRequest) {
       .select("tag")
       .eq("profile_id", user.id);
 
-    const hasPresidentRole = (userRoles || []).some(
-      (r) => r.tag === "president" || r.tag === "club-official",
+    const hasAdminOrFacultyRole = (userRoles || []).some(
+      (r) =>
+        r.tag === "president" ||
+        r.tag === "club-official" ||
+        r.tag === "faculty-coordinator" ||
+        r.tag === "chief-coordinator" ||
+        (r.tag || "").toLowerCase().includes("faculty") ||
+        (r.tag || "").toLowerCase().includes("coordinator"),
     );
 
     const usernameLower = (userProfile?.username || "").toLowerCase();
     const emailLower = (user.email || "").toLowerCase();
-    const isPresidentIdentity =
+    const isPresidentOrFacultyIdentity =
       usernameLower === "akshitbhandaricodes" ||
       usernameLower === "aarushi" ||
       usernameLower === "deviatorsclub" ||
+      usernameLower === "paperboat" ||
+      usernameLower === "kunalwadhwa" ||
+      usernameLower === "wadhwakunal" ||
+      usernameLower === "renunarwal" ||
       emailLower.includes("akshitbhandaricodes") ||
-      emailLower.includes("arushik");
+      emailLower.includes("arushik") ||
+      emailLower.includes("paperboat") ||
+      emailLower.includes("kunalwadhwa") ||
+      emailLower.includes("wadhwakunal") ||
+      emailLower.includes("renunarwal") ||
+      emailLower.includes("renu");
 
-    const isAuthorized = hasPresidentRole || isPresidentIdentity;
+    const isAuthorized = hasAdminOrFacultyRole || isPresidentOrFacultyIdentity;
 
     if (!isAuthorized) {
       return NextResponse.json(
-        { error: "Forbidden: President authorization required." },
+        {
+          error:
+            "Forbidden: President or Faculty Coordinator authorization required.",
+        },
         { status: 403 },
       );
     }
@@ -111,7 +129,10 @@ export async function GET(req: NextRequest) {
       .in("team_id", teamIds);
 
     const allProfileIds = Array.from(
-      new Set((allMembers || []).map((m) => m.profile_id)),
+      new Set([
+        ...teams.map((t) => t.leader_id),
+        ...(allMembers || []).map((m) => m.profile_id),
+      ]),
     );
 
     // 7. Fetch profiles

@@ -12,6 +12,7 @@ import {
   sanitizeQuestion,
   shuffleArray,
   ROUND_1_DURATION_MINUTES,
+  ROUND_1_HARD_DEADLINE,
   isRound1Active,
 } from "@/data/round1Questions";
 
@@ -27,24 +28,36 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const resetRequested = Boolean(body?.reset);
 
-  // Enforce Contest Schedule: 13th Oct 2026, 7:00 PM to 7:45 PM IST (Presidents can bypass anytime for testing/demo)
+  // Enforce Contest Schedule:
+  // Attempt window: 7:00 PM to 7:30 PM IST
+  // Maximum session cutoff: 7:40 PM IST
   const schedule = isRound1Active(user.isPresident);
   if (!schedule.active) {
     if (!schedule.hasStarted) {
       return NextResponse.json(
         {
           error:
-            "Round 1 goes live on October 13, 2026 between 7:00 PM – 7:45 PM IST. Please return then to attempt your test.",
+            "Round 1 goes live on October 13, 2026 at 7:00 PM IST (Window: 7:00 PM – 7:30 PM). Please return at 7:00 PM to begin your test.",
           schedule,
         },
         { status: 403 },
       );
     }
-    if (schedule.hasEnded) {
+    if (schedule.windowClosed) {
       return NextResponse.json(
         {
           error:
-            "Round 1 concluded at 7:45 PM IST on October 13, 2026. The testing window is closed.",
+            "The Round 1 test initiation window closed at 7:30 PM IST on October 13, 2026. New test attempts are no longer permitted.",
+          schedule,
+        },
+        { status: 403 },
+      );
+    }
+    if (schedule.hardDeadlineReached) {
+      return NextResponse.json(
+        {
+          error:
+            "Round 1 concluded at 7:40 PM IST on October 13, 2026. The testing portal is closed.",
           schedule,
         },
         { status: 403 },
@@ -104,7 +117,7 @@ export async function POST(req: NextRequest) {
         user.isPresident &&
         (resetRequested || existingSession.status !== "in_progress")
       ) {
-        // President can reset or start fresh anytime for testing & demo purposes
+        // President & Faculty can reset or start fresh anytime for testing & demo purposes
         await deleteQuizSession(user.id, "round-1");
       } else if (existingSession.status !== "in_progress") {
         return NextResponse.json(
@@ -115,12 +128,25 @@ export async function POST(req: NextRequest) {
           { status: 400 },
         );
       } else {
-        // If already in progress, resume session
-        const questionMap = new Map(
-          MASTER_QUESTIONS.map((q) => [q.id, sanitizeQuestion(q)]),
-        );
+        // If already in progress, resume session with preserved shuffled question & option order
+        const questionMap = new Map(MASTER_QUESTIONS.map((q) => [q.id, q]));
         const orderedQuestions = (existingSession.shuffled_order || [])
-          .map((id) => questionMap.get(id))
+          .map((id) => {
+            const masterQ = questionMap.get(id);
+            if (!masterQ) return null;
+            const optOrder = existingSession.shuffled_options?.[id];
+            let opts = masterQ.options;
+            if (optOrder && optOrder.length > 0) {
+              const optMap = new Map(masterQ.options.map((o) => [o.id, o]));
+              opts = optOrder
+                .map((optId) => optMap.get(optId))
+                .filter(Boolean) as any;
+            }
+            return {
+              ...sanitizeQuestion(masterQ),
+              options: opts,
+            };
+          })
           .filter(Boolean);
 
         const now = new Date();
@@ -141,14 +167,30 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. Generate randomized shuffled question order
+    // 3. Generate randomized shuffled question order AND randomized option order per question
     const shuffledQuestions = shuffleArray(MASTER_QUESTIONS);
     const shuffledOrder = shuffledQuestions.map((q) => q.id);
 
+    const shuffledOptions: Record<string, string[]> = {};
+    const sanitizedQuestions = shuffledQuestions.map((q) => {
+      const shuffledOpts = shuffleArray(q.options);
+      shuffledOptions[q.id] = shuffledOpts.map((o) => o.id);
+      return {
+        ...sanitizeQuestion(q),
+        options: shuffledOpts,
+      };
+    });
+
     const startedAt = new Date();
-    const expiresAt = new Date(
-      startedAt.getTime() + ROUND_1_DURATION_MINUTES * 60 * 1000,
-    );
+    // Maximum session expiration: min(startedAt + 10 mins, 7:40 PM IST hard deadline)
+    const hardDeadlineMs = new Date(ROUND_1_HARD_DEADLINE).getTime();
+    const standardExpiresMs =
+      startedAt.getTime() + ROUND_1_DURATION_MINUTES * 60 * 1000;
+    const expiresMs = user.isPresident
+      ? standardExpiresMs
+      : Math.min(standardExpiresMs, hardDeadlineMs);
+    const expiresAt = new Date(expiresMs);
+
     const sessionId =
       typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
@@ -165,6 +207,9 @@ export async function POST(req: NextRequest) {
       termination_reason: null,
       strike_count: 0,
       shuffled_order: shuffledOrder,
+      shuffled_options: shuffledOptions,
+      question_times: {},
+      total_time_seconds: 0,
       score: 0,
       max_score: 0,
       created_at: startedAt.toISOString(),
@@ -172,8 +217,9 @@ export async function POST(req: NextRequest) {
 
     const savedSession = await createQuizSession(newSessionData);
 
-    const sanitizedQuestions = shuffledQuestions.map((q) =>
-      sanitizeQuestion(q),
+    const actualRemainingSeconds = Math.max(
+      0,
+      Math.floor((expiresAt.getTime() - startedAt.getTime()) / 1000),
     );
 
     return NextResponse.json({
@@ -185,7 +231,7 @@ export async function POST(req: NextRequest) {
         status: savedSession.status,
         strike_count: 0,
       },
-      remainingSeconds: ROUND_1_DURATION_MINUTES * 60,
+      remainingSeconds: actualRemainingSeconds,
       questions: sanitizedQuestions,
     });
   } catch (err: any) {

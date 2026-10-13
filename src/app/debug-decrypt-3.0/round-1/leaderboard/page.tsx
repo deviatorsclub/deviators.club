@@ -148,11 +148,11 @@ export default function Round1LeaderboardPage() {
             <LuLock size={22} />
           </div>
           <h2 className="font-heading mb-2 text-lg font-bold text-white">
-            Restricted Access · President Only
+            Restricted Access · Executives & Faculty Only
           </h2>
           <p className="mb-5 text-xs leading-relaxed text-white/60">
             Round 1 scores and standings are strictly confidential and reserved
-            exclusively for the Club President.
+            exclusively for Club Executives and Faculty Coordinators.
           </p>
           <Link href="/dashboard" className="btn-secondary w-full text-xs">
             Return to Dashboard
@@ -212,7 +212,7 @@ export default function Round1LeaderboardPage() {
               </span>
               {isPresident && (
                 <span className="rounded-lg border border-purple-500/30 bg-purple-500/15 px-2.5 py-0.5 text-xs font-bold text-purple-300">
-                  President Mode (Scores Unlocked)
+                  Executive & Faculty Mode (Scores Unlocked)
                 </span>
               )}
             </div>

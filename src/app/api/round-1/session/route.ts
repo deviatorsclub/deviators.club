@@ -11,6 +11,7 @@ import {
   sanitizeQuestion,
   gradeSubmission,
   ROUND_1_DURATION_MINUTES,
+  ROUND_1_HARD_DEADLINE,
   isRound1Active,
 } from "@/data/round1Questions";
 
@@ -91,24 +92,40 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Check if session has expired while in progress
+    // Check if session has expired while in progress or 7:40 PM hard cutoff reached
     const now = new Date();
     const expiresAt = new Date(session.expires_at);
+    const hardCutoff = new Date(ROUND_1_HARD_DEADLINE);
     let currentStatus = session.status;
     const strikeCount = session.strike_count || 0;
 
-    if (currentStatus === "in_progress" && now > expiresAt) {
+    const isHardCutoffReached = !user.isPresident && now > hardCutoff;
+    const isSessionExpired = now > expiresAt;
+
+    if (
+      currentStatus === "in_progress" &&
+      (isSessionExpired || isHardCutoffReached)
+    ) {
       currentStatus = "submitted";
 
-      const { savedResponses } = await getQuizResponses(session.id);
+      const { savedResponses, questionTimes } = await getQuizResponses(
+        session.id,
+      );
       const grading = gradeSubmission(savedResponses);
+      const totalTimeSeconds = Math.round(
+        (now.getTime() - new Date(session.started_at).getTime()) / 1000,
+      );
 
       await updateQuizSession(user.id, "round-1", {
         status: "submitted",
-        termination_reason: "Time limit expired",
+        termination_reason: isHardCutoffReached
+          ? "Contest window concluded at 7:40 PM IST cutoff"
+          : "Time limit expired",
         submitted_at: now.toISOString(),
         score: grading.score,
         max_score: grading.maxScore,
+        total_time_seconds: totalTimeSeconds,
+        question_times: questionTimes,
       });
     }
 
@@ -123,7 +140,7 @@ export async function GET(req: NextRequest) {
           termination_reason: session.termination_reason,
           started_at: session.started_at,
           submitted_at: session.submitted_at || session.expires_at,
-          // CRITICAL: Scores are hidden from regular candidates - only Presidents see preview scores
+          // CRITICAL: Scores are hidden from regular candidates - only Presidents and Faculty see preview scores
           score: user.isPresident ? session.score : undefined,
           max_score: user.isPresident ? session.max_score : undefined,
           strike_count: strikeCount,
@@ -132,19 +149,31 @@ export async function GET(req: NextRequest) {
     }
 
     // Active in-progress test
-    const { savedResponses, flaggedQuestions } = await getQuizResponses(
-      session.id,
-    );
+    const { savedResponses, questionTimes, flaggedQuestions } =
+      await getQuizResponses(session.id);
 
     const shuffledOrder: string[] = Array.isArray(session.shuffled_order)
       ? session.shuffled_order
       : MASTER_QUESTIONS.map((q) => q.id);
 
-    const questionMap = new Map(
-      MASTER_QUESTIONS.map((q) => [q.id, sanitizeQuestion(q)]),
-    );
+    const questionMap = new Map(MASTER_QUESTIONS.map((q) => [q.id, q]));
     const orderedQuestions = shuffledOrder
-      .map((id) => questionMap.get(id))
+      .map((id) => {
+        const masterQ = questionMap.get(id);
+        if (!masterQ) return null;
+        const optOrder = session.shuffled_options?.[id];
+        let opts = masterQ.options;
+        if (optOrder && optOrder.length > 0) {
+          const optMap = new Map(masterQ.options.map((o) => [o.id, o]));
+          opts = optOrder
+            .map((optId) => optMap.get(optId))
+            .filter(Boolean) as any;
+        }
+        return {
+          ...sanitizeQuestion(masterQ),
+          options: opts,
+        };
+      })
       .filter(Boolean);
 
     if (orderedQuestions.length === 0) {

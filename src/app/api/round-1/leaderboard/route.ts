@@ -40,7 +40,15 @@ export async function GET(req: NextRequest) {
 
       const hasPresidentRole = (userRoles || []).some((r: any) => {
         const tag = (r.tag || "").toLowerCase().trim();
-        return tag === "president" || tag === "club-president";
+        return (
+          tag === "president" ||
+          tag === "club-president" ||
+          tag === "faculty-coordinator" ||
+          tag === "chief-coordinator" ||
+          tag.includes("faculty") ||
+          tag.includes("chief") ||
+          tag.includes("coordinator")
+        );
       });
 
       const usernameLower = (userProfile?.username || "").toLowerCase().trim();
@@ -50,17 +58,27 @@ export async function GET(req: NextRequest) {
         usernameLower === "akshitbhandaricodes" ||
         usernameLower === "akshit" ||
         usernameLower === "aarushi" ||
+        usernameLower === "deviatorsclub" ||
+        usernameLower === "paperboat" ||
+        usernameLower === "kunalwadhwa" ||
+        usernameLower === "wadhwakunal" ||
+        usernameLower === "renunarwal" ||
         emailLower === "akshitbhandaricodes@gmail.com" ||
         emailLower.includes("akshitbhandaricodes") ||
-        emailLower.includes("arushik");
+        emailLower.includes("arushik") ||
+        emailLower.includes("paperboat") ||
+        emailLower.includes("kunalwadhwa") ||
+        emailLower.includes("wadhwakunal") ||
+        emailLower.includes("renunarwal") ||
+        emailLower.includes("renu");
     }
 
-    // STRICT: Only Club Presidents can view the leaderboard!
+    // STRICT: Only Club Presidents and Faculty Coordinators can view the leaderboard!
     if (!isPresident) {
       return NextResponse.json(
         {
           error:
-            "Forbidden: Round 1 leaderboard and standings are restricted exclusively to Club Presidents.",
+            "Forbidden: Round 1 leaderboard and standings are restricted exclusively to Club Executives and Faculty Coordinators.",
           isPresident: false,
           leaderboard: [],
         },
@@ -173,10 +191,11 @@ export async function GET(req: NextRequest) {
         submittedAt: s.submitted_at,
         timeTakenSeconds,
         timeTakenFormatted,
-        // CRITICAL RULE: Scores are only exposed to Presidents!
+        // CRITICAL RULE: Scores and per-question time breakdown exposed to Presidents and Faculty!
         score: isPresident ? s.score : null,
         maxScore: isPresident ? s.max_score : null,
         strikes: isPresident ? s.strike_count : null,
+        questionTimes: isPresident ? s.question_times || {} : null,
       };
     });
 

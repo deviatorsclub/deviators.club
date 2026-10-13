@@ -32,29 +32,49 @@ export const ROUND_1_DURATION_MINUTES = 10; // 10 minutes overall (20 seconds st
 export const QUESTION_DURATION_SECONDS = 20; // 20 seconds per question (auto-advance with 10s audio ticking)
 export const MAX_STRIKES_ALLOWED = 2; // 1st strike is a 5s grace warning, 2nd strike is instant auto-submit
 
-// Official Schedule: 13th October 2026, 7:00 PM to 7:45 PM IST (UTC+05:30)
+// Official Schedule: 13th October 2026
+// Window to start test: 7:00 PM to 7:30 PM IST
+// Maximum session cutoff / hard termination deadline: 7:40 PM IST
 export const ROUND_1_START_TIME = "2026-10-13T19:00:00+05:30";
-export const ROUND_1_END_TIME = "2026-10-13T19:45:00+05:30";
+export const ROUND_1_WINDOW_CLOSE_TIME = "2026-10-13T19:30:00+05:30";
+export const ROUND_1_HARD_DEADLINE = "2026-10-13T19:40:00+05:30";
+export const ROUND_1_END_TIME = ROUND_1_WINDOW_CLOSE_TIME;
 
 export function isRound1Active(isPresident = false): {
   active: boolean;
   hasStarted: boolean;
+  windowClosed: boolean;
   hasEnded: boolean;
+  hardDeadlineReached: boolean;
   startsAt: string;
+  windowClosesAt: string;
+  hardDeadlineAt: string;
   endsAt: string;
 } {
   const now = Date.now();
   const start = new Date(ROUND_1_START_TIME).getTime();
-  const end = new Date(ROUND_1_END_TIME).getTime();
+  const windowClose = new Date(ROUND_1_WINDOW_CLOSE_TIME).getTime();
+  const hardDeadline = new Date(ROUND_1_HARD_DEADLINE).getTime();
+
   const hasStarted = now >= start;
-  const hasEnded = now > end;
-  const active = isPresident ? true : hasStarted && !hasEnded;
+  const windowClosed = now > windowClose;
+  const hardDeadlineReached = now > hardDeadline;
+
+  // Presidents and faculty coordinators can test anytime in demo/sandbox mode
+  const active = isPresident
+    ? true
+    : hasStarted && !windowClosed && !hardDeadlineReached;
+
   return {
     active,
     hasStarted,
-    hasEnded,
+    windowClosed,
+    hasEnded: windowClosed || hardDeadlineReached,
+    hardDeadlineReached,
     startsAt: ROUND_1_START_TIME,
-    endsAt: ROUND_1_END_TIME,
+    windowClosesAt: ROUND_1_WINDOW_CLOSE_TIME,
+    hardDeadlineAt: ROUND_1_HARD_DEADLINE,
+    endsAt: ROUND_1_WINDOW_CLOSE_TIME,
   };
 }
 

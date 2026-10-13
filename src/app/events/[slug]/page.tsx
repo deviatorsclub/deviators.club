@@ -959,6 +959,11 @@ export default function EventDashboardPage({
                       <span>View Team Invitations</span>
                     </Link>
                   </div>
+                ) : regTimeLeft.isClosed ? (
+                  <div className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 py-3.5 text-xs font-bold text-red-300">
+                    <HugeiconsIcon icon={Clock01Icon} size={15} />
+                    <span>Registrations Officially Closed</span>
+                  </div>
                 ) : (
                   <Link
                     href={

@@ -293,7 +293,7 @@ export default function PresidentTeamsView() {
           className="mx-auto mb-3 text-red-400 opacity-80"
         />
         <h3 className="font-heading text-lg font-bold text-white">
-          President Access Only
+          Authorized Access Only
         </h3>
         <p className="mt-1 text-sm text-red-300/80">{error}</p>
       </div>
@@ -310,7 +310,7 @@ export default function PresidentTeamsView() {
               <HugeiconsIcon icon={CrownIcon} size={16} />
             </span>
             <h2 className="font-heading text-xl font-black tracking-tight text-white sm:text-2xl">
-              President Roster · Debug Decrypt 3.0
+              Teams Roster · Debug Decrypt 3.0
             </h2>
           </div>
           <p className="mt-1 text-xs text-white/50">
@@ -325,6 +325,12 @@ export default function PresidentTeamsView() {
             className="flex items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/15 px-3.5 py-2 text-xs font-bold text-cyan-300 transition-colors hover:bg-cyan-500/25"
           >
             <span>⚡ Test Sandbox (Round 1)</span>
+          </Link>
+          <Link
+            href="/event/debug-decrypt-3.0/round-1/leaderboard"
+            className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/15 px-3.5 py-2 text-xs font-bold text-amber-300 transition-colors hover:bg-amber-500/25"
+          >
+            <span>🏆 Live Leaderboard</span>
           </Link>
           <button
             type="button"

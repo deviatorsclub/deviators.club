@@ -45,6 +45,38 @@ const team03: TeamMemberData[] = [
     hasNoProfile: true,
   },
   {
+    name: "Neha Dahiya Malik",
+    roles: ["Faculty Coordinator"],
+    intro:
+      "Mentoring student developers, fostering innovative learning paths, and supporting club hackathons and workshops.",
+    urls: {
+      linkedin: "https://www.linkedin.com/in/paperboatneha/",
+    },
+    image:
+      "https://lh3.googleusercontent.com/a/ACg8ocK6Ejdoww2WZtjfWh1WGUrr51BEvjaN6Vh5n-_xhgZ1VorEcLVL=s96-c",
+    keywords: ["Faculty Coordinator", "Faculty", "Leadership", "Mentor"],
+    username: "paperboat",
+    branch: "CSE",
+    year: "Faculty",
+    tagTone: "bg-purple-500/15 text-purple-300 border-purple-500/30",
+  },
+  {
+    name: "Kunal Wadhwa",
+    roles: ["Faculty Coordinator"],
+    intro:
+      "Facilitating industry-academia alignment, empowering student leadership, and coordinating club technology events.",
+    urls: {
+      linkedin: "https://www.linkedin.com/in/kunal-wadhwa-5b718719a/",
+    },
+    image:
+      "https://lh3.googleusercontent.com/a/ACg8ocIetxsKvGvFM7HtXr-ci_x5I4_t3wCjTY3v89XGVyLkBfw2tA=s96-c",
+    keywords: ["Faculty Coordinator", "Faculty", "Leadership", "Mentor"],
+    username: "kunalwadhwa",
+    branch: "CSE",
+    year: "Faculty",
+    tagTone: "bg-purple-500/15 text-purple-300 border-purple-500/30",
+  },
+  {
     name: "Akshit Bhandari",
     roles: ["President"],
     intro:

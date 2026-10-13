@@ -177,6 +177,38 @@ export default function DashboardPage() {
     `${e.title} ${e.venue}`.toLowerCase().includes(query.toLowerCase()),
   );
 
+  const normalizedUsername = (profile?.username || "").toLowerCase().trim();
+
+  const isPresident =
+    tags.some(
+      (t) =>
+        t.tag === "president" ||
+        t.tag === "club-official" ||
+        t.tag.toLowerCase().includes("president"),
+    ) ||
+    normalizedUsername === "akshitbhandaricodes" ||
+    normalizedUsername === "aarushi" ||
+    normalizedUsername === "deviatorsclub";
+
+  const isChiefCoordinator =
+    tags.some(
+      (t) =>
+        t.tag === "chief-coordinator" || t.tag.toLowerCase().includes("chief"),
+    ) || normalizedUsername === "renunarwal";
+
+  const isFacultyCoordinator =
+    tags.some(
+      (t) =>
+        t.tag === "faculty-coordinator" ||
+        t.tag.toLowerCase().includes("faculty"),
+    ) ||
+    normalizedUsername === "paperboat" ||
+    normalizedUsername === "kunalwadhwa" ||
+    normalizedUsername === "wadhwakunal";
+
+  const isFaculty = isChiefCoordinator || isFacultyCoordinator;
+  const isPrivileged = isPresident || isFaculty;
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 pt-24 pb-16 sm:px-6">
       {/* Top bar */}
@@ -247,14 +279,9 @@ export default function DashboardPage() {
               invites: invitesCount,
               community: community.length,
             }}
-            isPresident={
-              tags.some(
-                (t) => t.tag === "president" || t.tag === "club-official",
-              ) ||
-              profile?.username === "akshitbhandaricodes" ||
-              profile?.username === "aarushi" ||
-              profile?.username === "deviatorsclub"
-            }
+            isPresident={isPresident}
+            isFaculty={isFacultyCoordinator}
+            isChiefCoordinator={isChiefCoordinator}
           />
 
           <AnimatePresence mode="wait" initial={false}>
@@ -274,6 +301,8 @@ export default function DashboardPage() {
                       event={e}
                       registered={regs.find((r) => r.eventId === e.id)}
                       onRegister={setActiveEvent}
+                      isPrivileged={isPrivileged}
+                      onViewRoster={() => setTab("admin-teams")}
                     />
                   ))}
                   {filtered.length === 0 && (

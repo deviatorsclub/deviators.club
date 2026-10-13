@@ -53,3 +53,10 @@ next-env.d.ts
 .antigravity/
 .system_generated/
 .data/
+
+# Sensitive event exports & utility scripts
+/public/teams_leader_contacts.json
+/public/debug_decrypt_teams_all.csv
+/scripts/assign_faculty_role.mjs
+/scripts/export_all_teams.mjs
+/scripts/parse_contacts.mjs

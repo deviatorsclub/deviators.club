@@ -63,42 +63,60 @@ export async function verifyRound1Auth(req: NextRequest): Promise<{
       .select("tag")
       .eq("profile_id", user.id);
 
-    const hasPresidentRole = (userRoles || []).some((r: any) => {
+    const hasExecutiveRole = (userRoles || []).some((r: any) => {
       const tag = (r.tag || "").toLowerCase().trim();
-      return tag === "president" || tag === "club-president";
+      return (
+        tag === "president" ||
+        tag === "club-president" ||
+        tag === "faculty-coordinator" ||
+        tag === "chief-coordinator" ||
+        tag.includes("faculty")
+      );
     });
 
     const usernameLower = (userProfile?.username || "").toLowerCase().trim();
     const emailLower = (user.email || "").toLowerCase().trim();
-    const isPresidentIdentity =
+    const isExecutiveIdentity =
       usernameLower === "akshitbhandaricodes" ||
       usernameLower === "akshit" ||
       usernameLower === "aarushi" ||
+      usernameLower === "deviatorsclub" ||
+      usernameLower === "paperboat" ||
+      usernameLower === "kunalwadhwa" ||
+      usernameLower === "wadhwakunal" ||
+      usernameLower === "renunarwal" ||
       emailLower === "akshitbhandaricodes@gmail.com" ||
       emailLower.includes("akshitbhandaricodes") ||
-      emailLower.includes("arushik");
+      emailLower.includes("arushik") ||
+      emailLower.includes("paperboat") ||
+      emailLower.includes("kunalwadhwa") ||
+      emailLower.includes("wadhwakunal") ||
+      emailLower.includes("renunarwal");
 
-    const isPresident = hasPresidentRole || isPresidentIdentity;
+    const isPresident = hasExecutiveRole || isExecutiveIdentity;
 
-    // 4. Check if user is a Team Leader for Debug Decrypt 3.0
-    const { data: leaderTeams } = await adminDb
-      .from("teams")
-      .select("id, name, event_id")
-      .eq("leader_id", user.id);
-
+    // 4. Strict check: Must be the CURRENT active Team Leader for Debug Decrypt 3.0
     const { data: event } = await adminDb
       .from("events")
       .select("id")
       .or("slug.eq.debug-decrypt-3.0,slug.eq.round-1")
       .maybeSingle();
 
+    // Query teams where user is CURRENTLY leader
+    const { data: leaderTeams } = await adminDb
+      .from("teams")
+      .select("id, name, leader_id, event_id")
+      .eq("leader_id", user.id);
+
     const leaderTeam =
       (leaderTeams || []).find((t: any) => !event || t.event_id === event.id) ||
       leaderTeams?.[0];
-    const isLeader = Boolean(leaderTeam);
+    const isCurrentLeader = Boolean(
+      leaderTeam && leaderTeam.leader_id === user.id,
+    );
 
-    // Access check: only Team Leaders or Presidents can access
-    if (!isPresident && !isLeader) {
+    // Access check: only CURRENT Team Leaders or Presidents can access
+    if (!isPresident && !isCurrentLeader) {
       try {
         const { data: memberships } = await adminDb
           .from("team_members")
@@ -118,16 +136,18 @@ export async function verifyRound1Auth(req: NextRequest): Promise<{
           if (tRow?.leader_id) {
             const { data: lProfile } = await adminDb
               .from("profiles")
-              .select("username")
+              .select("username, display_name")
               .eq("id", tRow.leader_id)
               .maybeSingle();
-            if (lProfile?.username) leaderHandle = `@${lProfile.username}`;
+            if (lProfile?.username) {
+              leaderHandle = `@${lProfile.username} (${lProfile.display_name || lProfile.username})`;
+            }
           }
 
           return {
             user: null,
             errorStatus: 403,
-            errorMessage: `Forbidden: Round 1 is exclusively for Team Leaders. You are a member of team "${tRow?.name || "your squad"}". Only the active Team Leader (${leaderHandle}) can take the test. If they cannot take it, they can transfer team leadership to you from the Team Dashboard.`,
+            errorMessage: `Forbidden: Round 1 can only be taken by the CURRENT active Team Leader. You are a member of team "${tRow?.name || "your squad"}", but leadership is currently assigned to ${leaderHandle}. Only the active team leader can attempt or submit Round 1. If you need to take it, the current leader must transfer leadership to you.`,
           };
         }
       } catch {}
@@ -136,7 +156,7 @@ export async function verifyRound1Auth(req: NextRequest): Promise<{
         user: null,
         errorStatus: 403,
         errorMessage:
-          "Forbidden: Round 1 is exclusively for registered Team Leaders (or Club Presidents).",
+          "Forbidden: Round 1 is exclusively for CURRENT active Team Leaders of Debug Decrypt 3.0 (or Club Executives).",
       };
     }
 
@@ -148,7 +168,7 @@ export async function verifyRound1Auth(req: NextRequest): Promise<{
         displayName:
           userProfile?.display_name || userProfile?.username || "Candidate",
         isPresident,
-        isLeader,
+        isLeader: isCurrentLeader,
         teamId: leaderTeam?.id,
         teamName:
           leaderTeam?.name ||

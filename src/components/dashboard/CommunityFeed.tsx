@@ -52,14 +52,14 @@ export default function CommunityFeed({
 
   // Group members into discord-style divisions in exact requested order
   const { groups, totalCount, tabCounts } = useMemo(() => {
-    // Include Chief Coordinator profile if not already present in Supabase DB
+    // Include Chief Coordinator profile (Prof. Renu Narwal) if not already present in Supabase DB
     const chiefFound = members.some(
       (m) =>
         m.username.toLowerCase() === "renunarwal" ||
         m.tags.some(
           (t) =>
             t.tag.toLowerCase().includes("chief") ||
-            t.tag.toLowerCase().includes("coordinator"),
+            t.tag.toLowerCase() === "chief-coordinator",
         ),
     );
 
@@ -124,13 +124,28 @@ export default function CommunityFeed({
         ),
     );
 
-    // 2. Chief Coordinator
-    const chief = getMatchingMembers((m) =>
-      m.tags.some(
-        (t) =>
-          t.tag.toLowerCase().includes("chief") ||
-          t.tag.toLowerCase().includes("coordinator"),
-      ),
+    // 2. Chief Coordinator (STRICTLY Prof. Renu Narwal ONLY)
+    const chief = getMatchingMembers(
+      (m) =>
+        m.username.toLowerCase() === "renunarwal" ||
+        m.id === "chief-coordinator-renu" ||
+        (m.tags.some((t) => t.tag.toLowerCase() === "chief-coordinator") &&
+          m.username.toLowerCase() !== "paperboat" &&
+          m.username.toLowerCase() !== "kunalwadhwa" &&
+          m.username.toLowerCase() !== "wadhwakunal"),
+    );
+
+    // 2b. Faculty Coordinator (STRICTLY Neha Dahiya Malik & Kunal Wadhwa)
+    const faculty = getMatchingMembers(
+      (m) =>
+        m.username.toLowerCase() === "paperboat" ||
+        m.username.toLowerCase() === "kunalwadhwa" ||
+        m.username.toLowerCase() === "wadhwakunal" ||
+        m.tags.some(
+          (t) =>
+            t.tag.toLowerCase() === "faculty-coordinator" ||
+            t.tag.toLowerCase().includes("faculty"),
+        ),
     );
 
     // 3. Presidents
@@ -201,6 +216,15 @@ export default function CommunityFeed({
         textColor: "text-amber-300",
         badgeBg: "bg-amber-500/15 text-amber-300 border-amber-400/30",
         members: chief,
+      },
+      {
+        id: "faculty",
+        name: "Faculty Coordinator",
+        icon: CrownIcon,
+        color: "text-purple-400 border-purple-500/30 bg-purple-500/10",
+        textColor: "text-purple-300",
+        badgeBg: "bg-purple-500/15 text-purple-300 border-purple-400/30",
+        members: faculty,
       },
       {
         id: "presidents",
@@ -274,6 +298,7 @@ export default function CommunityFeed({
         [
           "official",
           "chief",
+          "faculty",
           "presidents",
           "dsa",
           "web",
@@ -290,6 +315,7 @@ export default function CommunityFeed({
     const leadsTotal =
       official.length +
       chief.length +
+      faculty.length +
       presidents.length +
       dsa.length +
       web.length +
@@ -451,6 +477,7 @@ export default function CommunityFeed({
                     group.id === "chief" ||
                     member.id === "chief-coordinator-renu" ||
                     member.username.toLowerCase() === "renunarwal";
+                  const isFaculty = group.id === "faculty";
 
                   if (isChief) {
                     return (
@@ -499,6 +526,71 @@ export default function CommunityFeed({
                           rel="noopener noreferrer"
                           title="View LinkedIn Profile"
                           className="shrink-0 rounded-xl border border-white/10 bg-white/[0.04] p-2 text-white/40 transition-all hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-blue-300"
+                        >
+                          <HugeiconsIcon icon={Linkedin01Icon} size={15} />
+                        </a>
+                      </div>
+                    );
+                  }
+
+                  if (isFaculty) {
+                    const facultyLinkedin =
+                      member.username.toLowerCase() === "paperboat"
+                        ? "https://www.linkedin.com/in/paperboatneha/"
+                        : member.username.toLowerCase() === "kunalwadhwa" ||
+                            member.username.toLowerCase() === "wadhwakunal"
+                          ? "https://www.linkedin.com/in/kunal-wadhwa-5b718719a/"
+                          : member.linkedinUrl || "https://www.linkedin.com";
+
+                    return (
+                      <div
+                        key={member.id}
+                        className="group relative flex items-center justify-between gap-3 rounded-2xl border border-white/[0.05] bg-[#0c111e]/70 p-3 transition-all duration-200"
+                      >
+                        <Link
+                          href={`/dashboard/@${member.username}`}
+                          className="flex min-w-0 flex-1 items-center gap-3 transition-opacity hover:opacity-90"
+                        >
+                          {/* Avatar with Discord status dot */}
+                          <div className="relative h-10 w-10 shrink-0">
+                            {member.avatarUrl ? (
+                              <Image
+                                src={member.avatarUrl}
+                                alt={member.displayName}
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 rounded-full border border-white/10 object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.08] text-xs font-bold text-white">
+                                {initials(member.displayName)}
+                              </div>
+                            )}
+                            <span className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-[#0c111e] bg-purple-400" />
+                          </div>
+
+                          {/* Name & Role details */}
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={`truncate text-xs font-bold tracking-tight sm:text-sm ${group.textColor}`}
+                            >
+                              {member.displayName}
+                            </p>
+
+                            <p className="mt-0.5 truncate font-mono text-[11px] text-white/45">
+                              Faculty Coordinator · Faculty
+                            </p>
+                          </div>
+                        </Link>
+
+                        {/* LinkedIn Profile action link */}
+                        <a
+                          href={facultyLinkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="View LinkedIn Profile"
+                          className="shrink-0 rounded-xl border border-white/10 bg-white/[0.04] p-2 text-white/40 transition-all hover:border-purple-400/40 hover:bg-purple-500/10 hover:text-purple-300"
                         >
                           <HugeiconsIcon icon={Linkedin01Icon} size={15} />
                         </a>

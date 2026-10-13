@@ -13,7 +13,10 @@ export async function POST(req: NextRequest) {
 
   if (!user.isPresident) {
     return NextResponse.json(
-      { error: "Forbidden: Only Club Presidents can reset test sessions." },
+      {
+        error:
+          "Forbidden: Only Club Executives and Faculty Coordinators can reset test sessions.",
+      },
       { status: 403 },
     );
   }
@@ -22,7 +25,7 @@ export async function POST(req: NextRequest) {
     await deleteQuizSession(user.id, "round-1");
     return NextResponse.json({
       success: true,
-      message: "President test session reset successfully.",
+      message: "Test session reset successfully.",
     });
   } catch (err: any) {
     return NextResponse.json(

@@ -13,6 +13,8 @@ import {
   CheckmarkCircle01Icon,
   InformationCircleIcon,
   ArrowRight01Icon,
+  CrownIcon,
+  SparklesIcon,
 } from "@hugeicons/core-free-icons";
 import MiniCountdown from "./MiniCountdown";
 import type { DemoEvent, DemoRegistration } from "@/lib/dashboard/demo";
@@ -21,10 +23,14 @@ export default function EventCard({
   event,
   registered,
   onRegister,
+  isPrivileged = false,
+  onViewRoster,
 }: {
   event: DemoEvent;
   registered: DemoRegistration | undefined;
   onRegister: (event: DemoEvent) => void;
+  isPrivileged?: boolean;
+  onViewRoster?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const pct = Math.round((event.seatsTaken / event.seats) * 100);
@@ -33,6 +39,10 @@ export default function EventCard({
     day: "numeric",
     month: "short",
   });
+
+  const isClosed =
+    event.slug === "debug-decrypt-3.0" ||
+    (event.regClosesAt && new Date(event.regClosesAt).getTime() <= Date.now());
 
   return (
     <article className="glass-card overflow-hidden rounded-3xl">
@@ -49,9 +59,15 @@ export default function EventCard({
 
       <div className="space-y-4 p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
-            Registrations open
-          </span>
+          {isClosed ? (
+            <span className="rounded-full border border-rose-400/30 bg-rose-500/10 px-2.5 py-1 text-[11px] font-semibold text-rose-300">
+              Registrations closed
+            </span>
+          ) : (
+            <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+              Registrations open
+            </span>
+          )}
           <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/60">
             {event.mode}
           </span>
@@ -117,6 +133,10 @@ export default function EventCard({
               Registered
               {registered.teamName ? ` · ${registered.teamName}` : ""}
             </span>
+          ) : isClosed ? (
+            <span className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/40">
+              Registrations closed
+            </span>
           ) : (
             <Link
               href={`/events/${event.slug}?register=true`}
@@ -133,6 +153,27 @@ export default function EventCard({
             <span>Event Dashboard</span>
             <HugeiconsIcon icon={ArrowRight01Icon} size={15} />
           </Link>
+          {isPrivileged && (
+            <>
+              {onViewRoster && (
+                <button
+                  type="button"
+                  onClick={onViewRoster}
+                  className="flex items-center gap-1.5 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-sm font-semibold text-amber-300 transition-colors hover:bg-amber-400/20"
+                >
+                  <HugeiconsIcon icon={CrownIcon} size={15} />
+                  <span>Team Roster</span>
+                </button>
+              )}
+              <Link
+                href="/event/debug-decrypt-3.0/round-1/leaderboard"
+                className="flex items-center gap-1.5 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-2.5 text-sm font-semibold text-cyan-300 transition-colors hover:bg-cyan-400/20"
+              >
+                <HugeiconsIcon icon={SparklesIcon} size={15} />
+                <span>Round 1 Standings</span>
+              </Link>
+            </>
+          )}
           <button
             onClick={() => setExpanded((v) => !v)}
             className="btn-secondary rounded-xl px-4 py-2.5 text-sm"

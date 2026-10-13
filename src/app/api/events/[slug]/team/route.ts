@@ -257,6 +257,17 @@ export async function POST(
     return NextResponse.json({ error: "Event not found." }, { status: 404 });
   }
 
+  // Registrations are closed
+  const regDeadline = event.reg_closes_at
+    ? new Date(event.reg_closes_at).getTime()
+    : 0;
+  if (Date.now() >= regDeadline || event.slug === "debug-decrypt-3.0") {
+    return NextResponse.json(
+      { error: "Registrations for Debug Decrypt 3.0 are officially closed." },
+      { status: 403 },
+    );
+  }
+
   // 2. Validate user has onboarded profile
   const { data: userProfile } = await supabase
     .from("profiles")

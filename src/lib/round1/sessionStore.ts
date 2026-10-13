@@ -13,6 +13,9 @@ export interface QuizSessionData {
   termination_reason: string | null;
   strike_count: number;
   shuffled_order: string[];
+  shuffled_options?: Record<string, string[]>;
+  question_times?: Record<string, number>;
+  total_time_seconds?: number;
   score: number;
   max_score: number;
   created_at: string;
@@ -24,6 +27,7 @@ export interface QuizResponseData {
   user_id: string;
   question_id: string;
   selected_answers: any;
+  time_spent_seconds: number;
   is_flagged: boolean;
   updated_at: string;
 }
@@ -203,7 +207,7 @@ export async function updateQuizSession(
 }
 
 /**
- * Saves a single question response.
+ * Saves a single question response with time tracking.
  */
 export async function saveQuizResponse(
   sessionId: string,
@@ -211,6 +215,7 @@ export async function saveQuizResponse(
   questionId: string,
   selectedAnswers: any,
   isFlagged: boolean = false,
+  timeSpentSeconds: number = 0,
 ) {
   const adminDb = getAdminClient();
   const now = new Date().toISOString();
@@ -240,18 +245,35 @@ export async function saveQuizResponse(
     user_id: userId,
     question_id: questionId,
     selected_answers: selectedAnswers,
+    time_spent_seconds: timeSpentSeconds,
     is_flagged: isFlagged,
     updated_at: now,
   };
   writeJsonFile(RESPONSES_FILE, responses);
+
+  // Also update question_times in session store
+  const sessions = readJsonFile<QuizSessionData>(SESSIONS_FILE);
+  const sessionKey = `${userId}:round-1`;
+  if (sessions[sessionKey]) {
+    if (!sessions[sessionKey].question_times) {
+      sessions[sessionKey].question_times = {};
+    }
+    sessions[sessionKey].question_times![questionId] = timeSpentSeconds;
+    sessions[sessionKey].total_time_seconds = Object.values(
+      sessions[sessionKey].question_times!,
+    ).reduce((a, b) => a + b, 0);
+    writeJsonFile(SESSIONS_FILE, sessions);
+  }
+
   return true;
 }
 
 /**
- * Retrieves all saved responses for a session.
+ * Retrieves all saved responses and time spent for a session.
  */
 export async function getQuizResponses(sessionId: string): Promise<{
   savedResponses: Record<string, any>;
+  questionTimes: Record<string, number>;
   flaggedQuestions: string[];
 }> {
   const adminDb = getAdminClient();
@@ -264,28 +286,31 @@ export async function getQuizResponses(sessionId: string): Promise<{
 
     if (!error && data && data.length > 0) {
       const savedResponses: Record<string, any> = {};
+      const questionTimes: Record<string, number> = {};
       const flaggedQuestions: string[] = [];
       data.forEach((r) => {
         savedResponses[r.question_id] = r.selected_answers;
         if (r.is_flagged) flaggedQuestions.push(r.question_id);
       });
-      return { savedResponses, flaggedQuestions };
+      return { savedResponses, questionTimes, flaggedQuestions };
     }
   } catch {}
 
   // Fallback read from local store
   const responses = readJsonFile<QuizResponseData>(RESPONSES_FILE);
   const savedResponses: Record<string, any> = {};
+  const questionTimes: Record<string, number> = {};
   const flaggedQuestions: string[] = [];
 
   Object.values(responses).forEach((r) => {
     if (r.session_id === sessionId) {
       savedResponses[r.question_id] = r.selected_answers;
+      questionTimes[r.question_id] = r.time_spent_seconds || 0;
       if (r.is_flagged) flaggedQuestions.push(r.question_id);
     }
   });
 
-  return { savedResponses, flaggedQuestions };
+  return { savedResponses, questionTimes, flaggedQuestions };
 }
 
 /**

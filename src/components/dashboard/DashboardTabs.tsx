@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -8,16 +9,24 @@ import {
   Megaphone01Icon,
   CrownIcon,
   UserGroupIcon,
+  SparklesIcon,
 } from "@hugeicons/core-free-icons";
 
 export type DashboardTabId =
-  "events" | "my-events" | "invites" | "community" | "admin-teams";
+  | "events"
+  | "my-events"
+  | "invites"
+  | "community"
+  | "admin-teams"
+  | "round1-leaderboard";
 
 export default function DashboardTabs({
   active,
   onChange,
   counts,
   isPresident = false,
+  isFaculty = false,
+  isChiefCoordinator = false,
 }: {
   active: DashboardTabId;
   onChange: (tab: DashboardTabId) => void;
@@ -28,7 +37,16 @@ export default function DashboardTabs({
     community?: number;
   };
   isPresident?: boolean;
+  isFaculty?: boolean;
+  isChiefCoordinator?: boolean;
 }) {
+  const hasRosterAccess = isPresident || isFaculty || isChiefCoordinator;
+  const rosterPill = isPresident
+    ? "President"
+    : isChiefCoordinator
+      ? "Chief Coordinator"
+      : "Faculty";
+
   const tabs: {
     id: DashboardTabId;
     label: string;
@@ -36,6 +54,7 @@ export default function DashboardTabs({
     pill?: string;
     soon?: boolean;
     isSpecial?: boolean;
+    href?: string;
   }[] = [
     {
       id: "events",
@@ -62,14 +81,22 @@ export default function DashboardTabs({
       pill:
         counts.community !== undefined ? String(counts.community) : undefined,
     },
-    ...(isPresident
+    ...(hasRosterAccess
       ? [
           {
             id: "admin-teams" as DashboardTabId,
             label: "Teams Roster",
             icon: CrownIcon,
-            pill: "President",
+            pill: rosterPill,
             isSpecial: true,
+          },
+          {
+            id: "round1-leaderboard" as DashboardTabId,
+            label: "Round 1 Leaderboard",
+            icon: SparklesIcon,
+            pill: "Live",
+            isSpecial: true,
+            href: "/event/debug-decrypt-3.0/round-1/leaderboard",
           },
         ]
       : []),
@@ -83,18 +110,8 @@ export default function DashboardTabs({
     >
       {tabs.map((t) => {
         const isActive = active === t.id;
-        return (
-          <button
-            key={t.id}
-            role="tab"
-            aria-selected={isActive}
-            onClick={() => onChange(t.id)}
-            className={`relative flex shrink-0 items-center gap-2 px-4 py-3 text-sm transition-colors duration-200 ${
-              isActive
-                ? "font-semibold text-white"
-                : "font-medium text-white/50 hover:text-white/85"
-            }`}
-          >
+        const tabContent = (
+          <>
             <HugeiconsIcon
               icon={t.icon}
               size={16}
@@ -126,6 +143,32 @@ export default function DashboardTabs({
                 className="absolute inset-x-3 -bottom-px h-[2.5px] rounded-full bg-gradient-to-r from-blue-500 to-sky-300"
               />
             )}
+          </>
+        );
+
+        const tabClasses = `relative flex shrink-0 items-center gap-2 px-4 py-3 text-sm transition-colors duration-200 ${
+          isActive
+            ? "font-semibold text-white"
+            : "font-medium text-white/50 hover:text-white/85"
+        }`;
+
+        if (t.href) {
+          return (
+            <Link key={t.id} href={t.href} className={tabClasses}>
+              {tabContent}
+            </Link>
+          );
+        }
+
+        return (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onChange(t.id)}
+            className={tabClasses}
+          >
+            {tabContent}
           </button>
         );
       })}
