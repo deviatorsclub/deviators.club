@@ -77,16 +77,9 @@ export async function POST(req: NextRequest) {
       const memberIds = (teamMembers || []).map((m: any) => m.profile_id);
       if (!memberIds.includes(user.id)) memberIds.push(user.id);
 
-      const { data: teamSessions } = await adminDb
-        .from("quiz_sessions")
-        .select("id, user_id, status")
-        .in("user_id", memberIds)
-        .eq("round_slug", "round-1");
-
-      if (teamSessions && teamSessions.length > 0) {
-        const otherMemberSession = teamSessions.find(
-          (s: any) => s.user_id !== user.id,
-        );
+      for (const mId of memberIds) {
+        if (mId === user.id) continue;
+        const otherMemberSession = await getQuizSession(mId, "round-1");
         if (otherMemberSession) {
           if (otherMemberSession.status === "in_progress") {
             return NextResponse.json(

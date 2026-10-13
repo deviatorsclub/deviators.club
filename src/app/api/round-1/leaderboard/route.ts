@@ -126,9 +126,29 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 4. Sort standings
+    // 4. STRICT RULE: Keep ONLY the very first attempt per squad/team!
+    // Sort chronologically by start time so the earliest attempt comes first.
+    const chronologicalSessions = [...sessions].sort((a, b) => {
+      const timeA = new Date(a.started_at || a.created_at).getTime();
+      const timeB = new Date(b.started_at || b.created_at).getTime();
+      return timeA - timeB;
+    });
+
+    const seenTeams = new Set<string>();
+    const firstAttemptSessions: typeof sessions = [];
+
+    for (const s of chronologicalSessions) {
+      const team = teamMap.get(s.user_id);
+      const teamIdentifier = team?.id || s.user_id;
+      if (!seenTeams.has(teamIdentifier)) {
+        seenTeams.add(teamIdentifier);
+        firstAttemptSessions.push(s);
+      }
+    }
+
+    // 5. Sort final standings
     // Primary: Score descending. Tie-breaker: Faster time taken to complete wins.
-    const sortedSessions = [...sessions].sort((a, b) => {
+    const sortedSessions = firstAttemptSessions.sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
 
       const timeTakenA =

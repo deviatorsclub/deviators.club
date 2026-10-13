@@ -65,8 +65,29 @@ function writeJsonFile<T>(filePath: string, data: Record<string, T>) {
   }
 }
 
+function extractSessionFromExpectations(
+  text: string | null,
+): QuizSessionData | null {
+  if (!text || !text.includes("||R1_ATTEMPT||")) return null;
+  try {
+    const parts = text.split("||R1_ATTEMPT||");
+    const jsonStr = parts[parts.length - 1].trim();
+    return JSON.parse(jsonStr) as QuizSessionData;
+  } catch {
+    return null;
+  }
+}
+
+function embedSessionIntoExpectations(
+  origText: string | null,
+  session: QuizSessionData,
+): string {
+  const base = (origText || "").split("||R1_ATTEMPT||")[0].trim();
+  return (base ? `${base}\n` : "") + `||R1_ATTEMPT||${JSON.stringify(session)}`;
+}
+
 /**
- * Gets a user's session for a round (tries Supabase first, falls back to local file).
+ * Gets a user's session for a round (tries Supabase quiz_sessions, then registrations, then local file).
  */
 export async function getQuizSession(
   userId: string,
@@ -85,27 +106,38 @@ export async function getQuizSession(
     if (!error && data) {
       return data as QuizSessionData;
     }
+  } catch {}
 
-    if (error && error.code !== "PGRST205" && error.code !== "PGRST116") {
-      console.warn("[getQuizSession supabase warning]", error.message);
+  // Fallback 1: Query registrations in Supabase (100% persistent across Vercel serverless containers)
+  try {
+    const { data: reg } = await adminDb
+      .from("registrations")
+      .select("expectations")
+      .eq("profile_id", userId)
+      .maybeSingle();
+
+    const dbSession = extractSessionFromExpectations(reg?.expectations || null);
+    if (dbSession && dbSession.round_slug === roundSlug) {
+      return dbSession;
     }
   } catch (err: any) {
-    console.warn("[getQuizSession db caught]", err?.message);
+    console.warn("[getQuizSession registrations fallback]", err?.message);
   }
 
-  // Fallback to local file store
+  // Fallback 2: Local file store
   const sessions = readJsonFile<QuizSessionData>(SESSIONS_FILE);
   const key = `${userId}:${roundSlug}`;
   return sessions[key] || null;
 }
 
 /**
- * Retrieves all quiz sessions for a round.
+ * Retrieves all quiz sessions for a round. Strictly keeps only the first attempt per user.
  */
 export async function getAllQuizSessions(
   roundSlug: string = "round-1",
 ): Promise<QuizSessionData[]> {
   const adminDb = getAdminClient();
+  const sessionList: QuizSessionData[] = [];
 
   try {
     const { data, error } = await adminDb
@@ -113,23 +145,86 @@ export async function getAllQuizSessions(
       .select("*")
       .eq("round_slug", roundSlug);
 
-    if (!error && data) {
-      return data as QuizSessionData[];
+    if (!error && data && data.length > 0) {
+      sessionList.push(...(data as QuizSessionData[]));
     }
   } catch {}
 
-  // Fallback to local file store
-  const sessions = readJsonFile<QuizSessionData>(SESSIONS_FILE);
-  return Object.values(sessions).filter((s) => s.round_slug === roundSlug);
+  // Also read from Supabase registrations
+  try {
+    const { data: regList } = await adminDb
+      .from("registrations")
+      .select("profile_id, expectations")
+      .like("expectations", "%||R1_ATTEMPT||%");
+
+    (regList || []).forEach((r) => {
+      const s = extractSessionFromExpectations(r.expectations);
+      if (s && s.round_slug === roundSlug) {
+        sessionList.push(s);
+      }
+    });
+  } catch {}
+
+  // Fallback read from local file store
+  const localSessions = readJsonFile<QuizSessionData>(SESSIONS_FILE);
+  Object.values(localSessions).forEach((s) => {
+    if (s.round_slug === roundSlug) {
+      sessionList.push(s);
+    }
+  });
+
+  // STRICT RULE: If multiple attempts exist for any user, keep ONLY the FIRST attempt!
+  const byUser = new Map<string, QuizSessionData>();
+  // Sort oldest first so the first attempt wins
+  sessionList.sort((a, b) => {
+    const timeA = new Date(a.started_at || a.created_at).getTime();
+    const timeB = new Date(b.started_at || b.created_at).getTime();
+    return timeA - timeB;
+  });
+
+  for (const s of sessionList) {
+    if (!byUser.has(s.user_id)) {
+      byUser.set(s.user_id, s);
+    }
+  }
+
+  return Array.from(byUser.values());
 }
 
 /**
  * Creates or initializes a new quiz session.
+ * STRICT: If a session already exists, NEVER creates a second attempt. Returns the first attempt.
  */
 export async function createQuizSession(
   session: QuizSessionData,
 ): Promise<QuizSessionData> {
   const adminDb = getAdminClient();
+
+  // 1. Check if user already has an existing session in registrations
+  try {
+    const { data: reg } = await adminDb
+      .from("registrations")
+      .select("id, expectations")
+      .eq("profile_id", session.user_id)
+      .maybeSingle();
+
+    if (reg) {
+      const existingInReg = extractSessionFromExpectations(reg.expectations);
+      if (existingInReg) {
+        // STRICT RULE: Lock to the first attempt forever!
+        return existingInReg;
+      }
+
+      // Persist the FIRST attempt into Supabase registration
+      const newExp = embedSessionIntoExpectations(reg.expectations, session);
+      await adminDb
+        .from("registrations")
+        .update({ expectations: newExp })
+        .eq("id", reg.id);
+    }
+  } catch (err: any) {
+    console.warn("[createQuizSession registrations db]", err?.message);
+  }
 
   try {
     const { data, error } = await adminDb
@@ -152,23 +247,16 @@ export async function createQuizSession(
     if (!error && data) {
       return data as QuizSessionData;
     }
-
-    if (error) {
-      console.warn(
-        "[createQuizSession Supabase fallback trigger]",
-        error.message,
-      );
-    }
-  } catch (err: any) {
-    console.warn("[createQuizSession db caught]", err?.message);
-  }
+  } catch {}
 
   // Fallback save to local store
   const sessions = readJsonFile<QuizSessionData>(SESSIONS_FILE);
   const key = `${session.user_id}:${session.round_slug}`;
-  sessions[key] = session;
-  writeJsonFile(SESSIONS_FILE, sessions);
-  return session;
+  if (!sessions[key]) {
+    sessions[key] = session;
+    writeJsonFile(SESSIONS_FILE, sessions);
+  }
+  return sessions[key];
 }
 
 /**
@@ -180,6 +268,44 @@ export async function updateQuizSession(
   updates: Partial<QuizSessionData>,
 ): Promise<QuizSessionData | null> {
   const adminDb = getAdminClient();
+  let updatedData: QuizSessionData | null = null;
+
+  // 1. Update in Supabase registrations table
+  try {
+    const { data: reg } = await adminDb
+      .from("registrations")
+      .select("id, expectations")
+      .eq("profile_id", userId)
+      .maybeSingle();
+
+    if (reg) {
+      const existing = extractSessionFromExpectations(reg.expectations) || {
+        id: "",
+        user_id: userId,
+        round_slug: roundSlug,
+        started_at: new Date().toISOString(),
+        expires_at: new Date().toISOString(),
+        submitted_at: null,
+        status: "in_progress",
+        termination_reason: null,
+        strike_count: 0,
+        shuffled_order: [],
+        score: 0,
+        max_score: 30,
+        created_at: new Date().toISOString(),
+      };
+
+      const merged = { ...existing, ...updates };
+      const newExp = embedSessionIntoExpectations(reg.expectations, merged);
+      await adminDb
+        .from("registrations")
+        .update({ expectations: newExp })
+        .eq("id", reg.id);
+      updatedData = merged;
+    }
+  } catch (err: any) {
+    console.warn("[updateQuizSession reg error]", err?.message);
+  }
 
   try {
     const { data, error } = await adminDb
@@ -203,7 +329,7 @@ export async function updateQuizSession(
     writeJsonFile(SESSIONS_FILE, sessions);
     return sessions[key];
   }
-  return null;
+  return updatedData;
 }
 
 /**
@@ -321,6 +447,22 @@ export async function deleteQuizSession(
   roundSlug: string = "round-1",
 ): Promise<boolean> {
   const adminDb = getAdminClient();
+
+  try {
+    const { data: reg } = await adminDb
+      .from("registrations")
+      .select("id, expectations")
+      .eq("profile_id", userId)
+      .maybeSingle();
+
+    if (reg?.expectations && reg.expectations.includes("||R1_ATTEMPT||")) {
+      const cleaned = reg.expectations.split("||R1_ATTEMPT||")[0].trim();
+      await adminDb
+        .from("registrations")
+        .update({ expectations: cleaned })
+        .eq("id", reg.id);
+    }
+  } catch {}
 
   try {
     const existing = await getQuizSession(userId, roundSlug);
