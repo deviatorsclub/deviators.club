@@ -385,7 +385,11 @@ export default function DebugDecryptRound1Page() {
   const handleTimeExpired = async () => {
     try {
       const headers = await getAuthHeaders();
-      await fetch("/api/round-1/submit", { method: "POST", headers });
+      await fetch("/api/round-1/submit", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ responses }),
+      });
       await fetchSession();
     } catch (e) {
       console.error("Auto submit on expiry failed", e);
@@ -737,6 +741,7 @@ export default function DebugDecryptRound1Page() {
       const res = await fetch("/api/round-1/submit", {
         method: "POST",
         headers,
+        body: JSON.stringify({ responses }),
       });
       const data = await res.json();
       setShowSubmitModal(false);
