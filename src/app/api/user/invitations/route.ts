@@ -242,7 +242,7 @@ export async function GET(req: NextRequest) {
     const { data: acceptedTeamRows } = await supabase
       .from("team_members")
       .select(
-        "team_id, teams:teams!inner(id, name, event_id, events:events!inner(slug, title))",
+        "team_id, teams:teams!inner(id, name, leader_id, event_id, events:events!inner(slug, title))",
       )
       .eq("profile_id", user.id)
       .eq("status", "accepted");
@@ -252,6 +252,8 @@ export async function GET(req: NextRequest) {
       teamName: r.teams.name,
       eventSlug: r.teams.events.slug,
       eventTitle: r.teams.events.title,
+      leaderId: r.teams.leader_id,
+      isLeader: r.teams.leader_id === user.id,
     }));
 
     return NextResponse.json({

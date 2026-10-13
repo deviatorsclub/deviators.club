@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPresidentAuth } from "@/lib/round1/auth";
+import { getAdminClient } from "@/lib/supabase/admin";
 import {
   getQuizSession,
   createQuizSession,
@@ -52,7 +53,50 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // 1. Check existing session
+    // 1. Team-level concurrency check: Only ONE person per team can take Round 1!
+    if (!user.isPresident && user.teamId) {
+      const adminDb = getAdminClient();
+      const { data: teamMembers } = await adminDb
+        .from("team_members")
+        .select("profile_id")
+        .eq("team_id", user.teamId);
+
+      const memberIds = (teamMembers || []).map((m: any) => m.profile_id);
+      if (!memberIds.includes(user.id)) memberIds.push(user.id);
+
+      const { data: teamSessions } = await adminDb
+        .from("quiz_sessions")
+        .select("id, user_id, status")
+        .in("user_id", memberIds)
+        .eq("round_slug", "round-1");
+
+      if (teamSessions && teamSessions.length > 0) {
+        const otherMemberSession = teamSessions.find(
+          (s: any) => s.user_id !== user.id,
+        );
+        if (otherMemberSession) {
+          if (otherMemberSession.status === "in_progress") {
+            return NextResponse.json(
+              {
+                error:
+                  "Another member of your squad already has an active Round 1 test in progress. At one time, only one team leader can take the test.",
+              },
+              { status: 400 },
+            );
+          } else {
+            return NextResponse.json(
+              {
+                error:
+                  "Your team has already attempted and completed Round 1. Only one test attempt is permitted per team.",
+              },
+              { status: 400 },
+            );
+          }
+        }
+      }
+    }
+
+    // 2. Check existing session for current user
     const existingSession = await getQuizSession(user.id, "round-1");
 
     if (existingSession) {

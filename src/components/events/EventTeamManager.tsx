@@ -432,6 +432,55 @@ export default function EventTeamManager({
     }
   };
 
+  // Transfer leadership to an accepted teammate
+  const [transferringLeadId, setTransferringLeadId] = useState<string | null>(
+    null,
+  );
+
+  const handleTransferLeadership = async (
+    profileId: string,
+    username: string,
+  ) => {
+    if (!team) return;
+    if (
+      !confirm(
+        `Are you sure you want to make @${username} the Team Leader of "${team.name}"?\n\n• They will become the official team leader.\n• They will be designated to attempt the Round 1 test.\n• You will remain in the squad as a team member.`,
+      )
+    ) {
+      return;
+    }
+
+    setActionError("");
+    setActionSuccess("");
+    setTransferringLeadId(profileId);
+
+    try {
+      const res = await fetch(`/api/events/${slug}/team`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamId: team.id,
+          action: "transfer_lead",
+          newLeaderProfileId: profileId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to transfer leadership.");
+      }
+
+      setActionSuccess(
+        data.message || `Leadership successfully transferred to @${username}!`,
+      );
+      onRefresh();
+    } catch (err: any) {
+      setActionError(err.message || "Failed to transfer leadership.");
+    } finally {
+      setTransferringLeadId(null);
+    }
+  };
+
   const handleRemoveMember = async (profileId: string, username: string) => {
     if (!team) return;
     if (
@@ -792,13 +841,23 @@ export default function EventTeamManager({
             <div className="flex flex-wrap items-center gap-2">
               {slug === "debug-decrypt-3.0" &&
                 (round1Timer.expired ? (
-                  <Link
-                    href="/event/debug-decrypt-3.0/round-1"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-gradient-to-r from-blue-600 to-cyan-500 px-3.5 py-2 text-xs font-bold text-white shadow-lg shadow-cyan-500/25 transition-all hover:scale-[1.02] hover:brightness-110"
-                  >
-                    <span>⚡ Attempt Round 1</span>
-                    <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
-                  </Link>
+                  team.isLeader ? (
+                    <Link
+                      href="/event/debug-decrypt-3.0/round-1"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-gradient-to-r from-blue-600 to-cyan-500 px-3.5 py-2 text-xs font-bold text-white shadow-lg shadow-cyan-500/25 transition-all hover:scale-[1.02] hover:brightness-110"
+                    >
+                      <span>⚡ Attempt Round 1</span>
+                      <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
+                    </Link>
+                  ) : (
+                    <div
+                      title="Round 1 can only be taken by the active Team Leader. If your leader cannot take it, they can transfer leadership to you."
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-xs font-semibold text-amber-300"
+                    >
+                      <HugeiconsIcon icon={Shield01Icon} size={14} />
+                      <span>Leader Only · Round 1</span>
+                    </div>
+                  )
                 ) : (
                   <div
                     title="Round 1 goes live on October 13 at 7:00 PM IST"
@@ -822,6 +881,29 @@ export default function EventTeamManager({
               </Link>
             </div>
           </div>
+
+          {/* Test Delegation Tip */}
+          {slug === "debug-decrypt-3.0" && (
+            <div className="mt-3">
+              {team.isLeader ? (
+                <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/[0.06] p-2.5 text-xs text-cyan-200/90">
+                  <span className="font-semibold text-cyan-300">
+                    Leader Tip:{" "}
+                  </span>
+                  If you cannot take the Round 1 test yourself, you can make any
+                  accepted teammate the Team Leader using the &quot;Make
+                  Leader&quot; button below.
+                </div>
+              ) : (
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-2.5 text-xs text-amber-200/90">
+                  <span className="font-semibold text-amber-300">Note: </span>
+                  Only the Team Leader can take Round 1. If your leader is
+                  unable to take the test, ask them to make you the Team Leader
+                  from their dashboard.
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Members Roster List */}
           <div className="mt-4 space-y-2.5">
@@ -880,15 +962,39 @@ export default function EventTeamManager({
                   </div>
                 </div>
 
-                {/* Leader action: delete member */}
+                {/* Leader actions: Make Leader & Delete member */}
                 {team.isLeader && m.role !== "Leader" && (
-                  <button
-                    onClick={() => handleRemoveMember(m.profileId, m.username)}
-                    title="Remove teammate"
-                    className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20"
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} size={15} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {m.status === "accepted" && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleTransferLeadership(m.profileId, m.username)
+                        }
+                        disabled={transferringLeadId === m.profileId}
+                        title={`Make @${m.username} Team Leader`}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-amber-400/30 bg-amber-400/10 px-2.5 py-1.5 font-mono text-[11px] font-bold text-amber-300 transition-all hover:scale-[1.02] hover:bg-amber-400/20 disabled:opacity-50"
+                      >
+                        <HugeiconsIcon icon={Shield01Icon} size={12} />
+                        <span>
+                          {transferringLeadId === m.profileId
+                            ? "Transferring..."
+                            : "Make Leader"}
+                        </span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRemoveMember(m.profileId, m.username)
+                      }
+                      title="Remove teammate"
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20"
+                    >
+                      <HugeiconsIcon icon={Delete02Icon} size={15} />
+                    </button>
+                  </div>
                 )}
               </div>
             ))}

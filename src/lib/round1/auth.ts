@@ -99,6 +99,39 @@ export async function verifyRound1Auth(req: NextRequest): Promise<{
 
     // Access check: only Team Leaders or Presidents can access
     if (!isPresident && !isLeader) {
+      try {
+        const { data: memberships } = await adminDb
+          .from("team_members")
+          .select("team_id")
+          .eq("profile_id", user.id)
+          .eq("status", "accepted")
+          .limit(1);
+
+        if (memberships && memberships.length > 0) {
+          const { data: tRow } = await adminDb
+            .from("teams")
+            .select("name, leader_id")
+            .eq("id", memberships[0].team_id)
+            .maybeSingle();
+
+          let leaderHandle = "your Team Leader";
+          if (tRow?.leader_id) {
+            const { data: lProfile } = await adminDb
+              .from("profiles")
+              .select("username")
+              .eq("id", tRow.leader_id)
+              .maybeSingle();
+            if (lProfile?.username) leaderHandle = `@${lProfile.username}`;
+          }
+
+          return {
+            user: null,
+            errorStatus: 403,
+            errorMessage: `Forbidden: Round 1 is exclusively for Team Leaders. You are a member of team "${tRow?.name || "your squad"}". Only the active Team Leader (${leaderHandle}) can take the test. If they cannot take it, they can transfer team leadership to you from the Team Dashboard.`,
+          };
+        }
+      } catch {}
+
       return {
         user: null,
         errorStatus: 403,

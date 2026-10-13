@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyRound1Auth } from "@/lib/round1/auth";
+import { getAdminClient } from "@/lib/supabase/admin";
 import {
   getQuizSession,
   updateQuizSession,
@@ -28,6 +29,58 @@ export async function GET(req: NextRequest) {
 
     // If no session started yet
     if (!session) {
+      if (!user.isPresident && user.teamId) {
+        const adminDb = getAdminClient();
+        const { data: teamMembers } = await adminDb
+          .from("team_members")
+          .select("profile_id")
+          .eq("team_id", user.teamId);
+
+        const memberIds = (teamMembers || []).map((m: any) => m.profile_id);
+        const { data: teamSessions } = await adminDb
+          .from("quiz_sessions")
+          .select("*")
+          .in("user_id", memberIds)
+          .eq("round_slug", "round-1");
+
+        const otherSession = (teamSessions || []).find(
+          (s: any) => s.user_id !== user.id,
+        );
+
+        if (otherSession) {
+          if (otherSession.status === "in_progress") {
+            return NextResponse.json({
+              hasSession: false,
+              user,
+              roundSlug: "round-1",
+              durationMinutes: ROUND_1_DURATION_MINUTES,
+              totalQuestions: MASTER_QUESTIONS.length,
+              schedule,
+              teamSessionActive: true,
+              teamSessionMessage:
+                "Another member of your squad already has an active Round 1 test in progress. At one time, only one team leader can take the test.",
+            });
+          } else {
+            // Team already submitted
+            return NextResponse.json({
+              hasSession: true,
+              user,
+              session: {
+                id: otherSession.id,
+                status: otherSession.status,
+                termination_reason: otherSession.termination_reason,
+                started_at: otherSession.started_at,
+                submitted_at:
+                  otherSession.submitted_at || otherSession.expires_at,
+                strike_count: otherSession.strike_count || 0,
+              },
+              teamSessionMessage:
+                "Your team has already attempted and completed Round 1.",
+            });
+          }
+        }
+      }
+
       return NextResponse.json({
         hasSession: false,
         user,

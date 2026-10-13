@@ -610,7 +610,7 @@ export async function POST(
   });
 }
 
-// PUT: Leader updates the team name
+// PUT: Leader renames the team OR transfers leadership to an accepted teammate
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
@@ -622,9 +622,140 @@ export async function PUT(
 
   const token = extractToken(req);
   const supabase = getAdminClient(token);
-  const { teamId, name } = await req.json();
+  const body = await req.json().catch(() => ({}));
+  const { teamId, name, action, newLeaderProfileId } = body;
 
-  if (!teamId || !name || name.trim().length < 2) {
+  if (!teamId) {
+    return NextResponse.json({ error: "Missing team ID." }, { status: 400 });
+  }
+
+  // 1. Leadership Transfer
+  if (action === "transfer_lead" || newLeaderProfileId) {
+    if (!newLeaderProfileId) {
+      return NextResponse.json(
+        { error: "Missing new team leader selection." },
+        { status: 400 },
+      );
+    }
+
+    if (newLeaderProfileId === user.id) {
+      return NextResponse.json(
+        { error: "You are already the leader of this team." },
+        { status: 400 },
+      );
+    }
+
+    // Verify team and requester leadership
+    const { data: team, error: teamErr } = await supabase
+      .from("teams")
+      .select("id, name, leader_id, event_id")
+      .eq("id", teamId)
+      .single();
+
+    if (teamErr || !team) {
+      return NextResponse.json({ error: "Team not found." }, { status: 404 });
+    }
+
+    if (team.leader_id !== user.id) {
+      return NextResponse.json(
+        { error: "Only the active team leader can transfer leadership." },
+        { status: 403 },
+      );
+    }
+
+    // Verify candidate is an accepted member of this team
+    const { data: candidateMember, error: memErr } = await supabase
+      .from("team_members")
+      .select("profile_id, status")
+      .eq("team_id", teamId)
+      .eq("profile_id", newLeaderProfileId)
+      .single();
+
+    if (memErr || !candidateMember || candidateMember.status !== "accepted") {
+      return NextResponse.json(
+        {
+          error:
+            "Leadership can only be transferred to a confirmed teammate who has accepted the invitation.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Check all team member IDs for active/submitted Round 1 tests
+    const { data: allMembers } = await supabase
+      .from("team_members")
+      .select("profile_id")
+      .eq("team_id", teamId);
+
+    const allMemberIds = (allMembers || []).map((m: any) => m.profile_id);
+    if (!allMemberIds.includes(team.leader_id))
+      allMemberIds.push(team.leader_id);
+
+    // Round 1 test constraint check: at one time only one team leader can take round 1 test
+    const { data: quizSessions } = await supabase
+      .from("quiz_sessions")
+      .select("id, user_id, status")
+      .in("user_id", allMemberIds)
+      .eq("round_slug", "round-1");
+
+    const activeSession = (quizSessions || []).find(
+      (s: any) => s.status === "in_progress",
+    );
+    if (activeSession) {
+      return NextResponse.json(
+        {
+          error:
+            "Cannot transfer leadership while a Round 1 test session is currently in progress.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const completedSession = (quizSessions || []).find(
+      (s: any) => s.status === "submitted" || s.status === "terminated",
+    );
+    if (completedSession) {
+      return NextResponse.json(
+        {
+          error:
+            "Cannot transfer leadership because Round 1 assessment has already been completed by your team.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Execute transfer
+    const { error: updErr } = await supabase
+      .from("teams")
+      .update({ leader_id: newLeaderProfileId })
+      .eq("id", teamId);
+
+    if (updErr) {
+      return NextResponse.json(
+        { error: "Failed to transfer leadership: " + updErr.message },
+        { status: 500 },
+      );
+    }
+
+    // Fetch new leader profile name for notification
+    const { data: newLeaderProfile } = await supabase
+      .from("profiles")
+      .select("username, display_name")
+      .eq("id", newLeaderProfileId)
+      .maybeSingle();
+
+    const handle = newLeaderProfile?.username || "teammate";
+
+    return NextResponse.json({
+      success: true,
+      action: "transfer_lead",
+      message: `Team leadership transferred to @${handle}. They can now take the Round 1 test for ${team.name}.`,
+      newLeaderId: newLeaderProfileId,
+    });
+  }
+
+  // 2. Renaming Team
+  if (!name || name.trim().length < 2) {
     return NextResponse.json(
       { error: "Team name must be at least 2 characters." },
       { status: 400 },

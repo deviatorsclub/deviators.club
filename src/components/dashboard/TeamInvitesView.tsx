@@ -265,13 +265,23 @@ export default function TeamInvitesView({
             <div className="flex flex-wrap items-center gap-2">
               {acceptedTeams[0].eventSlug === "debug-decrypt-3.0" &&
                 (round1Timer.expired ? (
-                  <Link
-                    href="/event/debug-decrypt-3.0/round-1"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-gradient-to-r from-blue-600 to-cyan-500 px-3.5 py-1.5 font-mono text-xs font-bold text-white shadow-lg shadow-cyan-500/25 transition-all hover:scale-[1.02] hover:brightness-110"
-                  >
-                    <span>⚡ Attempt Round 1</span>
-                    <HugeiconsIcon icon={ArrowRight01Icon} size={13} />
-                  </Link>
+                  acceptedTeams[0].isLeader ? (
+                    <Link
+                      href="/event/debug-decrypt-3.0/round-1"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-gradient-to-r from-blue-600 to-cyan-500 px-3.5 py-1.5 font-mono text-xs font-bold text-white shadow-lg shadow-cyan-500/25 transition-all hover:scale-[1.02] hover:brightness-110"
+                    >
+                      <span>⚡ Attempt Round 1</span>
+                      <HugeiconsIcon icon={ArrowRight01Icon} size={13} />
+                    </Link>
+                  ) : (
+                    <div
+                      title="Round 1 is strictly for the active Team Leader. If your leader cannot take it, they can transfer leadership to you in the Team Hub."
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 font-mono text-xs font-semibold text-amber-300"
+                    >
+                      <HugeiconsIcon icon={CrownIcon} size={13} />
+                      <span>Leader Only (Round 1)</span>
+                    </div>
+                  )
                 ) : (
                   <div
                     title="Round 1 goes live on October 13 at 7:00 PM IST"

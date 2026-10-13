@@ -201,6 +201,11 @@ export default function DebugDecryptRound1Page() {
         return;
       }
       if (res.status === 403) {
+        const errData = await res.json().catch(() => ({}));
+        setErrorMessage(
+          errData.error ||
+            "Round 1 is exclusively for registered Team Leaders (or Club Presidents).",
+        );
         setStatus("not_president");
         return;
       }
@@ -215,6 +220,14 @@ export default function DebugDecryptRound1Page() {
       setUser(data.user);
 
       if (!data.hasSession) {
+        if (data.teamSessionActive) {
+          setErrorMessage(
+            data.teamSessionMessage ||
+              "Another member of your squad already has an active Round 1 test in progress. At one time, only one person per team can take the test.",
+          );
+          setStatus("not_president");
+          return;
+        }
         setStatus("briefing");
         return;
       }
@@ -799,13 +812,21 @@ export default function DebugDecryptRound1Page() {
             Restricted Access · Team Leaders Only
           </h2>
           <p className="mb-5 text-xs leading-relaxed text-white/60">
-            Round 1 is strictly restricted to registered Team Leaders of Debug
-            Decrypt 3.0 teams and Club Officials. If you are a team member,
-            please have your designated Team Leader attempt the test.
+            {errorMessage ||
+              "Round 1 is strictly restricted to registered Team Leaders of Debug Decrypt 3.0 teams and Club Officials. If you are a team member, please have your designated Team Leader attempt the test. If they cannot take it, they can make you the Team Leader from the Team Dashboard."}
           </p>
-          <Link href="/dashboard" className="btn-secondary w-full text-xs">
-            Return to Dashboard
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/events/debug-decrypt-3.0"
+              className="btn-primary w-full text-xs"
+            >
+              Go to Team Dashboard
+              <LuArrowRight size={14} />
+            </Link>
+            <Link href="/dashboard" className="btn-secondary w-full text-xs">
+              Return to Dashboard
+            </Link>
+          </div>
         </div>
       </main>
     );
