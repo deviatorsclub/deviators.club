@@ -67,13 +67,15 @@ export async function GET(req: NextRequest) {
       usernameLower === "kunalwadhwa" ||
       usernameLower === "wadhwakunal" ||
       usernameLower === "renunarwal" ||
+      usernameLower === "aam_papad" ||
       emailLower.includes("akshitbhandaricodes") ||
       emailLower.includes("arushik") ||
       emailLower.includes("paperboat") ||
       emailLower.includes("kunalwadhwa") ||
       emailLower.includes("wadhwakunal") ||
       emailLower.includes("renunarwal") ||
-      emailLower.includes("renu");
+      emailLower.includes("renu") ||
+      emailLower.includes("anishjuyal6");
 
     const isAuthorized = hasAdminOrFacultyRole || isPresidentOrFacultyIdentity;
 

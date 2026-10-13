@@ -63,6 +63,7 @@ export async function GET(req: NextRequest) {
         usernameLower === "kunalwadhwa" ||
         usernameLower === "wadhwakunal" ||
         usernameLower === "renunarwal" ||
+        usernameLower === "aam_papad" ||
         emailLower === "akshitbhandaricodes@gmail.com" ||
         emailLower.includes("akshitbhandaricodes") ||
         emailLower.includes("arushik") ||
@@ -70,7 +71,8 @@ export async function GET(req: NextRequest) {
         emailLower.includes("kunalwadhwa") ||
         emailLower.includes("wadhwakunal") ||
         emailLower.includes("renunarwal") ||
-        emailLower.includes("renu");
+        emailLower.includes("renu") ||
+        emailLower.includes("anishjuyal6");
     }
 
     // STRICT: Only Club Presidents and Faculty Coordinators can view the leaderboard!

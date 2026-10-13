@@ -85,13 +85,15 @@ export async function verifyRound1Auth(req: NextRequest): Promise<{
       usernameLower === "kunalwadhwa" ||
       usernameLower === "wadhwakunal" ||
       usernameLower === "renunarwal" ||
+      usernameLower === "aam_papad" ||
       emailLower === "akshitbhandaricodes@gmail.com" ||
       emailLower.includes("akshitbhandaricodes") ||
       emailLower.includes("arushik") ||
       emailLower.includes("paperboat") ||
       emailLower.includes("kunalwadhwa") ||
       emailLower.includes("wadhwakunal") ||
-      emailLower.includes("renunarwal");
+      emailLower.includes("renunarwal") ||
+      emailLower.includes("anishjuyal6");
 
     const isPresident = hasExecutiveRole || isExecutiveIdentity;
 

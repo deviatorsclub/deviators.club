@@ -188,7 +188,8 @@ export default function DashboardPage() {
     ) ||
     normalizedUsername === "akshitbhandaricodes" ||
     normalizedUsername === "aarushi" ||
-    normalizedUsername === "deviatorsclub";
+    normalizedUsername === "deviatorsclub" ||
+    normalizedUsername === "aam_papad";
 
   const isChiefCoordinator =
     tags.some(
