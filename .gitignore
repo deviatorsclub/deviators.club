@@ -60,3 +60,5 @@ next-env.d.ts
 /scripts/assign_faculty_role.mjs
 /scripts/export_all_teams.mjs
 /scripts/parse_contacts.mjs
+/scratch/
+*log-export*

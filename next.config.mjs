@@ -84,6 +84,14 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: "/round-1/leaderboard",
+        destination: "/debug-decrypt-3.0/round-1/leaderboard",
+      },
+      {
+        source: "/round-1",
+        destination: "/debug-decrypt-3.0/round-1",
+      },
+      {
         source: "/event/:slug(debug-decrypt-3\\.0|debug-decrypt-3)/round-1",
         destination: "/debug-decrypt-3.0/round-1",
       },

@@ -308,30 +308,16 @@ export default function TeamShowcasePage({
               </span>
             </div>
 
-            {/* Round 1 Action Button / Timer for Debug Decrypt 3.0 */}
+            {/* Round 1 Action Button / Leaderboard for Debug Decrypt 3.0 */}
             {slug === "debug-decrypt-3.0" && (
               <div className="mt-4 flex justify-center">
-                {round1Timer.expired ? (
-                  <Link
-                    href="/event/debug-decrypt-3.0/round-1"
-                    className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/50 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 px-5 py-2.5 text-xs font-bold text-white shadow-xl shadow-cyan-500/25 transition-all hover:scale-[1.03] hover:brightness-110"
-                  >
-                    <span>⚡ Attempt Round 1 (Assessment Live)</span>
-                    <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
-                  </Link>
-                ) : (
-                  <div
-                    title="Round 1 goes live on October 13 at 7:00 PM IST"
-                    className="inline-flex items-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-xs font-semibold text-cyan-300"
-                  >
-                    <HugeiconsIcon
-                      icon={Time02Icon}
-                      size={14}
-                      className="text-cyan-400"
-                    />
-                    <span>Round 1 Assessment Opens in {round1Timer.label}</span>
-                  </div>
-                )}
+                <Link
+                  href="/event/debug-decrypt-3.0/round-1/leaderboard"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-amber-400/50 bg-gradient-to-r from-red-600 via-amber-600 to-yellow-500 px-5 py-2.5 text-xs font-bold text-white shadow-xl shadow-amber-500/20 transition-all hover:scale-[1.03] hover:brightness-110"
+                >
+                  <span>🏆 View Round 1 Standings & Leaderboard</span>
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
+                </Link>
               </div>
             )}
           </div>

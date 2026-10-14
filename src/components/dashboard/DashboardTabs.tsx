@@ -81,6 +81,14 @@ export default function DashboardTabs({
       pill:
         counts.community !== undefined ? String(counts.community) : undefined,
     },
+    {
+      id: "round1-leaderboard" as DashboardTabId,
+      label: "Round 1 Leaderboard",
+      icon: SparklesIcon,
+      pill: "Top 40",
+      isSpecial: true,
+      href: "/event/debug-decrypt-3.0/round-1/leaderboard",
+    },
     ...(hasRosterAccess
       ? [
           {
@@ -89,14 +97,6 @@ export default function DashboardTabs({
             icon: CrownIcon,
             pill: rosterPill,
             isSpecial: true,
-          },
-          {
-            id: "round1-leaderboard" as DashboardTabId,
-            label: "Round 1 Leaderboard",
-            icon: SparklesIcon,
-            pill: "Live",
-            isSpecial: true,
-            href: "/event/debug-decrypt-3.0/round-1/leaderboard",
           },
         ]
       : []),
