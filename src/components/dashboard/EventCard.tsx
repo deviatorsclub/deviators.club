@@ -47,15 +47,49 @@ export default function EventCard({
   return (
     <article className="glass-card overflow-hidden rounded-3xl">
       {/* Cover with Poster */}
-      <div className="relative aspect-[2391/658] w-full overflow-hidden border-b border-white/10 bg-[#090d16]">
-        <Image
-          src="/debug_decrypt_banner_2.png"
-          alt={event.title}
-          fill
-          className="object-cover"
-          unoptimized
-        />
-      </div>
+      {event.slug === "web-lumina-2026" ? (
+        <div className="relative aspect-[2391/658] w-full overflow-hidden border-b border-white/10 bg-[#070b19]">
+          <Image
+            src="/web_lumina_banner.png"
+            alt={event.title}
+            fill
+            className="object-cover"
+            priority
+            unoptimized
+          />
+        </div>
+      ) : event.slug === "debug-decrypt-3.0" ? (
+        <div className="relative aspect-[2391/658] w-full overflow-hidden border-b border-white/10 bg-[#090d16]">
+          <Image
+            src="/debug_decrypt_banner_2.png"
+            alt={event.title}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+      ) : (
+        <div className="relative flex aspect-[2391/658] w-full flex-col justify-between overflow-hidden border-b border-white/10 bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-950 p-5 sm:p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.22),transparent_65%)]" />
+          <div className="relative z-10 flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300">
+              <HugeiconsIcon icon={SparklesIcon} size={13} />
+              Deviators Club
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] font-medium text-white/70">
+              {event.mode} · Team of 2–{event.maxTeamSize}
+            </span>
+          </div>
+          <div className="relative z-10">
+            <h4 className="font-heading text-xl font-black tracking-tight text-white sm:text-2xl md:text-3xl">
+              {event.title}
+            </h4>
+            <p className="mt-0.5 text-xs font-medium text-cyan-200/80">
+              {event.tagline}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4 p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
@@ -88,13 +122,27 @@ export default function EventCard({
             </p>
           </div>
           <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-[#090d16] shadow-md sm:h-14 sm:w-14">
-            <Image
-              src="/debug_logo.png"
-              alt={`${event.title} Logo`}
-              fill
-              className="object-contain p-1.5"
-              unoptimized
-            />
+            {event.slug === "web-lumina-2026" ? (
+              <Image
+                src="/web_lumina_logo.png"
+                alt={`${event.title} Logo`}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            ) : event.slug === "debug-decrypt-3.0" ? (
+              <Image
+                src="/debug_logo.png"
+                alt={`${event.title} Logo`}
+                fill
+                className="object-contain p-1.5"
+                unoptimized
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500/20 to-cyan-500/20 text-cyan-300">
+                <HugeiconsIcon icon={SparklesIcon} size={24} />
+              </div>
+            )}
           </div>
         </div>
 
@@ -114,7 +162,10 @@ export default function EventCard({
               size={15}
               className="text-white/35"
             />
-            {date} · 10:00 AM
+            {date} ·{" "}
+            {event.slug === "web-lumina-2026"
+              ? "Schedule to be announced"
+              : "10:00 AM"}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <HugeiconsIcon
@@ -165,13 +216,6 @@ export default function EventCard({
                   <span>Team Roster</span>
                 </button>
               )}
-              <Link
-                href="/event/debug-decrypt-3.0/round-1/leaderboard"
-                className="flex items-center gap-1.5 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-2.5 text-sm font-semibold text-cyan-300 transition-colors hover:bg-cyan-400/20"
-              >
-                <HugeiconsIcon icon={SparklesIcon} size={15} />
-                <span>Round 1 Standings</span>
-              </Link>
             </>
           )}
           <button

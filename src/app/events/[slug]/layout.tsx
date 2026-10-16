@@ -12,7 +12,10 @@ export async function generateMetadata({
   const ogImage = `${siteUrl}/dev%20posters%20new%201.png`;
 
   const title = `${event.title} — ${event.subtitle || event.mainTagline} | Deviators Club`;
-  const description = `${event.subTagline}. 13 Oct Online Shortlisting · 15 Oct DCE Gurugram Finale. Open to all students.`;
+  const description =
+    slug === "debug-decrypt-3.0"
+      ? `${event.subTagline}. 13 Oct Online Shortlisting · 15 Oct DCE Gurugram Finale. Open to all students.`
+      : `${event.title} — ${event.subtitle}. ${event.subTagline}. ${event.location}. Teams of ${event.minTeamSize}–${event.maxTeamSize} members.`;
 
   return {
     title,

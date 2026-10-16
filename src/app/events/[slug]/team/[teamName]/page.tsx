@@ -307,19 +307,6 @@ export default function TeamShowcasePage({
                 {event.location}
               </span>
             </div>
-
-            {/* Round 1 Action Button / Leaderboard for Debug Decrypt 3.0 */}
-            {slug === "debug-decrypt-3.0" && (
-              <div className="mt-4 flex justify-center">
-                <Link
-                  href="/event/debug-decrypt-3.0/round-1/leaderboard"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-amber-400/50 bg-gradient-to-r from-red-600 via-amber-600 to-yellow-500 px-5 py-2.5 text-xs font-bold text-white shadow-xl shadow-amber-500/20 transition-all hover:scale-[1.03] hover:brightness-110"
-                >
-                  <span>🏆 View Round 1 Standings & Leaderboard</span>
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
-                </Link>
-              </div>
-            )}
           </div>
         </motion.div>
 

@@ -93,11 +93,20 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const eventSlug = searchParams.get("event") || "debug-decrypt-3.0";
 
-    const { data: event } = await adminDb
+    let { data: event } = await adminDb
       .from("events")
       .select("id, slug, title, max_team_size")
-      .or(`slug.eq.${eventSlug},slug.eq.debug-decrypt-3.0`)
+      .eq("slug", eventSlug)
       .maybeSingle();
+
+    if (!event && (eventSlug === "round-1" || eventSlug === "craftcon-2k26")) {
+      const res = await adminDb
+        .from("events")
+        .select("id, slug, title, max_team_size")
+        .eq("slug", "debug-decrypt-3.0")
+        .maybeSingle();
+      event = res.data;
+    }
 
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });

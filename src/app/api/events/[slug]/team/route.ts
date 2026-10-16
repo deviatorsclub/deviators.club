@@ -51,11 +51,20 @@ export async function GET(
   const supabase = getAdminClient(token);
 
   // Find event (support slug aliases e.g. debug-decrypt-3.0 or craftcon-2k26)
-  const { data: event } = await supabase
+  let { data: event } = await supabase
     .from("events")
     .select("id, slug, title, max_team_size, is_team_event")
-    .or(`slug.eq.${slug},slug.eq.debug-decrypt-3.0`)
+    .eq("slug", slug)
     .maybeSingle();
+
+  if (!event && (slug === "round-1" || slug === "craftcon-2k26")) {
+    const res = await supabase
+      .from("events")
+      .select("id, slug, title, max_team_size, is_team_event")
+      .eq("slug", "debug-decrypt-3.0")
+      .maybeSingle();
+    event = res.data;
+  }
 
   if (!event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
@@ -247,23 +256,35 @@ export async function POST(
   } = body;
 
   // 1. Fetch event
-  const { data: event, error: eErr } = await supabase
+  let { data: event, error: eErr } = await supabase
     .from("events")
     .select("id, slug, title, max_team_size, is_team_event, reg_closes_at")
-    .or(`slug.eq.${slug},slug.eq.debug-decrypt-3.0`)
+    .eq("slug", slug)
     .maybeSingle();
+
+  if (!event && (slug === "round-1" || slug === "craftcon-2k26")) {
+    const res = await supabase
+      .from("events")
+      .select("id, slug, title, max_team_size, is_team_event, reg_closes_at")
+      .eq("slug", "debug-decrypt-3.0")
+      .maybeSingle();
+    event = res.data;
+  }
 
   if (eErr || !event) {
     return NextResponse.json({ error: "Event not found." }, { status: 404 });
   }
 
-  // Registrations are closed
+  // Registrations deadline check
   const regDeadline = event.reg_closes_at
     ? new Date(event.reg_closes_at).getTime()
     : 0;
-  if (Date.now() >= regDeadline || event.slug === "debug-decrypt-3.0") {
+  if (
+    (regDeadline > 0 && Date.now() >= regDeadline) ||
+    event.slug === "debug-decrypt-3.0"
+  ) {
     return NextResponse.json(
-      { error: "Registrations for Debug Decrypt 3.0 are officially closed." },
+      { error: `Registrations for ${event.title} are officially closed.` },
       { status: 403 },
     );
   }

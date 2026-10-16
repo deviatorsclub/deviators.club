@@ -13,12 +13,7 @@ import {
 } from "@hugeicons/core-free-icons";
 
 export type DashboardTabId =
-  | "events"
-  | "my-events"
-  | "invites"
-  | "community"
-  | "admin-teams"
-  | "round1-leaderboard";
+  "events" | "my-events" | "invites" | "community" | "admin-teams";
 
 export default function DashboardTabs({
   active,
@@ -80,14 +75,6 @@ export default function DashboardTabs({
       icon: Megaphone01Icon,
       pill:
         counts.community !== undefined ? String(counts.community) : undefined,
-    },
-    {
-      id: "round1-leaderboard" as DashboardTabId,
-      label: "Round 1 Leaderboard",
-      icon: SparklesIcon,
-      pill: "Top 40",
-      isSpecial: true,
-      href: "/event/debug-decrypt-3.0/round-1/leaderboard",
     },
     ...(hasRosterAccess
       ? [

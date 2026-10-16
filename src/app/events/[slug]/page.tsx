@@ -95,9 +95,11 @@ export default function EventDashboardPage({
 
   useEffect(() => {
     const regTarget = new Date(
-      event?.regClosesAt || "2026-10-13T15:00:00+05:30",
+      event?.regClosesAt || "2026-11-18T23:59:59+05:30",
     ).getTime();
-    const eventTarget = new Date("2026-10-15T08:00:00+05:30").getTime();
+    const eventTarget = new Date(
+      event?.startsAt || "2026-11-20T09:00:00+05:30",
+    ).getTime();
 
     const updateCountdowns = () => {
       const now = new Date().getTime();
@@ -123,7 +125,7 @@ export default function EventDashboardPage({
     updateCountdowns();
     const interval = setInterval(updateCountdowns, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [event?.regClosesAt, event?.startsAt]);
 
   // Check URL query parameters for ?register=true to route to dedicated registration page
   useEffect(() => {
@@ -210,7 +212,7 @@ export default function EventDashboardPage({
     typeof window !== "undefined"
       ? window.location.href
       : `https://www.deviators.club/events/${slug}`;
-  const shareText = `DEBUG DECRYPT 3.0 — The Ultimate Algorithm Challenge! Offline competitive programming event on 15 Oct 2026. Register your 2-3 member squad:`;
+  const shareText = `${event.title} — ${event.subtitle}! Offline event at ${event.location}. Register your squad (${event.minTeamSize}–${event.maxTeamSize} members):`;
   const enc = encodeURIComponent;
 
   const handleCopyLink = async () => {
@@ -223,7 +225,7 @@ export default function EventDashboardPage({
 
   const handleCopyStory = async () => {
     try {
-      const storyText = `⚡ DEBUG DECRYPT 3.0 — The Ultimate Algorithm Challenge\nThink. Debug. Optimize. Conquer.\n15 OCT 2026 · Dronacharya College of Engineering\n₹18,000 Cash Prizes · Teams of 2–3\nRegister: ${pageUrl}`;
+      const storyText = `⚡ ${event.title} — ${event.subtitle}\n${event.subTagline}\n${event.location}\nTeams of ${event.minTeamSize}–${event.maxTeamSize} · Free Entry\nRegister: ${pageUrl}`;
       await navigator.clipboard.writeText(storyText);
       setCopiedStory(true);
       setTimeout(() => setCopiedStory(false), 2000);
@@ -263,16 +265,60 @@ export default function EventDashboardPage({
         </div>
 
         {/* Top Event Banner Poster */}
-        <div className="relative aspect-[2345/670] w-full overflow-hidden rounded-3xl border border-white/15 bg-[#090d16] shadow-2xl">
-          <Image
-            src={event.bannerUrl}
-            alt={event.title}
-            fill
-            className="object-cover"
-            priority
-            unoptimized
-          />
-        </div>
+        {event.bannerUrl ? (
+          <div className="relative aspect-[2345/670] w-full overflow-hidden rounded-3xl border border-white/15 bg-[#090d16] shadow-2xl">
+            <Image
+              src={event.bannerUrl}
+              alt={event.title}
+              fill
+              className="object-cover"
+              priority
+              unoptimized
+            />
+          </div>
+        ) : (
+          <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-r from-[#070c18] via-[#0c162d] to-[#070b14] p-7 shadow-2xl sm:p-10">
+            <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-blue-500/20 blur-[90px]" />
+            <div className="pointer-events-none absolute -right-24 -bottom-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-[90px]" />
+            <div className="relative z-10 flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 font-mono text-xs font-semibold text-cyan-300">
+                  <HugeiconsIcon icon={SparklesIcon} size={13} />
+                  Deviators Club
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-xs font-medium text-white/70">
+                  {event.location}
+                </span>
+                <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 font-mono text-xs font-bold text-emerald-300">
+                  Registrations Open · 100% Free Entry
+                </span>
+              </div>
+              <h2 className="font-heading text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
+                {event.title}
+              </h2>
+              <p className="max-w-3xl text-sm font-medium text-cyan-200/90 sm:text-lg">
+                {event.subtitle}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2.5 pt-2 text-xs text-white/60">
+                <span className="rounded-xl border border-white/10 bg-black/40 px-3 py-1.5">
+                  Mode: <strong className="text-white">{event.mode}</strong>
+                </span>
+                <span className="rounded-xl border border-white/10 bg-black/40 px-3 py-1.5">
+                  Squad Size:{" "}
+                  <strong className="text-white">
+                    {event.minTeamSize}–{event.maxTeamSize} Members
+                  </strong>
+                </span>
+                <span className="rounded-xl border border-white/10 bg-black/40 px-3 py-1.5">
+                  Challenge:{" "}
+                  <strong className="text-white">
+                    {event.categories[0] || "Challenge"}
+                  </strong>
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main Grid: Left Content vs Right Sticky Sidebar */}
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
@@ -327,7 +373,11 @@ export default function EventDashboardPage({
                         <span className="font-semibold text-white/90">
                           Date & Time:{" "}
                         </span>
-                        <span>15 October 2026 · {event.timeRange}</span>
+                        <span>
+                          {slug === "debug-decrypt-3.0"
+                            ? `15 October 2026 · ${event.timeRange}`
+                            : event.timeRange}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -347,13 +397,19 @@ export default function EventDashboardPage({
 
                 {/* Event Emblem */}
                 <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-[#090d16] shadow-xl sm:h-24 sm:w-24">
-                  <Image
-                    src={event.logoUrl}
-                    alt="Event Badge"
-                    fill
-                    className="object-contain p-2"
-                    unoptimized
-                  />
+                  {event.logoUrl ? (
+                    <Image
+                      src={event.logoUrl}
+                      alt="Event Badge"
+                      fill
+                      className="object-contain p-2"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500/20 via-cyan-500/20 to-indigo-600/20 text-cyan-300">
+                      <HugeiconsIcon icon={SparklesIcon} size={36} />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -471,21 +527,130 @@ export default function EventDashboardPage({
                     </div>
                   </div>
 
-                  {/* Official Challenge Poster */}
-                  <div className="border-t border-white/[0.08] pt-6">
-                    <h4 className="font-heading mb-3 text-base font-bold text-white">
-                      Official Challenge Poster
-                    </h4>
-                    <div className="relative aspect-[1916/821] w-full overflow-hidden rounded-2xl border border-white/10 bg-[#090d16] shadow-xl">
-                      <Image
-                        src="/debug_decrypt_poster.png"
-                        alt={`${event.title} Official Poster`}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
+                  {/* Official Challenge Poster (only when available) */}
+                  {(event.bannerUrl || slug === "debug-decrypt-3.0") && (
+                    <div className="border-t border-white/[0.08] pt-6">
+                      <h4 className="font-heading mb-3 text-base font-bold text-white">
+                        Official Challenge Poster
+                      </h4>
+                      <div className="relative aspect-[1916/821] w-full overflow-hidden rounded-2xl border border-white/10 bg-[#090d16] shadow-xl">
+                        <Image
+                          src={
+                            slug === "debug-decrypt-3.0"
+                              ? "/debug_decrypt_poster.png"
+                              : event.bannerUrl
+                          }
+                          alt={`${event.title} Official Poster`}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Website Requirements (if present) */}
+                  {event.websiteRequirements &&
+                    event.websiteRequirements.length > 0 && (
+                      <div className="border-t border-white/[0.08] pt-6">
+                        <h4 className="font-heading text-base font-bold text-white">
+                          Website Requirements & Design Expectations
+                        </h4>
+                        <p className="mt-1 text-xs text-white/50">
+                          Teams may use any suitable web technology, framework,
+                          or development tool.
+                        </p>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          {event.websiteRequirements.map((req) => (
+                            <div
+                              key={req.area}
+                              className="rounded-2xl border border-white/10 bg-black/40 p-4 transition-colors hover:border-cyan-500/30"
+                            >
+                              <span className="font-mono text-xs font-bold text-cyan-300 uppercase">
+                                {req.area}
+                              </span>
+                              <p className="mt-1 text-xs leading-relaxed text-white/70">
+                                {req.expectation}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Evaluation Criteria (if present) */}
+                  {event.evaluationCriteria &&
+                    event.evaluationCriteria.length > 0 && (
+                      <div className="border-t border-white/[0.08] pt-6">
+                        <h4 className="font-heading text-base font-bold text-white">
+                          Evaluation Criteria
+                        </h4>
+                        <p className="mt-1 text-xs text-white/50">
+                          Judges will assess the overall quality of the
+                          experience, design choices, and AI prompting
+                          transparency.
+                        </p>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          {event.evaluationCriteria.map((c) => (
+                            <div
+                              key={c.criterion}
+                              className="rounded-2xl border border-white/10 bg-black/40 p-4 transition-colors hover:border-blue-500/30"
+                            >
+                              <span className="font-mono text-xs font-bold text-blue-300">
+                                {c.criterion}
+                              </span>
+                              <p className="mt-1 text-xs leading-relaxed text-white/70">
+                                {c.focus}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Event Coordinators (if present) */}
+                  {event.coordinators && event.coordinators.length > 0 && (
+                    <div className="border-t border-white/[0.08] pt-6">
+                      <h4 className="font-heading text-base font-bold text-white">
+                        Event Coordination & Contacts
+                      </h4>
+                      <p className="mt-1 text-xs text-white/50">
+                        For any queries regarding Web Lumina 2026, contact the
+                        organizing team:
+                      </p>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {event.coordinators.map((c) => (
+                          <div
+                            key={c.name}
+                            className="rounded-2xl border border-white/10 bg-black/40 p-4"
+                          >
+                            <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[10px] font-bold text-cyan-300 uppercase">
+                              {c.role}
+                            </span>
+                            <h5 className="mt-2 text-sm font-bold text-white">
+                              {c.name}
+                            </h5>
+                            <p className="mt-1 truncate font-mono text-[11px] text-white/50">
+                              <a
+                                href={`mailto:${c.email}`}
+                                className="transition-colors hover:text-cyan-300"
+                              >
+                                {c.email}
+                              </a>
+                            </p>
+                            <p className="mt-0.5 font-mono text-[11px] text-cyan-400">
+                              <a
+                                href={`tel:${c.phone}`}
+                                className="hover:underline"
+                              >
+                                +91 {c.phone}
+                              </a>
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Venue Details */}
                   <div className="border-t border-white/[0.08] pt-6">
@@ -543,11 +708,14 @@ export default function EventDashboardPage({
                 <div className="space-y-6">
                   <div>
                     <h3 className="font-heading text-lg font-bold text-white">
-                      Event Schedule — 15 October 2026
+                      {slug === "debug-decrypt-3.0"
+                        ? "Event Schedule — 15 October 2026"
+                        : `${event.title} Schedule`}
                     </h3>
                     <p className="mt-1 text-xs text-white/50">
-                      Full-day algorithmic challenge running from 8:00 AM to
-                      7:00 PM.
+                      {slug === "debug-decrypt-3.0"
+                        ? "Full-day algorithmic challenge running from 8:00 AM to 7:00 PM."
+                        : event.timeRange}
                     </p>
                   </div>
 
@@ -579,10 +747,14 @@ export default function EventDashboardPage({
                 <div className="space-y-6">
                   <div>
                     <h3 className="font-heading text-lg font-bold text-white">
-                      ₹18,000 Total Cash Prize Pool
+                      {slug === "debug-decrypt-3.0"
+                        ? "₹18,000 Total Cash Prize Pool"
+                        : "Prizes & Recognition"}
                     </h3>
                     <p className="mt-1 text-xs text-white/50">
-                      Awarded to top performers of DEBUG DECRYPT 3.0.
+                      {slug === "debug-decrypt-3.0"
+                        ? "Awarded to top performers of DEBUG DECRYPT 3.0."
+                        : "Recognizing outstanding design, interactivity, and engineering excellence."}
                     </p>
                   </div>
 
@@ -772,7 +944,7 @@ export default function EventDashboardPage({
                       Challenge Format
                     </p>
                     <p className="text-xs font-semibold text-slate-200">
-                      Competitive DSA & Debugging
+                      {event.subtitle}
                     </p>
                   </div>
                   <div className="text-right">
@@ -846,7 +1018,9 @@ export default function EventDashboardPage({
                     Registration Cutoff
                   </span>
                   <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-amber-300">
-                    2 Days Before Event
+                    {slug === "debug-decrypt-3.0"
+                      ? "2 Days Before Event"
+                      : "Active"}
                   </span>
                 </div>
 

@@ -263,7 +263,7 @@ export async function fetchEventsDb(): Promise<DemoEvent[]> {
     .from("events")
     .select("*")
     .eq("is_published", true)
-    .order("starts_at", { ascending: true });
+    .order("created_at", { ascending: false });
   if (!data || data.length === 0) return [];
   const counts = await Promise.all(
     data.map((e) =>
@@ -274,7 +274,23 @@ export async function fetchEventsDb(): Promise<DemoEvent[]> {
         .eq("status", "confirmed"),
     ),
   );
-  return data.map((e, i) => toEvent(e as EventRow, counts[i].count ?? 0));
+  const mapped = data.map((e, i) =>
+    toEvent(e as EventRow, counts[i].count ?? 0),
+  );
+  // Map Web Lumina 2026 first as the active new event
+  return mapped.sort((a, b) => {
+    if (a.slug === "web-lumina-2026") return -1;
+    if (b.slug === "web-lumina-2026") return 1;
+    const aClosed =
+      a.slug === "debug-decrypt-3.0" ||
+      (a.regClosesAt && new Date(a.regClosesAt).getTime() <= Date.now());
+    const bClosed =
+      b.slug === "debug-decrypt-3.0" ||
+      (b.regClosesAt && new Date(b.regClosesAt).getTime() <= Date.now());
+    if (!aClosed && bClosed) return -1;
+    if (aClosed && !bClosed) return 1;
+    return new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime();
+  });
 }
 
 export async function fetchRegistrationsDb(

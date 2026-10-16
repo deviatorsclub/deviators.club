@@ -61,11 +61,20 @@ export async function POST(
   }
 
   // Find event
-  const { data: event } = await supabase
+  let { data: event } = await supabase
     .from("events")
     .select("id, slug, max_team_size")
-    .or(`slug.eq.${slug},slug.eq.debug-decrypt-3.0`)
+    .eq("slug", slug)
     .maybeSingle();
+
+  if (!event && (slug === "round-1" || slug === "craftcon-2k26")) {
+    const res = await supabase
+      .from("events")
+      .select("id, slug, max_team_size")
+      .eq("slug", "debug-decrypt-3.0")
+      .maybeSingle();
+    event = res.data;
+  }
 
   if (!event) {
     return NextResponse.json({ error: "Event not found." }, { status: 404 });

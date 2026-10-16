@@ -101,6 +101,20 @@ export default function EventRegistrationPage({
     year: "3rd Year",
   });
 
+  // Member 3 (Optional Teammate for up to 4 members)
+  const [hasMember3, setHasMember3] = useState(false);
+  const [member3Search, setMember3Search] = useState("");
+  const [member3Searching, setMember3Searching] = useState(false);
+  const [member3Results, setMember3Results] = useState<SearchResultUser[]>([]);
+  const [member3, setMember3] = useState<TeammateFormData>({
+    profile: null,
+    phone: "",
+    collegeId: "",
+    branch: "CSE",
+    section: "",
+    year: "3rd Year",
+  });
+
   // Load auth user and verify if already registered
   useEffect(() => {
     (async () => {
@@ -200,13 +214,20 @@ export default function EventRegistrationPage({
         results.filter(
           (u) =>
             u.id !== currentUser?.id &&
-            (!member2.profile || u.id !== member2.profile.id),
+            (!member2.profile || u.id !== member2.profile.id) &&
+            (!member3.profile || u.id !== member3.profile.id),
         ),
       );
       setMember1Searching(false);
     }, 280);
     return () => clearTimeout(timer);
-  }, [member1Search, member1.profile, member2.profile, currentUser?.id]);
+  }, [
+    member1Search,
+    member1.profile,
+    member2.profile,
+    member3.profile,
+    currentUser?.id,
+  ]);
 
   // Debounced search for Member 2
   useEffect(() => {
@@ -221,13 +242,48 @@ export default function EventRegistrationPage({
         results.filter(
           (u) =>
             u.id !== currentUser?.id &&
-            (!member1.profile || u.id !== member1.profile.id),
+            (!member1.profile || u.id !== member1.profile.id) &&
+            (!member3.profile || u.id !== member3.profile.id),
         ),
       );
       setMember2Searching(false);
     }, 280);
     return () => clearTimeout(timer);
-  }, [member2Search, member2.profile, member1.profile, currentUser?.id]);
+  }, [
+    member2Search,
+    member2.profile,
+    member1.profile,
+    member3.profile,
+    currentUser?.id,
+  ]);
+
+  // Debounced search for Member 3
+  useEffect(() => {
+    if (!member3Search.trim() || member3.profile) {
+      setMember3Results([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setMember3Searching(true);
+      const results = await searchTeammates(member3Search);
+      setMember3Results(
+        results.filter(
+          (u) =>
+            u.id !== currentUser?.id &&
+            (!member1.profile || u.id !== member1.profile.id) &&
+            (!member2.profile || u.id !== member2.profile.id),
+        ),
+      );
+      setMember3Searching(false);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [
+    member3Search,
+    member3.profile,
+    member1.profile,
+    member2.profile,
+    currentUser?.id,
+  ]);
 
   // Handle Submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -346,10 +402,48 @@ export default function EventRegistrationPage({
       }
     }
 
+    // Member 3 validation (if added)
+    let r3 = "";
+    if (hasMember3) {
+      if (!member3.profile) {
+        setErrorMessage(
+          "You added Member 3 slot. Please select a teammate or remove Member 3.",
+        );
+        return;
+      }
+      if (
+        !member3.phone.trim() ||
+        !member3.collegeId.trim() ||
+        !member3.branch.trim() ||
+        !member3.section.trim()
+      ) {
+        setErrorMessage(
+          `Please fill out Member 3 (@${member3.profile.username}) details completely (Phone, Roll No., Branch, Section).`,
+        );
+        return;
+      }
+
+      if (!isValidPhone(member3.phone)) {
+        setErrorMessage(
+          `Please enter a valid 10-digit mobile number for Member 3 (@${member3.profile.username}).`,
+        );
+        return;
+      }
+
+      r3 = normalizeRollNo(member3.collegeId);
+      if (!r3 || r3.length < 2) {
+        setErrorMessage(
+          `Please enter a valid college roll number for Member 3 (@${member3.profile.username}).`,
+        );
+        return;
+      }
+    }
+
     // Duplicate phone number check within squad (normalized)
     const pLeader = normalizePhone(leaderPhone);
     const p1 = normalizePhone(member1.phone);
     const p2 = hasMember2 ? normalizePhone(member2.phone) : "";
+    const p3 = hasMember3 ? normalizePhone(member3.phone) : "";
 
     if (pLeader && p1 && pLeader === p1) {
       setErrorMessage(
@@ -367,6 +461,26 @@ export default function EventRegistrationPage({
       if (p1 === p2) {
         setErrorMessage(
           "Member 1 and Member 2 cannot have the same phone number. Duplicate phone numbers are not allowed.",
+        );
+        return;
+      }
+    }
+    if (hasMember3 && p3) {
+      if (pLeader === p3) {
+        setErrorMessage(
+          "Leader and Member 3 cannot have the same phone number. Duplicate phone numbers are not allowed.",
+        );
+        return;
+      }
+      if (p1 === p3) {
+        setErrorMessage(
+          "Member 1 and Member 3 cannot have the same phone number. Duplicate phone numbers are not allowed.",
+        );
+        return;
+      }
+      if (hasMember2 && p2 === p3) {
+        setErrorMessage(
+          "Member 2 and Member 3 cannot have the same phone number. Duplicate phone numbers are not allowed.",
         );
         return;
       }
@@ -389,6 +503,26 @@ export default function EventRegistrationPage({
       if (r1 === r2) {
         setErrorMessage(
           "Member 1 and Member 2 cannot have the same college roll number. Duplicate roll numbers are not allowed.",
+        );
+        return;
+      }
+    }
+    if (hasMember3 && r3) {
+      if (rLeader === r3) {
+        setErrorMessage(
+          "Leader and Member 3 cannot have the same college roll number. Duplicate roll numbers are not allowed.",
+        );
+        return;
+      }
+      if (r1 === r3) {
+        setErrorMessage(
+          "Member 1 and Member 3 cannot have the same college roll number. Duplicate roll numbers are not allowed.",
+        );
+        return;
+      }
+      if (hasMember2 && r2 === r3) {
+        setErrorMessage(
+          "Member 2 and Member 3 cannot have the same college roll number. Duplicate roll numbers are not allowed.",
         );
         return;
       }
@@ -432,6 +566,19 @@ export default function EventRegistrationPage({
           branch: member2.branch.trim(),
           section: member2.section.trim(),
           year: member2.year,
+        });
+      }
+
+      if (hasMember3 && member3.profile) {
+        teammateUsernames.push(member3.profile.username);
+        membersData.push({
+          username: member3.profile.username,
+          profileId: member3.profile.id,
+          phone: member3.phone.trim(),
+          collegeId: member3.collegeId.trim(),
+          branch: member3.branch.trim(),
+          section: member3.section.trim(),
+          year: member3.year,
         });
       }
 
@@ -534,8 +681,15 @@ export default function EventRegistrationPage({
     );
   }
 
-  // If user is not in a team, registrations have officially closed
-  if (true) {
+  // Check if registration has closed for this event
+  const regDeadline = event?.regClosesAt
+    ? new Date(event.regClosesAt).getTime()
+    : 0;
+  const isRegClosed =
+    (regDeadline > 0 && Date.now() >= regDeadline) ||
+    slug === "debug-decrypt-3.0";
+
+  if (isRegClosed) {
     return (
       <main className="mx-auto min-h-screen w-full max-w-2xl px-4 pt-28 pb-20">
         <div className="glass-card rounded-3xl border border-red-500/30 bg-[#0a0f1d] p-8 text-center shadow-2xl sm:p-12">
@@ -635,7 +789,8 @@ export default function EventRegistrationPage({
                 Register Team · {event.title}
               </h1>
               <p className="mt-1.5 text-xs text-white/60 sm:text-sm">
-                Min 2 Members · Max 3 Members. Fill leader details, search
+                Min {event.minTeamSize || 2} Members · Max{" "}
+                {event.maxTeamSize || 4} Members. Fill leader details, search
                 teammates, provide their info, and send squad requests.
               </p>
             </div>
@@ -1295,6 +1450,273 @@ export default function EventRegistrationPage({
               </div>
             )}
           </section>
+
+          {/* 5. MEMBER 3 (OPTIONAL - FOR TEAMS UP TO 4 MEMBERS) */}
+          {(event.maxTeamSize || 3) >= 4 && (
+            <section className="space-y-4 rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/[0.04] to-transparent p-5 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 font-mono text-xs font-bold text-white">
+                    4
+                  </span>
+                  <div>
+                    <h2 className="font-heading text-base font-bold text-white sm:text-lg">
+                      Member 3 Details
+                    </h2>
+                    <span className="font-mono text-[11px] text-white/50">
+                      Optional · 4th Squad Member
+                    </span>
+                  </div>
+                </div>
+
+                {!hasMember3 ? (
+                  <button
+                    type="button"
+                    onClick={() => setHasMember3(true)}
+                    className="flex items-center gap-1.5 rounded-full border border-indigo-400/40 bg-indigo-500/20 px-3 py-1 font-mono text-xs font-bold text-indigo-300 transition-colors hover:bg-indigo-500/30"
+                  >
+                    <HugeiconsIcon icon={PlusSignIcon} size={13} />
+                    <span>Add Member 3</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHasMember3(false);
+                      setMember3({
+                        profile: null,
+                        phone: "",
+                        collegeId: "",
+                        branch: "CSE",
+                        section: "",
+                        year: "3rd Year",
+                      });
+                    }}
+                    className="flex items-center gap-1 font-mono text-xs text-red-400 hover:underline"
+                  >
+                    <HugeiconsIcon icon={Delete02Icon} size={13} />
+                    <span>Remove Member 3</span>
+                  </button>
+                )}
+              </div>
+
+              {hasMember3 && (
+                <div className="space-y-4">
+                  {!member3.profile ? (
+                    <div className="space-y-2">
+                      <label className="block text-xs text-white/60">
+                        Search Member 3 by Deviators @username or name:
+                      </label>
+                      <div className="relative">
+                        <HugeiconsIcon
+                          icon={Search01Icon}
+                          size={16}
+                          className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-white/30"
+                        />
+                        <input
+                          type="text"
+                          value={member3Search}
+                          onChange={(e) => setMember3Search(e.target.value)}
+                          placeholder="Search @handle or name..."
+                          className="w-full rounded-xl border border-white/15 bg-black/50 py-2.5 pr-4 pl-9 text-xs text-white placeholder-white/30 outline-none focus:border-indigo-400"
+                        />
+                        {member3Searching && (
+                          <span className="absolute top-1/2 right-3 -translate-y-1/2 font-mono text-[10px] text-indigo-300">
+                            Searching...
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Dropdown Results */}
+                      {member3Results.length > 0 && (
+                        <div className="divide-y divide-white/5 rounded-xl border border-white/15 bg-[#0e1424] shadow-2xl">
+                          {member3Results.map((u) => (
+                            <button
+                              type="button"
+                              key={u.id}
+                              onClick={() => {
+                                setMember3((prev) => ({
+                                  ...prev,
+                                  profile: u,
+                                  branch: u.branch || prev.branch,
+                                  year: u.year || prev.year,
+                                }));
+                                setMember3Search("");
+                                setMember3Results([]);
+                              }}
+                              className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-white/[0.05]"
+                            >
+                              <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/5">
+                                {u.avatarUrl ? (
+                                  <Image
+                                    src={u.avatarUrl}
+                                    alt={u.displayName}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                  />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white/50">
+                                    {u.displayName.slice(0, 2).toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-xs font-bold text-white">
+                                  {u.displayName}
+                                </p>
+                                <p className="truncate font-mono text-[10px] text-white/40">
+                                  @{u.username} · {u.branch || "CSE"}
+                                </p>
+                              </div>
+                              <span className="rounded-lg bg-indigo-500/20 px-2 py-1 font-mono text-[10px] font-bold text-indigo-300">
+                                Select
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Selected Member 3 + Pop-up Details Fields */
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between rounded-xl border border-indigo-400/30 bg-indigo-500/10 p-3">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/5">
+                            {member3.profile?.avatarUrl ? (
+                              <Image
+                                src={member3.profile?.avatarUrl || ""}
+                                alt={member3.profile?.displayName || "Teammate"}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white/60">
+                                {(member3.profile?.displayName || "TM")
+                                  .slice(0, 2)
+                                  .toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-bold text-white">
+                              {member3.profile?.displayName}
+                            </p>
+                            <p className="truncate font-mono text-[10px] text-indigo-300">
+                              @{member3.profile?.username}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setMember3({
+                              profile: null,
+                              phone: "",
+                              collegeId: "",
+                              branch: "CSE",
+                              section: "",
+                              year: "3rd Year",
+                            })
+                          }
+                          className="flex items-center gap-1 rounded-lg border border-red-400/20 bg-red-500/10 px-2 py-1 text-[11px] font-semibold text-red-300 hover:bg-red-500/20"
+                        >
+                          <HugeiconsIcon icon={Cancel01Icon} size={12} />
+                          <span>Change</span>
+                        </button>
+                      </div>
+
+                      {/* Pop-up Fields for Member 3 */}
+                      <div className="rounded-xl border border-white/10 bg-black/40 p-4">
+                        <p className="mb-3 font-mono text-[11px] font-bold tracking-wider text-indigo-300 uppercase">
+                          Member 3 Details (Will show in request & portal):
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                          <div>
+                            <label className="mb-1 block font-mono text-[10px] text-white/60 uppercase">
+                              Phone Number *
+                            </label>
+                            <input
+                              type="tel"
+                              value={member3.phone}
+                              onChange={(e) =>
+                                setMember3((prev) => ({
+                                  ...prev,
+                                  phone: e.target.value,
+                                }))
+                              }
+                              placeholder="10-digit mobile"
+                              required
+                              className="w-full rounded-xl border border-white/10 bg-black/60 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-indigo-400"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="mb-1 block font-mono text-[10px] text-white/60 uppercase">
+                              College Roll / ID *
+                            </label>
+                            <input
+                              type="text"
+                              value={member3.collegeId}
+                              onChange={(e) =>
+                                setMember3((prev) => ({
+                                  ...prev,
+                                  collegeId: e.target.value,
+                                }))
+                              }
+                              placeholder="e.g. 02115602722"
+                              required
+                              className="w-full rounded-xl border border-white/10 bg-black/60 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-indigo-400"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="mb-1 block font-mono text-[10px] text-white/60 uppercase">
+                              Branch *
+                            </label>
+                            <input
+                              type="text"
+                              value={member3.branch}
+                              onChange={(e) =>
+                                setMember3((prev) => ({
+                                  ...prev,
+                                  branch: e.target.value,
+                                }))
+                              }
+                              placeholder="e.g. CSE, IT"
+                              required
+                              className="w-full rounded-xl border border-white/10 bg-black/60 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-indigo-400"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="mb-1 block font-mono text-[10px] text-white/60 uppercase">
+                              Section *
+                            </label>
+                            <input
+                              type="text"
+                              value={member3.section}
+                              onChange={(e) =>
+                                setMember3((prev) => ({
+                                  ...prev,
+                                  section: e.target.value,
+                                }))
+                              }
+                              placeholder="e.g. A, B, C"
+                              required
+                              className="w-full rounded-xl border border-white/10 bg-black/60 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-indigo-400"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+          )}
 
           {/* SQUAD NOTICE & SUBMISSION CTA */}
           <div className="rounded-2xl border border-blue-500/20 bg-blue-500/[0.04] p-4 text-xs text-white/70">
