@@ -32,7 +32,6 @@ yarn-error.log*
 pnpm-debug.log*
 
 # env files (can opt-in for commiting if needed)
-.env*
 !.env.local.example
 
 # vercel
@@ -44,7 +43,6 @@ next-env.d.ts
 
 # IDEs & local editor files
 .idea/
-.vscode/
 *.swp
 *.swo
 
@@ -62,3 +60,4 @@ next-env.d.ts
 /scripts/parse_contacts.mjs
 /scratch/
 *log-export*
+config.bat

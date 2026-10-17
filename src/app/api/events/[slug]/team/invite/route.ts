@@ -76,6 +76,15 @@ export async function POST(
     event = res.data;
   }
 
+  if (!event && slug === "web-lumina") {
+    const res = await supabase
+      .from("events")
+      .select("id, slug, max_team_size")
+      .eq("slug", "web-lumina-2026")
+      .maybeSingle();
+    event = res.data;
+  }
+
   if (!event) {
     return NextResponse.json({ error: "Event not found." }, { status: 404 });
   }

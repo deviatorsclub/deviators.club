@@ -76,6 +76,9 @@ export default function EventDashboardPage({
   const [showRegModal, setShowRegModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedStory, setCopiedStory] = useState(false);
+  const [posterFormat, setPosterFormat] = useState<"landscape" | "portrait">(
+    "landscape",
+  );
 
   // Live countdown timers: Registration Cutoff (13 Oct 2026, 3:00 PM) & Event Kickoff (15 Oct 2026, 8:00 AM)
   const [timeLeft, setTimeLeft] = useState({
@@ -266,7 +269,11 @@ export default function EventDashboardPage({
 
         {/* Top Event Banner Poster */}
         {event.bannerUrl ? (
-          <div className="relative aspect-[2345/670] w-full overflow-hidden rounded-3xl border border-white/15 bg-[#090d16] shadow-2xl">
+          <div
+            className={`relative w-full overflow-hidden rounded-3xl border border-white/15 bg-[#090d16] shadow-2xl ${
+              event.bannerAspectRatio || "aspect-[2345/670]"
+            }`}
+          >
             <Image
               src={event.bannerUrl}
               alt={event.title}
@@ -536,24 +543,102 @@ export default function EventDashboardPage({
                   </div>
 
                   {/* Official Challenge Poster (only when available) */}
-                  {(event.bannerUrl || slug === "debug-decrypt-3.0") && (
+                  {(event.posterUrl ||
+                    event.bannerUrl ||
+                    slug === "debug-decrypt-3.0") && (
                     <div className="border-t border-white/[0.08] pt-6">
-                      <h4 className="font-heading mb-3 text-base font-bold text-white">
-                        Official Challenge Poster
-                      </h4>
-                      <div className="relative aspect-[1916/821] w-full overflow-hidden rounded-2xl border border-white/10 bg-[#090d16] shadow-xl">
-                        <Image
-                          src={
-                            slug === "debug-decrypt-3.0"
-                              ? "/debug_decrypt_poster.png"
-                              : event.bannerUrl
-                          }
-                          alt={`${event.title} Official Poster`}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <h4 className="font-heading text-base font-bold text-white">
+                            Official Challenge Poster
+                          </h4>
+                          <p className="mt-0.5 text-xs text-white/50">
+                            Official event poster in high resolution.
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {event.portraitPosterUrl && (
+                            <div className="flex rounded-xl border border-white/10 bg-white/[0.04] p-0.5">
+                              <button
+                                type="button"
+                                onClick={() => setPosterFormat("landscape")}
+                                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                                  posterFormat === "landscape"
+                                    ? "border border-cyan-400/40 bg-cyan-500/20 text-cyan-300"
+                                    : "text-white/60 hover:text-white"
+                                }`}
+                              >
+                                🖥️ Horizontal
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPosterFormat("portrait")}
+                                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                                  posterFormat === "portrait"
+                                    ? "border border-cyan-400/40 bg-cyan-500/20 text-cyan-300"
+                                    : "text-white/60 hover:text-white"
+                                }`}
+                              >
+                                📱 Portrait
+                              </button>
+                            </div>
+                          )}
+
+                          <a
+                            href={
+                              posterFormat === "portrait" &&
+                              event.portraitPosterUrl
+                                ? event.portraitPosterUrl
+                                : event.posterUrl ||
+                                  (slug === "debug-decrypt-3.0"
+                                    ? "/debug_decrypt_poster.png"
+                                    : event.bannerUrl)
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                          >
+                            <span>Open Full Size ↗</span>
+                          </a>
+                        </div>
                       </div>
+
+                      {posterFormat === "portrait" &&
+                      event.portraitPosterUrl ? (
+                        <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-2xl border border-white/15 bg-[#090d16] shadow-2xl">
+                          <Image
+                            src={event.portraitPosterUrl}
+                            alt={`${event.title} Official Portrait Poster`}
+                            fill
+                            className="object-contain"
+                            unoptimized
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className={`relative w-full overflow-hidden rounded-2xl border border-white/10 bg-[#090d16] shadow-xl ${
+                            event.posterAspectRatio ||
+                            (slug === "debug-decrypt-3.0"
+                              ? "aspect-[1916/821]"
+                              : "aspect-[16/9]")
+                          }`}
+                        >
+                          <Image
+                            src={
+                              event.posterUrl ||
+                              (slug === "debug-decrypt-3.0"
+                                ? "/debug_decrypt_poster.png"
+                                : event.bannerUrl)
+                            }
+                            alt={`${event.title} Official Poster`}
+                            fill
+                            className="object-contain"
+                            unoptimized
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 

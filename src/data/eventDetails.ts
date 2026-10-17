@@ -5,6 +5,10 @@ export type EventDetailsData = {
   mainTagline: string;
   subTagline: string;
   bannerUrl: string;
+  posterUrl?: string;
+  portraitPosterUrl?: string;
+  bannerAspectRatio?: string;
+  posterAspectRatio?: string;
   logoUrl: string;
   location: string;
   venueDetails: string;
@@ -85,6 +89,9 @@ export const debugDecrypt3Data: EventDetailsData = {
   mainTagline: "THE ULTIMATE ALGORITHM CHALLENGE",
   subTagline: "Think. Debug. Optimize. Conquer.",
   bannerUrl: "/debug_decrypt_banner_1.png",
+  posterUrl: "/debug_decrypt_poster.png",
+  bannerAspectRatio: "aspect-[2345/670]",
+  posterAspectRatio: "aspect-[1916/821]",
   logoUrl: "/debug_logo.png",
   location: "Dronacharya College of Engineering",
   venueDetails:
@@ -330,6 +337,10 @@ export const webLumina2026Data: EventDetailsData = {
   subTagline:
     "Visual Appeal · Thoughtful UX · Creative Interactivity · Functional Implementation",
   bannerUrl: "/web_lumina_banner.png",
+  posterUrl: "/web_lumina_poster.png",
+  portraitPosterUrl: "/web_lumina_poster_portrait.png",
+  bannerAspectRatio: "aspect-[16/7] sm:aspect-[21/9] lg:aspect-[2345/760]",
+  posterAspectRatio: "aspect-[16/9]",
   logoUrl: "/web_lumina_logo.png",
   location: "Dronacharya College of Engineering",
   venueDetails:

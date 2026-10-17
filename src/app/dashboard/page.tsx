@@ -54,6 +54,8 @@ export default function DashboardPage() {
   const [activeEvent, setActiveEvent] = useState<DemoEvent | null>(null);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<DashboardTabId>("events");
+  const [adminTeamsEventSlug, setAdminTeamsEventSlug] =
+    useState<string>("web-lumina-2026");
   const [ready, setReady] = useState(false);
 
   const refreshInvitesCount = useCallback(async () => {
@@ -303,7 +305,10 @@ export default function DashboardPage() {
                       registered={regs.find((r) => r.eventId === e.id)}
                       onRegister={setActiveEvent}
                       isPrivileged={isPrivileged}
-                      onViewRoster={() => setTab("admin-teams")}
+                      onViewRoster={() => {
+                        setAdminTeamsEventSlug(e.slug);
+                        setTab("admin-teams");
+                      }}
                     />
                   ))}
                   {filtered.length === 0 && (
@@ -331,7 +336,9 @@ export default function DashboardPage() {
 
               {tab === "community" && <CommunityFeed members={community} />}
 
-              {tab === "admin-teams" && <PresidentTeamsView />}
+              {tab === "admin-teams" && (
+                <PresidentTeamsView initialEventSlug={adminTeamsEventSlug} />
+              )}
             </motion.div>
           </AnimatePresence>
         </motion.div>
