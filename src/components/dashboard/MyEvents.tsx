@@ -35,8 +35,8 @@ export default function MyEvents({
       ctx.fillStyle = "#0f172a";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-    ctx.font = "bold 48px serif";
-    ctx.fillStyle = "#1e293b";
+    ctx.font = "bold 96px serif";
+    ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.fillText(name, canvas.width / 2, canvas.height / 2);
     const link = document.createElement("a");

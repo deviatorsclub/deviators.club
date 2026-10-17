@@ -163,9 +163,7 @@ export default function EventCard({
               className="text-white/35"
             />
             {date} ·{" "}
-            {event.slug === "web-lumina-2026"
-              ? "Schedule to be announced"
-              : "10:00 AM"}
+            {event.slug === "web-lumina-2026" ? "24 Oct 2026" : "10:00 AM"}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <HugeiconsIcon

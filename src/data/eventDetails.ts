@@ -517,7 +517,7 @@ export const webLumina2026Data: EventDetailsData = {
     },
     {
       q: "When and where is the event taking place?",
-      a: "Web Lumina 2026 will be hosted offline at Dronacharya College of Engineering. Note that event date, venue, registration details and final schedule will be communicated separately.",
+      a: "Web Lumina 2026 will be hosted offline at Dronacharya College of Engineering on 24 October 2026. Registration closes on 23 October 2026.",
     },
     {
       q: "What hardware must participants bring?",
