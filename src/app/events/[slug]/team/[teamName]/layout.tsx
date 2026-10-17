@@ -30,8 +30,10 @@ export async function generateMetadata({
       };
     }
 
+    const dateStr =
+      slug === "debug-decrypt-3.0" ? "on 15 Oct 2026" : "at Web Lumina 2026";
     const title = `Team "${team.name}" — ${event.title} Contender | Deviators Club`;
-    const description = `⚡ Meet team "${team.name}" competing in ${event.title} on 15 Oct 2026 at DCE Gurugram! View their official squad roster and contender badge on Deviators Club.`;
+    const description = `⚡ Meet team "${team.name}" competing in ${event.title} ${dateStr} at DCE Gurugram! View their official squad roster and contender badge on Deviators Club.`;
 
     return {
       title,

@@ -66,6 +66,15 @@ export async function GET(
     event = res.data;
   }
 
+  if (!event && slug === "web-lumina") {
+    const res = await supabase
+      .from("events")
+      .select("id, slug, title, max_team_size, is_team_event")
+      .eq("slug", "web-lumina-2026")
+      .maybeSingle();
+    event = res.data;
+  }
+
   if (!event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
@@ -267,6 +276,15 @@ export async function POST(
       .from("events")
       .select("id, slug, title, max_team_size, is_team_event, reg_closes_at")
       .eq("slug", "debug-decrypt-3.0")
+      .maybeSingle();
+    event = res.data;
+  }
+
+  if (!event && slug === "web-lumina") {
+    const res = await supabase
+      .from("events")
+      .select("id, slug, title, max_team_size, is_team_event, reg_closes_at")
+      .eq("slug", "web-lumina-2026")
       .maybeSingle();
     event = res.data;
   }

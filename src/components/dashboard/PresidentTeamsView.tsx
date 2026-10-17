@@ -64,7 +64,11 @@ type RegisteredTeam = {
   };
 };
 
-export default function PresidentTeamsView() {
+export default function PresidentTeamsView({
+  initialEventSlug = "web-lumina-2026",
+}: {
+  initialEventSlug?: string;
+} = {}) {
   const [teams, setTeams] = useState<RegisteredTeam[]>([]);
   const [stats, setStats] = useState({
     totalTeams: 0,
@@ -74,10 +78,16 @@ export default function PresidentTeamsView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [eventSlug, setEventSlug] = useState("debug-decrypt-3.0");
+  const [eventSlug, setEventSlug] = useState(initialEventSlug);
   const [filterStatus, setFilterStatus] = useState<
     "all" | "complete" | "pending" | "round1"
   >("all");
+
+  useEffect(() => {
+    if (initialEventSlug && initialEventSlug !== eventSlug) {
+      setEventSlug(initialEventSlug);
+    }
+  }, [initialEventSlug]);
 
   const fetchTeams = async () => {
     setLoading(true);
@@ -117,12 +127,18 @@ export default function PresidentTeamsView() {
     fetchTeams();
   }, [eventSlug]);
 
+  const isWebLumina =
+    eventSlug === "web-lumina-2026" || eventSlug === "web-lumina";
+  const minRequired = isWebLumina ? 2 : 3;
+  const maxAllowed = isWebLumina ? 4 : 3;
+
   // Filtered teams
   const filteredTeams = useMemo(() => {
     const q = search.trim().toLowerCase();
     return teams.filter((t) => {
       // Status filter
-      if (filterStatus === "complete" && t.acceptedCount < 3) return false;
+      if (filterStatus === "complete" && t.acceptedCount < minRequired)
+        return false;
       if (filterStatus === "pending" && t.pendingCount === 0) return false;
       if (filterStatus === "round1" && !t.round1?.hasAttempted) return false;
 
@@ -188,6 +204,14 @@ export default function PresidentTeamsView() {
       "Teammate 3 Branch",
       "Teammate 3 Section",
       "Teammate 3 Status",
+      "Teammate 4 Name",
+      "Teammate 4 Handle",
+      "Teammate 4 Email",
+      "Teammate 4 Phone",
+      "Teammate 4 Roll No",
+      "Teammate 4 Branch",
+      "Teammate 4 Section",
+      "Teammate 4 Status",
       "Round 1 Status",
       "Round 1 Score",
       "Round 1 Max Score",
@@ -203,6 +227,7 @@ export default function PresidentTeamsView() {
       );
       const m2 = teammates[0];
       const m3 = teammates[1];
+      const m4 = teammates[2];
 
       const membersSummary = t.members
         .map(
@@ -259,6 +284,15 @@ export default function PresidentTeamsView() {
         escapeCsv(m3?.branch || ""),
         escapeCsv(m3?.section || ""),
         escapeCsv(m3?.status || ""),
+        // Teammate 4
+        escapeCsv(m4?.displayName || ""),
+        escapeCsv(m4 ? `@${m4.username}` : ""),
+        escapeCsv(m4?.email || ""),
+        escapeCsv(m4?.phone || ""),
+        escapeCsv(m4?.collegeId || ""),
+        escapeCsv(m4?.branch || ""),
+        escapeCsv(m4?.section || ""),
+        escapeCsv(m4?.status || ""),
         // Round 1
         escapeCsv(r1Status),
         escapeCsv(r1Score),
@@ -279,7 +313,7 @@ export default function PresidentTeamsView() {
     link.href = url;
     link.setAttribute(
       "download",
-      `debug_decrypt_teams_all_${teams.length}_${new Date().toISOString().slice(0, 10)}.csv`,
+      `${eventSlug.replace(/-/g, "_")}_teams_all_${teams.length}_${new Date().toISOString().slice(0, 10)}.csv`,
     );
     document.body.appendChild(link);
     link.click();
@@ -307,15 +341,15 @@ export default function PresidentTeamsView() {
     <div className="space-y-6">
       <div className="flex gap-2">
         {[
-          { slug: "debug-decrypt-3.0", label: "Debug Decrypt 3.0" },
           { slug: "web-lumina-2026", label: "Web Lumina 2026" },
+          { slug: "debug-decrypt-3.0", label: "Debug Decrypt 3.0" },
         ].map((e) => (
           <button
             key={e.slug}
             onClick={() => setEventSlug(e.slug)}
             className={`rounded-xl px-4 py-2 text-xs font-semibold ${
               eventSlug === e.slug
-                ? "bg-cyan-500/20 text-cyan-200"
+                ? "border border-cyan-400/30 bg-cyan-500/20 text-cyan-200"
                 : "text-white/50 hover:text-white"
             }`}
           >
@@ -344,18 +378,29 @@ export default function PresidentTeamsView() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <Link
-            href="/event/debug-decrypt-3.0/round-1"
-            className="flex items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/15 px-3.5 py-2 text-xs font-bold text-cyan-300 transition-colors hover:bg-cyan-500/25"
-          >
-            <span>⚡ Test Sandbox (Round 1)</span>
-          </Link>
-          <Link
-            href="/event/debug-decrypt-3.0/round-1/leaderboard"
-            className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/15 px-3.5 py-2 text-xs font-bold text-amber-300 transition-colors hover:bg-amber-500/25"
-          >
-            <span>🏆 Live Leaderboard</span>
-          </Link>
+          {eventSlug === "debug-decrypt-3.0" ? (
+            <>
+              <Link
+                href="/event/debug-decrypt-3.0/round-1"
+                className="flex items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/15 px-3.5 py-2 text-xs font-bold text-cyan-300 transition-colors hover:bg-cyan-500/25"
+              >
+                <span>⚡ Test Sandbox (Round 1)</span>
+              </Link>
+              <Link
+                href="/event/debug-decrypt-3.0/round-1/leaderboard"
+                className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/15 px-3.5 py-2 text-xs font-bold text-amber-300 transition-colors hover:bg-amber-500/25"
+              >
+                <span>🏆 Live Leaderboard</span>
+              </Link>
+            </>
+          ) : (
+            <Link
+              href="/events/web-lumina-2026"
+              className="flex items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/15 px-3.5 py-2 text-xs font-bold text-cyan-300 transition-colors hover:bg-cyan-500/25"
+            >
+              <span>🌐 View Event Page</span>
+            </Link>
+          )}
           <button
             type="button"
             onClick={fetchTeams}
@@ -470,7 +515,7 @@ export default function PresidentTeamsView() {
                 : "text-white/50 hover:text-white"
             }`}
           >
-            Full (3/3)
+            {isWebLumina ? "Eligible (2+)" : "Full (3/3)"}
           </button>
           <button
             type="button"
@@ -483,17 +528,19 @@ export default function PresidentTeamsView() {
           >
             Has Pending
           </button>
-          <button
-            type="button"
-            onClick={() => setFilterStatus("round1")}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              filterStatus === "round1"
-                ? "bg-purple-500/20 text-purple-300"
-                : "text-white/50 hover:text-white"
-            }`}
-          >
-            Round 1 ({teams.filter((t) => t.round1?.hasAttempted).length})
-          </button>
+          {eventSlug === "debug-decrypt-3.0" && (
+            <button
+              type="button"
+              onClick={() => setFilterStatus("round1")}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                filterStatus === "round1"
+                  ? "bg-cyan-500/20 text-cyan-300"
+                  : "text-white/50 hover:text-white"
+              }`}
+            >
+              Round 1 ({teams.filter((t) => t.round1?.hasAttempted).length})
+            </button>
+          )}
         </div>
       </div>
 
@@ -516,7 +563,8 @@ export default function PresidentTeamsView() {
       ) : (
         <div className="space-y-4">
           {filteredTeams.map((team, idx) => {
-            const isFull = team.acceptedCount === 3;
+            const isFull = team.acceptedCount >= maxAllowed;
+            const isEligible = team.acceptedCount >= minRequired;
             return (
               <div
                 key={team.id}
@@ -534,31 +582,37 @@ export default function PresidentTeamsView() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* Round 1 Score Badge */}
-                    {team.round1?.hasAttempted ? (
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold ${
-                          team.round1.status === "submitted"
-                            ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-300"
+                    {/* Event-specific Badge */}
+                    {eventSlug === "debug-decrypt-3.0" ? (
+                      team.round1?.hasAttempted ? (
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold ${
+                            team.round1.status === "submitted"
+                              ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-300"
+                              : team.round1.status === "terminated"
+                                ? "border-red-400/40 bg-red-500/15 text-red-300"
+                                : "animate-pulse border-cyan-400/40 bg-cyan-500/15 text-cyan-300"
+                          }`}
+                          title={
+                            team.round1.submittedAt
+                              ? `Submitted: ${new Date(team.round1.submittedAt).toLocaleTimeString()}`
+                              : undefined
+                          }
+                        >
+                          {team.round1.status === "submitted"
+                            ? `Round 1: ${team.round1.score}/${team.round1.maxScore ?? 30} pts`
                             : team.round1.status === "terminated"
-                              ? "border-red-400/40 bg-red-500/15 text-red-300"
-                              : "animate-pulse border-cyan-400/40 bg-cyan-500/15 text-cyan-300"
-                        }`}
-                        title={
-                          team.round1.submittedAt
-                            ? `Submitted: ${new Date(team.round1.submittedAt).toLocaleTimeString()}`
-                            : undefined
-                        }
-                      >
-                        {team.round1.status === "submitted"
-                          ? `Round 1: ${team.round1.score}/${team.round1.maxScore ?? 30} pts`
-                          : team.round1.status === "terminated"
-                            ? `Round 1: Terminated (${team.round1.score ?? 0}/${team.round1.maxScore ?? 30})`
-                            : "Round 1: In Progress"}
-                      </span>
+                              ? `Round 1: Terminated (${team.round1.score ?? 0}/${team.round1.maxScore ?? 30})`
+                              : "Round 1: In Progress"}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-0.5 font-mono text-[11px] text-white/40">
+                          Round 1: Not Attempted
+                        </span>
+                      )
                     ) : (
-                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-0.5 font-mono text-[11px] text-white/40">
-                        Round 1: Not Attempted
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-0.5 font-mono text-[11px] font-bold text-cyan-300">
+                        Web Lumina · Offline
                       </span>
                     )}
 
@@ -566,7 +620,9 @@ export default function PresidentTeamsView() {
                       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold ${
                         isFull
                           ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
-                          : "border-amber-400/30 bg-amber-500/15 text-amber-300"
+                          : isEligible
+                            ? "border-cyan-400/30 bg-cyan-500/15 text-cyan-300"
+                            : "border-amber-400/30 bg-amber-500/15 text-amber-300"
                       }`}
                     >
                       {isFull ? (
@@ -575,7 +631,15 @@ export default function PresidentTeamsView() {
                             icon={CheckmarkCircle01Icon}
                             size={12}
                           />
-                          Complete (3/3)
+                          Complete ({team.acceptedCount}/{maxAllowed})
+                        </>
+                      ) : isEligible ? (
+                        <>
+                          <HugeiconsIcon
+                            icon={CheckmarkCircle01Icon}
+                            size={12}
+                          />
+                          Eligible ({team.acceptedCount}/{maxAllowed})
                         </>
                       ) : (
                         <>
@@ -596,7 +660,7 @@ export default function PresidentTeamsView() {
                 </div>
 
                 {/* Team Members Roster Grid */}
-                <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
                   {team.members.map((member) => {
                     const isAccepted = member.status === "accepted";
                     return (

@@ -108,6 +108,15 @@ export async function GET(req: NextRequest) {
       event = res.data;
     }
 
+    if (!event && eventSlug === "web-lumina") {
+      const res = await adminDb
+        .from("events")
+        .select("id, slug, title, max_team_size")
+        .eq("slug", "web-lumina-2026")
+        .maybeSingle();
+      event = res.data;
+    }
+
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
@@ -329,6 +338,14 @@ export async function GET(req: NextRequest) {
         "Teammate 3 Branch",
         "Teammate 3 Section",
         "Teammate 3 Status",
+        "Teammate 4 Name",
+        "Teammate 4 Handle",
+        "Teammate 4 Email",
+        "Teammate 4 Phone",
+        "Teammate 4 Roll No",
+        "Teammate 4 Branch",
+        "Teammate 4 Section",
+        "Teammate 4 Status",
         "Round 1 Status",
         "Round 1 Score",
         "Round 1 Max Score",
@@ -343,6 +360,7 @@ export async function GET(req: NextRequest) {
         );
         const m2 = nonLeaderMembers[0];
         const m3 = nonLeaderMembers[1];
+        const m4 = nonLeaderMembers[2];
 
         const r1Status = t.round1?.hasAttempted
           ? t.round1.status
@@ -360,12 +378,14 @@ export async function GET(req: NextRequest) {
           : "N/A";
         const r1Strikes = t.round1?.strikes ?? 0;
 
+        const maxAllowed = event.max_team_size || 4;
+        const minReq = event.slug === "web-lumina-2026" ? 2 : 3;
         const teamStatusStr =
-          t.acceptedCount === 3
-            ? "Complete (3/3)"
-            : t.acceptedCount === 2
-              ? "Two Members (2/3)"
-              : "Solo Leader (1/3)";
+          t.acceptedCount >= maxAllowed
+            ? `Complete (${t.acceptedCount}/${maxAllowed})`
+            : t.acceptedCount >= minReq
+              ? `Eligible (${t.acceptedCount}/${maxAllowed})`
+              : `Pending (${t.acceptedCount}/${maxAllowed})`;
 
         const membersSummary = t.members
           .map(
@@ -406,6 +426,14 @@ export async function GET(req: NextRequest) {
           escapeCsv(m3?.branch || ""),
           escapeCsv(m3?.section || ""),
           escapeCsv(m3?.status || ""),
+          escapeCsv(m4?.displayName || ""),
+          escapeCsv(m4 ? `@${m4.username}` : ""),
+          escapeCsv(m4?.email || ""),
+          escapeCsv(m4?.phone || ""),
+          escapeCsv(m4?.collegeId || ""),
+          escapeCsv(m4?.branch || ""),
+          escapeCsv(m4?.section || ""),
+          escapeCsv(m4?.status || ""),
           escapeCsv(r1Status),
           escapeCsv(r1Score),
           escapeCsv(r1Max),
@@ -422,7 +450,7 @@ export async function GET(req: NextRequest) {
         status: 200,
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
-          "Content-Disposition": `attachment; filename="debug_decrypt_teams_all_${enrichedTeams.length}.csv"`,
+          "Content-Disposition": `attachment; filename="${event.slug.replace(/-/g, "_")}_teams_all_${enrichedTeams.length}.csv"`,
         },
       });
     }
