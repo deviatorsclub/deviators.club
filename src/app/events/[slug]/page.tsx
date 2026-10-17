@@ -431,12 +431,20 @@ export default function EventDashboardPage({
                   label: "Details",
                   icon: InformationCircleIcon,
                 },
-                {
-                  id: "announcements",
-                  label: `Announcements (${event.announcements.length})`,
-                  icon: Notification01Icon,
-                },
-                { id: "timeline", label: "Timeline", icon: Calendar03Icon },
+                ...(slug === "web-lumina" || slug === "web-lumina-2026"
+                  ? []
+                  : [
+                      {
+                        id: "announcements",
+                        label: `Announcements (${event.announcements.length})`,
+                        icon: Notification01Icon,
+                      },
+                      {
+                        id: "timeline",
+                        label: "Timeline",
+                        icon: Calendar03Icon,
+                      },
+                    ]),
                 { id: "prizes", label: "Prizes", icon: Medal01Icon },
                 { id: "rules", label: "Rules", icon: Shield01Icon },
                 { id: "faqs", label: "FAQs", icon: HelpCircleIcon },
@@ -758,25 +766,31 @@ export default function EventDashboardPage({
                     </p>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    {event.prizes.map((p) => (
-                      <div
-                        key={p.rank}
-                        className={`rounded-2xl border p-5 ${p.tone}`}
-                      >
-                        <span className="font-mono text-xs font-bold tracking-wider uppercase">
-                          {p.rank}
-                        </span>
-                        <h4 className="mt-1 text-base font-extrabold text-white">
-                          {p.title}
-                        </h4>
-                        <p className="font-heading mt-2 text-3xl font-black text-white">
-                          {p.reward}
-                        </p>
-                        <p className="mt-3 text-xs text-white/70">{p.desc}</p>
-                      </div>
-                    ))}
-                  </div>
+                  {slug === "web-lumina" || slug === "web-lumina-2026" ? (
+                    <div className="rounded-2xl border border-white/10 bg-black/30 p-8 text-center text-white/60">
+                      Revealing soon
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      {event.prizes.map((p) => (
+                        <div
+                          key={p.rank}
+                          className={`rounded-2xl border p-5 ${p.tone}`}
+                        >
+                          <span className="font-mono text-xs font-bold tracking-wider uppercase">
+                            {p.rank}
+                          </span>
+                          <h4 className="mt-1 text-base font-extrabold text-white">
+                            {p.title}
+                          </h4>
+                          <p className="font-heading mt-2 text-3xl font-black text-white">
+                            {p.reward}
+                          </p>
+                          <p className="mt-3 text-xs text-white/70">{p.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="border-t border-white/[0.08] pt-6">
                     <h4 className="font-heading text-sm font-bold text-white">
@@ -857,50 +871,56 @@ export default function EventDashboardPage({
                     </p>
                   </div>
 
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    {event.sponsors.map((s) => (
-                      <a
-                        key={s.name}
-                        href={s.website}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group flex flex-col justify-between rounded-3xl border border-white/15 bg-black/40 p-6 transition-all duration-300 hover:border-blue-500/40 hover:bg-white/[0.02] hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]"
-                      >
-                        <div>
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="font-mono text-xs font-semibold tracking-wider text-blue-300 uppercase">
-                              {s.tier}
-                            </span>
-                            {s.logoUrl && (
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 p-2 transition-transform duration-300 group-hover:scale-110 group-hover:border-white/20">
-                                <Image
-                                  src={s.logoUrl}
-                                  alt={s.name}
-                                  width={32}
-                                  height={32}
-                                  className="h-full w-full object-contain"
-                                />
-                              </div>
-                            )}
+                  {slug === "web-lumina" || slug === "web-lumina-2026" ? (
+                    <div className="rounded-2xl border border-white/10 bg-black/30 p-8 text-center text-white/60">
+                      Coming soon
+                    </div>
+                  ) : (
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      {event.sponsors.map((s) => (
+                        <a
+                          key={s.name}
+                          href={s.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="group flex flex-col justify-between rounded-3xl border border-white/15 bg-black/40 p-6 transition-all duration-300 hover:border-blue-500/40 hover:bg-white/[0.02] hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="font-mono text-xs font-semibold tracking-wider text-blue-300 uppercase">
+                                {s.tier}
+                              </span>
+                              {s.logoUrl && (
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 p-2 transition-transform duration-300 group-hover:scale-110 group-hover:border-white/20">
+                                  <Image
+                                    src={s.logoUrl}
+                                    alt={s.name}
+                                    width={32}
+                                    height={32}
+                                    className="h-full w-full object-contain"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            <h4 className="font-heading mt-2 text-xl font-bold text-white transition-colors group-hover:text-blue-300">
+                              {s.name}
+                            </h4>
+                            <p className="mt-2 text-xs leading-relaxed text-white/70 sm:text-sm">
+                              {s.offering}
+                            </p>
                           </div>
-                          <h4 className="font-heading mt-2 text-xl font-bold text-white transition-colors group-hover:text-blue-300">
-                            {s.name}
-                          </h4>
-                          <p className="mt-2 text-xs leading-relaxed text-white/70 sm:text-sm">
-                            {s.offering}
-                          </p>
-                        </div>
-                        <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 transition-colors group-hover:text-blue-300">
-                          <span>Visit {s.name}</span>
-                          <HugeiconsIcon
-                            icon={ArrowRight01Icon}
-                            size={13}
-                            className="transition-transform group-hover:translate-x-1"
-                          />
-                        </div>
-                      </a>
-                    ))}
-                  </div>
+                          <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 transition-colors group-hover:text-blue-300">
+                            <span>Visit {s.name}</span>
+                            <HugeiconsIcon
+                              icon={ArrowRight01Icon}
+                              size={13}
+                              className="transition-transform group-hover:translate-x-1"
+                            />
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

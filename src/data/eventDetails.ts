@@ -335,10 +335,10 @@ export const webLumina2026Data: EventDetailsData = {
   venueDetails:
     "Dronacharya College of Engineering, Gurugram · Organized under Deviators Club",
   mode: "Offline",
-  startsAt: "2026-11-20T09:00:00+05:30",
-  endsAt: "2026-11-20T17:00:00+05:30",
+  startsAt: "2026-10-24T09:00:00+05:30",
+  endsAt: "2026-10-24T17:00:00+05:30",
   timeRange: "Schedule to be announced",
-  regClosesAt: "2026-11-18T23:59:59+05:30",
+  regClosesAt: "2026-10-23T23:59:59+05:30",
   minTeamSize: 2,
   maxTeamSize: 4,
   fee: "Free",

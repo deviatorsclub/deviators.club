@@ -321,6 +321,7 @@ export default function DashboardPage() {
                   events={events}
                   registrations={regs}
                   onWithdraw={handleWithdraw}
+                  profileName={profile?.displayName}
                 />
               )}
 

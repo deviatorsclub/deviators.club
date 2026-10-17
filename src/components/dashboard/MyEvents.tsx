@@ -11,11 +11,39 @@ export default function MyEvents({
   events,
   registrations,
   onWithdraw,
+  profileName,
 }: {
   events: DemoEvent[];
   registrations: DemoRegistration[];
   onWithdraw: (eventId: string) => void;
+  profileName?: string;
 }) {
+  const downloadCertificate = async (name: string) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = "/certificate-template.png";
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("template not found"));
+    }).catch(() => null);
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth || 1200;
+    canvas.height = img.naturalHeight || 850;
+    const ctx = canvas.getContext("2d")!;
+    if (img.complete && img.naturalWidth) ctx.drawImage(img, 0, 0);
+    else {
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    ctx.font = "bold 48px serif";
+    ctx.fillStyle = "#1e293b";
+    ctx.textAlign = "center";
+    ctx.fillText(name, canvas.width / 2, canvas.height / 2);
+    const link = document.createElement("a");
+    link.download = `certificate-${name.replace(/\s+/g, "-")}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
   const byId = new Map(events.map((e) => [e.id, e]));
 
   return (
@@ -75,6 +103,17 @@ export default function MyEvents({
                 <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
                   Confirmed
                 </span>
+                {(ev.slug?.includes("debug-decrypt") ||
+                  ev.title?.toLowerCase().includes("debug decrypt")) && (
+                  <button
+                    onClick={() =>
+                      downloadCertificate(profileName || "Participant")
+                    }
+                    className="text-xs font-medium text-cyan-300 transition-colors hover:text-cyan-200"
+                  >
+                    Download Certificate
+                  </button>
+                )}
                 <button
                   onClick={() => onWithdraw(r.eventId)}
                   className="text-xs font-medium text-white/35 transition-colors hover:text-red-300"
