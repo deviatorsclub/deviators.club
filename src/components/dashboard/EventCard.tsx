@@ -146,14 +146,16 @@ export default function EventCard({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <MiniCountdown target={event.regClosesAt} label="Reg closes in" />
-          <MiniCountdown
-            target={event.startsAt}
-            label="Event starts in"
-            tone="text-sky-300"
-          />
-        </div>
+        {event.slug !== "web-lumina-2026" && (
+          <div className="flex flex-wrap items-center gap-2">
+            <MiniCountdown target={event.regClosesAt} label="Reg closes in" />
+            <MiniCountdown
+              target={event.startsAt}
+              label="Event starts in"
+              tone="text-sky-300"
+            />
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-white/60">
           <span className="inline-flex items-center gap-1.5">
