@@ -35,7 +35,7 @@ export default function MyEvents({
       ctx.fillStyle = "#0f172a";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-    ctx.font = "bold 96px serif";
+    ctx.font = "bold 64px serif";
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.fillText(name, canvas.width / 2, canvas.height / 2);
