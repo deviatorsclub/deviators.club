@@ -74,6 +74,7 @@ export default function PresidentTeamsView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [eventSlug, setEventSlug] = useState("debug-decrypt-3.0");
   const [filterStatus, setFilterStatus] = useState<
     "all" | "complete" | "pending" | "round1"
   >("all");
@@ -92,7 +93,9 @@ export default function PresidentTeamsView() {
         headers["Authorization"] = `Bearer ${session.access_token}`;
       }
 
-      const res = await fetch("/api/admin/teams", { headers });
+      const res = await fetch(`/api/admin/teams?event=${eventSlug}`, {
+        headers,
+      });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Failed to load registration data.");
@@ -112,7 +115,7 @@ export default function PresidentTeamsView() {
 
   useEffect(() => {
     fetchTeams();
-  }, []);
+  }, [eventSlug]);
 
   // Filtered teams
   const filteredTeams = useMemo(() => {
@@ -302,6 +305,24 @@ export default function PresidentTeamsView() {
 
   return (
     <div className="space-y-6">
+      <div className="flex gap-2">
+        {[
+          { slug: "debug-decrypt-3.0", label: "Debug Decrypt 3.0" },
+          { slug: "web-lumina-2026", label: "Web Lumina 2026" },
+        ].map((e) => (
+          <button
+            key={e.slug}
+            onClick={() => setEventSlug(e.slug)}
+            className={`rounded-xl px-4 py-2 text-xs font-semibold ${
+              eventSlug === e.slug
+                ? "bg-cyan-500/20 text-cyan-200"
+                : "text-white/50 hover:text-white"
+            }`}
+          >
+            {e.label}
+          </button>
+        ))}
+      </div>
       {/* Top Header & Executive Stats */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -310,7 +331,10 @@ export default function PresidentTeamsView() {
               <HugeiconsIcon icon={CrownIcon} size={16} />
             </span>
             <h2 className="font-heading text-xl font-black tracking-tight text-white sm:text-2xl">
-              Teams Roster · Debug Decrypt 3.0
+              Teams Roster ·{" "}
+              {eventSlug === "web-lumina-2026"
+                ? "Web Lumina 2026"
+                : "Debug Decrypt 3.0"}
             </h2>
           </div>
           <p className="mt-1 text-xs text-white/50">
