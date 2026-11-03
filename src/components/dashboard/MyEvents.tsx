@@ -35,12 +35,21 @@ export default function MyEvents({
       ctx.fillStyle = "#0f172a";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-    const fontSize = Math.round(canvas.width * 0.038);
-    ctx.font = `bold ${fontSize}px serif`;
+    // Underline is located at 47.4% of template height (Y=364 on 1024x768).
+    // Using bottom alignment ~8-10px above the line guarantees the name rests cleanly
+    // strictly ABOVE the underline without cutting through it or touching "Participant Name".
+    let fontSize = Math.round(canvas.width * 0.034);
+    ctx.font = `bold ${fontSize}px "Cinzel", "Times New Roman", serif`;
+    const maxTextWidth = canvas.width * 0.58;
+    while (ctx.measureText(name).width > maxTextWidth && fontSize > 18) {
+      fontSize -= 2;
+      ctx.font = `bold ${fontSize}px "Cinzel", "Times New Roman", serif`;
+    }
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
-    const yPos = img.naturalHeight ? canvas.height * 0.465 : canvas.height / 2;
+    ctx.textBaseline = "bottom";
+    const lineY = canvas.height * 0.474;
+    const yPos = lineY - Math.max(6, Math.round(canvas.height * 0.012));
     ctx.fillText(name, canvas.width / 2, yPos);
     const link = document.createElement("a");
     link.download = `certificate-${name.replace(/\s+/g, "-")}.png`;
