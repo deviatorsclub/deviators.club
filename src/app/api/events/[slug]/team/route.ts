@@ -299,7 +299,9 @@ export async function POST(
     : 0;
   if (
     (regDeadline > 0 && Date.now() >= regDeadline) ||
-    event.slug === "debug-decrypt-3.0"
+    event.slug === "debug-decrypt-3.0" ||
+    event.slug === "web-lumina-2026" ||
+    event.slug === "web-lumina"
   ) {
     return NextResponse.json(
       { error: `Registrations for ${event.title} are officially closed.` },
@@ -886,12 +888,27 @@ export async function PATCH(
     );
   }
 
-  // Check event max team size
+  // Check event max team size & deadline
   const { data: event } = await supabase
     .from("events")
-    .select("id, max_team_size")
+    .select("id, slug, max_team_size, reg_closes_at")
     .eq("id", team.event_id)
     .single();
+
+  const regDeadline = event?.reg_closes_at
+    ? new Date(event.reg_closes_at).getTime()
+    : 0;
+  if (
+    (regDeadline > 0 && Date.now() >= regDeadline) ||
+    event?.slug === "debug-decrypt-3.0" ||
+    event?.slug === "web-lumina-2026" ||
+    event?.slug === "web-lumina"
+  ) {
+    return NextResponse.json(
+      { error: "Registrations are closed. Team rosters are locked." },
+      { status: 403 },
+    );
+  }
 
   const { count } = await supabase
     .from("team_members")

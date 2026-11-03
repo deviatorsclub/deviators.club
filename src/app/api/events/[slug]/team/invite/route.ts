@@ -63,14 +63,14 @@ export async function POST(
   // Find event
   let { data: event } = await supabase
     .from("events")
-    .select("id, slug, max_team_size")
+    .select("id, slug, max_team_size, reg_closes_at")
     .eq("slug", slug)
     .maybeSingle();
 
   if (!event && (slug === "round-1" || slug === "craftcon-2k26")) {
     const res = await supabase
       .from("events")
-      .select("id, slug, max_team_size")
+      .select("id, slug, max_team_size, reg_closes_at")
       .eq("slug", "debug-decrypt-3.0")
       .maybeSingle();
     event = res.data;
@@ -79,7 +79,7 @@ export async function POST(
   if (!event && slug === "web-lumina") {
     const res = await supabase
       .from("events")
-      .select("id, slug, max_team_size")
+      .select("id, slug, max_team_size, reg_closes_at")
       .eq("slug", "web-lumina-2026")
       .maybeSingle();
     event = res.data;
@@ -122,6 +122,20 @@ export async function POST(
   }
 
   // If accepting:
+  const regDeadline = event.reg_closes_at
+    ? new Date(event.reg_closes_at).getTime()
+    : 0;
+  if (
+    (regDeadline > 0 && Date.now() >= regDeadline) ||
+    event.slug === "debug-decrypt-3.0" ||
+    event.slug === "web-lumina-2026" ||
+    event.slug === "web-lumina"
+  ) {
+    return NextResponse.json(
+      { error: "Registrations are closed. Team rosters are locked." },
+      { status: 403 },
+    );
+  }
   // Rule 2 check: People can only join one team at a time!
   // Check if user is already an accepted member in any team for this event
   const { data: existingMemberships } = await supabase

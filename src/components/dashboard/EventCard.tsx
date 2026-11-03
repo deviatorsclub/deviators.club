@@ -42,6 +42,8 @@ export default function EventCard({
 
   const isClosed =
     event.slug === "debug-decrypt-3.0" ||
+    event.slug === "web-lumina-2026" ||
+    event.slug === "web-lumina" ||
     (event.regClosesAt && new Date(event.regClosesAt).getTime() <= Date.now());
 
   return (

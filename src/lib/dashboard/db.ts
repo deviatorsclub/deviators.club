@@ -283,9 +283,13 @@ export async function fetchEventsDb(): Promise<DemoEvent[]> {
     if (b.slug === "web-lumina-2026") return 1;
     const aClosed =
       a.slug === "debug-decrypt-3.0" ||
+      a.slug === "web-lumina-2026" ||
+      a.slug === "web-lumina" ||
       (a.regClosesAt && new Date(a.regClosesAt).getTime() <= Date.now());
     const bClosed =
       b.slug === "debug-decrypt-3.0" ||
+      b.slug === "web-lumina-2026" ||
+      b.slug === "web-lumina" ||
       (b.regClosesAt && new Date(b.regClosesAt).getTime() <= Date.now());
     if (!aClosed && bClosed) return -1;
     if (aClosed && !bClosed) return 1;

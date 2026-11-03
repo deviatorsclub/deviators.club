@@ -98,7 +98,7 @@ export default function EventDashboardPage({
 
   useEffect(() => {
     const regTarget = new Date(
-      event?.regClosesAt || "2026-11-18T23:59:59+05:30",
+      event?.regClosesAt || "2026-10-22T19:30:00+05:30",
     ).getTime();
     const eventTarget = new Date(
       event?.startsAt || "2026-11-20T09:00:00+05:30",

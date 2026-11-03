@@ -35,10 +35,13 @@ export default function MyEvents({
       ctx.fillStyle = "#0f172a";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-    ctx.font = "bold 64px serif";
+    const fontSize = Math.round(canvas.width * 0.038);
+    ctx.font = `bold ${fontSize}px serif`;
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
-    ctx.fillText(name, canvas.width / 2, canvas.height / 2);
+    ctx.textBaseline = "alphabetic";
+    const yPos = img.naturalHeight ? canvas.height * 0.465 : canvas.height / 2;
+    ctx.fillText(name, canvas.width / 2, yPos);
     const link = document.createElement("a");
     link.download = `certificate-${name.replace(/\s+/g, "-")}.png`;
     link.href = canvas.toDataURL("image/png");

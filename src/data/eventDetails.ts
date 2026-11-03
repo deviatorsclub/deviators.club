@@ -349,7 +349,7 @@ export const webLumina2026Data: EventDetailsData = {
   startsAt: "2026-10-24T09:00:00+05:30",
   endsAt: "2026-10-24T17:00:00+05:30",
   timeRange: "Schedule to be announced",
-  regClosesAt: "2026-10-23T23:59:59+05:30",
+  regClosesAt: "2026-10-22T19:30:00+05:30",
   minTeamSize: 2,
   maxTeamSize: 4,
   fee: "Free",

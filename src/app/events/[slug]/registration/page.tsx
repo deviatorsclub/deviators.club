@@ -687,7 +687,9 @@ export default function EventRegistrationPage({
     : 0;
   const isRegClosed =
     (regDeadline > 0 && Date.now() >= regDeadline) ||
-    slug === "debug-decrypt-3.0";
+    slug === "debug-decrypt-3.0" ||
+    slug === "web-lumina-2026" ||
+    slug === "web-lumina";
 
   if (isRegClosed) {
     return (
